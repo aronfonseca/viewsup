@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
@@ -9,9 +10,11 @@ import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const url = searchParams.get("url") || "";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!url) {
@@ -19,10 +22,18 @@ const Results = () => {
       return;
     }
     setLoading(true);
-    analyzeProfile(url).then((data) => {
-      setAnalysis(data);
-      setLoading(false);
-    });
+    setError(null);
+    analyzeProfile(url)
+      .then((data) => {
+        setAnalysis(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : "Analysis failed";
+        setError(msg);
+        setLoading(false);
+        toast({ title: "Analysis Error", description: msg, variant: "destructive" });
+      });
   }, [url, navigate]);
 
   if (loading) {
