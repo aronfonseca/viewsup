@@ -66,7 +66,7 @@ export async function analyzeProfile(url: string): Promise<ProfileAnalysis> {
         original:
           "Check out our new product launch! Link in bio. #newproduct #launch",
         rewritten:
-          "We almost didn't launch this.\n\nAfter 6 months of testing, 47 iterations, and one near-meltdown — it's finally here.\n\nBut here's what nobody tells you about launches:\n\n→ The product is only 20% of success\n→ The story behind it matters more\n→ Your first 100 users define everything\n\nWe're giving early access to the first 50 people who comment "EARLY" below.\n\nNo link-in-bio games. Just comment and we'll DM you.",
+          "We almost didn't launch this.\n\nAfter 6 months of testing, 47 iterations, and one near-meltdown — it's finally here.\n\nBut here's what nobody tells you about launches:\n\n→ The product is only 20% of success\n→ The story behind it matters more\n→ Your first 100 users define everything\n\nWe're giving early access to the first 50 people who comment 'EARLY' below.\n\nNo link-in-bio games. Just comment and we'll DM you.",
       },
       {
         original: "Monday motivation! Let's crush this week 💪 #mondaymotivation",
