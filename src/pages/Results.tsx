@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
@@ -9,9 +10,11 @@ import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const url = searchParams.get("url") || "";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!url) {
@@ -19,10 +22,18 @@ const Results = () => {
       return;
     }
     setLoading(true);
-    analyzeProfile(url).then((data) => {
-      setAnalysis(data);
-      setLoading(false);
-    });
+    setError(null);
+    analyzeProfile(url)
+      .then((data) => {
+        setAnalysis(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : "Analysis failed";
+        setError(msg);
+        setLoading(false);
+        toast({ title: "Analysis Error", description: msg, variant: "destructive" });
+      });
   }, [url, navigate]);
 
   if (loading) {
@@ -35,6 +46,21 @@ const Results = () => {
         <div className="text-center">
           <p className="text-lg font-semibold text-foreground">Analyzing profile…</p>
           <p className="text-sm text-muted-foreground mt-1">Scanning posts, detecting patterns, generating insights</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-6">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <div className="text-center max-w-md">
+          <p className="text-lg font-semibold text-foreground mb-2">Analysis Failed</p>
+          <p className="text-sm text-muted-foreground mb-6">{error}</p>
+          <Button onClick={() => navigate("/")} className="gradient-bg text-primary-foreground">
+            Try Again
+          </Button>
         </div>
       </div>
     );
