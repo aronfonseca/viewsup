@@ -51,6 +51,21 @@ const Results = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-6">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <div className="text-center max-w-md">
+          <p className="text-lg font-semibold text-foreground mb-2">Analysis Failed</p>
+          <p className="text-sm text-muted-foreground mb-6">{error}</p>
+          <Button onClick={() => navigate("/")} className="gradient-bg text-primary-foreground">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!analysis) return null;
 
   return (
