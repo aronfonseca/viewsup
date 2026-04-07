@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw, Timer, Eye, Volume2, MousePointerClick, Trophy, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,37 @@ import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
+
+/** Renders text with markdown-style [label](url) links as clickable <a> tags */
+const RichText = ({ text }: { text: string }) => {
+  const parts = useMemo(() => {
+    const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    const result: (string | { label: string; url: string })[] = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) result.push(text.slice(lastIndex, match.index));
+      result.push({ label: match[1], url: match[2] });
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) result.push(text.slice(lastIndex));
+    return result;
+  }, [text]);
+
+  return (
+    <span>
+      {parts.map((p, i) =>
+        typeof p === "string" ? (
+          <span key={i}>{p}</span>
+        ) : (
+          <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+            {p.label}
+          </a>
+        )
+      )}
+    </span>
+  );
+};
 
 const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconColor }: {
   icon: React.ElementType;
@@ -42,12 +73,12 @@ const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconCo
       {issues.map((issue, i) => (
         <li key={i} className="flex gap-3 text-sm text-foreground">
           <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-          {issue}
+          <RichText text={issue} />
         </li>
       ))}
     </ul>
     <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-      <p className="text-sm text-foreground italic">{insight}</p>
+      <p className="text-sm text-foreground italic"><RichText text={insight} /></p>
     </div>
   </div>
 );
@@ -248,7 +279,7 @@ const Results = () => {
               {analysis.issues.map((issue, i) => (
                 <li key={i} className="flex gap-3 text-sm text-foreground">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                  {issue}
+                  <RichText text={issue} />
                 </li>
               ))}
             </ul>
@@ -263,7 +294,7 @@ const Results = () => {
               {analysis.patterns.map((p, i) => (
                 <li key={i} className="flex gap-3 text-sm text-foreground">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
-                  {p}
+                  <RichText text={p} />
                 </li>
               ))}
             </ul>

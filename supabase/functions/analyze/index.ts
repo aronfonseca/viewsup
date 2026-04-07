@@ -133,15 +133,29 @@ const ANALYSIS_SCHEMA = {
         required: ["score", "grammarErrors", "issues", "insight"],
         additionalProperties: false,
       },
+      recentPosts: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            postUrl: { type: "string", description: "Full Instagram post URL, e.g. https://instagram.com/p/ABC123" },
+            shortCode: { type: "string", description: "The post shortcode (e.g. ABC123)" },
+            description: { type: "string", description: "Brief description of the post content" },
+          },
+          required: ["postUrl", "shortCode", "description"],
+          additionalProperties: false,
+        },
+        description: "10 simulated recent posts with realistic Instagram shortcodes. Generate realistic-looking shortcodes (11 alphanumeric chars).",
+      },
       issues: {
         type: "array",
         items: { type: "string" },
-        description: "4-8 specific content issues detected, with concrete details and numbers",
+        description: "4-8 specific content issues detected. ALWAYS reference specific posts by their URL in markdown link format, e.g. [this post](https://instagram.com/p/ABC123). Use the shortcodes from recentPosts.",
       },
       patterns: {
         type: "array",
         items: { type: "string" },
-        description: "3-5 positive content patterns detected, with data-backed observations",
+        description: "3-5 positive content patterns detected. ALWAYS reference specific posts by their URL in markdown link format. Use the shortcodes from recentPosts.",
       },
       improvedHooks: {
         type: "array",
@@ -175,6 +189,7 @@ const ANALYSIS_SCHEMA = {
       "ctaStrength",
       "benchmarkComparison",
       "captionLanguageQuality",
+      "recentPosts",
       "issues",
       "patterns",
       "improvedHooks",
@@ -225,6 +240,12 @@ You MUST analyze these 6 advanced dimensions in detail:
 5. **Benchmark Comparison** — Compare the profile against elite creators (Steven Bartlett, Alex Hormozi, etc). Analyze editing density gap, words per caption, B-roll usage. Show the technical difference.
 
 6. **Caption Language Quality** — Analyze the English quality of captions. Look for grammar errors, spelling mistakes, awkward phrasing. Provide specific corrections.
+
+CRITICAL RULE — POST REFERENCES:
+- First, generate 10 recent posts with realistic Instagram shortcodes (11 alphanumeric characters like "CxR4kL9mNpQ") in the recentPosts array.
+- Then, in ALL issues, patterns, hook retention issues, visual fatigue issues, audio clarity issues, CTA strength issues, benchmark issues, and caption language issues, you MUST reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE) or [post from 3 days ago](https://instagram.com/p/SHORTCODE).
+- Every issue and insight should mention at least one specific post link.
+- This makes the analysis feel real and data-driven.
 
 Issues should be specific with numbers. Patterns should include engagement multipliers. Hooks should be scroll-stopping. Caption rewrites should be dramatically better than originals.`;
 
