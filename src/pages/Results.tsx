@@ -1,11 +1,56 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw } from "lucide-react";
+import { Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw, Timer, Eye, Volume2, MousePointerClick, Trophy, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
+
+const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconColor }: {
+  icon: React.ElementType;
+  title: string;
+  score?: number;
+  stats?: { label: string; value: string | number }[];
+  issues: string[];
+  insight: string;
+  iconColor: string;
+}) => (
+  <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <Icon className={`h-5 w-5 ${iconColor}`} />
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{title}</h2>
+      </div>
+      {score !== undefined && (
+        <span className={`text-2xl font-bold ${score >= 70 ? "text-success" : score >= 45 ? "text-warning" : "text-destructive"}`}>
+          {score}
+        </span>
+      )}
+    </div>
+    {stats && stats.length > 0 && (
+      <div className="flex flex-wrap gap-3 mb-4">
+        {stats.map((s) => (
+          <div key={s.label} className="px-3 py-1.5 rounded-lg bg-secondary text-xs">
+            <span className="text-muted-foreground">{s.label}: </span>
+            <span className="font-semibold text-foreground">{s.value}</span>
+          </div>
+        ))}
+      </div>
+    )}
+    <ul className="space-y-2 mb-4">
+      {issues.map((issue, i) => (
+        <li key={i} className="flex gap-3 text-sm text-foreground">
+          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+          {issue}
+        </li>
+      ))}
+    </ul>
+    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+      <p className="text-sm text-foreground italic">{insight}</p>
+    </div>
+  </div>
+);
 
 const Results = () => {
   const [searchParams] = useSearchParams();
@@ -45,7 +90,7 @@ const Results = () => {
         </div>
         <div className="text-center">
           <p className="text-lg font-semibold text-foreground">Analyzing profile…</p>
-          <p className="text-sm text-muted-foreground mt-1">Scanning posts, detecting patterns, generating insights</p>
+          <p className="text-sm text-muted-foreground mt-1">Scanning videos, detecting patterns, generating insights</p>
         </div>
       </div>
     );
@@ -104,6 +149,92 @@ const Results = () => {
               <DimensionBar key={d.name} dim={d} />
             ))}
           </div>
+        </div>
+
+        {/* Advanced Analysis - 6 new sections */}
+        <h2 className="text-lg font-bold text-foreground mb-4">🎬 Advanced Video Diagnostics</h2>
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+          {analysis.hookRetention && (
+            <AdvancedCard
+              icon={Timer}
+              title="Hook Retention"
+              score={analysis.hookRetention.score}
+              stats={[
+                { label: "Audience Lost (3s)", value: `${analysis.hookRetention.audienceLostPercent}%` },
+              ]}
+              issues={analysis.hookRetention.issues}
+              insight={analysis.hookRetention.insight}
+              iconColor="text-warning"
+            />
+          )}
+          {analysis.visualFatigue && (
+            <AdvancedCard
+              icon={Eye}
+              title="Visual Fatigue"
+              score={analysis.visualFatigue.score}
+              stats={[
+                { label: "Avg Between Cuts", value: `${analysis.visualFatigue.avgSecondsBetweenCuts}s` },
+                { label: "Static Segments", value: analysis.visualFatigue.staticSegments },
+              ]}
+              issues={analysis.visualFatigue.issues}
+              insight={analysis.visualFatigue.insight}
+              iconColor="text-primary"
+            />
+          )}
+          {analysis.audioClarity && (
+            <AdvancedCard
+              icon={Volume2}
+              title="Audio & Sound Design"
+              score={analysis.audioClarity.score}
+              stats={[
+                { label: "BG Music", value: analysis.audioClarity.hasBackgroundMusic ? "Yes" : "No" },
+                { label: "SFX", value: analysis.audioClarity.hasSoundEffects ? "Yes" : "No" },
+              ]}
+              issues={analysis.audioClarity.issues}
+              insight={analysis.audioClarity.insight}
+              iconColor="text-success"
+            />
+          )}
+          {analysis.ctaStrength && (
+            <AdvancedCard
+              icon={MousePointerClick}
+              title="CTA Strength"
+              score={analysis.ctaStrength.score}
+              stats={[
+                { label: "Avg CTAs/Video", value: analysis.ctaStrength.avgCtasPerVideo },
+              ]}
+              issues={analysis.ctaStrength.issues}
+              insight={analysis.ctaStrength.insight}
+              iconColor="text-destructive"
+            />
+          )}
+          {analysis.benchmarkComparison && (
+            <AdvancedCard
+              icon={Trophy}
+              title={`Benchmark vs ${analysis.benchmarkComparison.comparedTo}`}
+              stats={[
+                { label: "Edit Density Gap", value: `${analysis.benchmarkComparison.editDensityGap}%` },
+                { label: "Your Avg Words", value: analysis.benchmarkComparison.captionWordCountAvg },
+                { label: "Elite Avg Words", value: analysis.benchmarkComparison.eliteCaptionWordCountAvg },
+              ]}
+              issues={analysis.benchmarkComparison.issues}
+              insight={analysis.benchmarkComparison.insight}
+              iconColor="text-warning"
+            />
+          )}
+          {analysis.captionLanguageQuality && (
+            <AdvancedCard
+              icon={Languages}
+              title="Caption Language Quality"
+              score={analysis.captionLanguageQuality.score}
+              stats={[
+                { label: "Grammar Errors", value: analysis.captionLanguageQuality.grammarErrors },
+              ]}
+              issues={analysis.captionLanguageQuality.issues}
+              insight={analysis.captionLanguageQuality.insight}
+              iconColor="text-primary"
+            />
+          )}
         </div>
 
         {/* Issues + Patterns */}
