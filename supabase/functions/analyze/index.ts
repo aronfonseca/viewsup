@@ -241,6 +241,12 @@ You MUST analyze these 6 advanced dimensions in detail:
 
 6. **Caption Language Quality** — Analyze the English quality of captions. Look for grammar errors, spelling mistakes, awkward phrasing. Provide specific corrections.
 
+CRITICAL RULE — POST REFERENCES:
+- First, generate 10 recent posts with realistic Instagram shortcodes (11 alphanumeric characters like "CxR4kL9mNpQ") in the recentPosts array.
+- Then, in ALL issues, patterns, hook retention issues, visual fatigue issues, audio clarity issues, CTA strength issues, benchmark issues, and caption language issues, you MUST reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE) or [post from 3 days ago](https://instagram.com/p/SHORTCODE).
+- Every issue and insight should mention at least one specific post link.
+- This makes the analysis feel real and data-driven.
+
 Issues should be specific with numbers. Patterns should include engagement multipliers. Hooks should be scroll-stopping. Caption rewrites should be dramatically better than originals.`;
 
     const userPrompt = `Analyze the Instagram profile @${username} (URL: ${url}). Provide a complete content diagnostic with all scores, advanced video analysis (hook retention, visual fatigue, audio clarity, CTA strength, benchmark comparison, caption language quality), issues, patterns, improved hooks, and rewritten captions. Make it feel like a real analysis based on their niche.`;
