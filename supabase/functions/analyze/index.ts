@@ -133,15 +133,29 @@ const ANALYSIS_SCHEMA = {
         required: ["score", "grammarErrors", "issues", "insight"],
         additionalProperties: false,
       },
+      recentPosts: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            postUrl: { type: "string", description: "Full Instagram post URL, e.g. https://instagram.com/p/ABC123" },
+            shortCode: { type: "string", description: "The post shortcode (e.g. ABC123)" },
+            description: { type: "string", description: "Brief description of the post content" },
+          },
+          required: ["postUrl", "shortCode", "description"],
+          additionalProperties: false,
+        },
+        description: "10 simulated recent posts with realistic Instagram shortcodes. Generate realistic-looking shortcodes (11 alphanumeric chars).",
+      },
       issues: {
         type: "array",
         items: { type: "string" },
-        description: "4-8 specific content issues detected, with concrete details and numbers",
+        description: "4-8 specific content issues detected. ALWAYS reference specific posts by their URL in markdown link format, e.g. [this post](https://instagram.com/p/ABC123). Use the shortcodes from recentPosts.",
       },
       patterns: {
         type: "array",
         items: { type: "string" },
-        description: "3-5 positive content patterns detected, with data-backed observations",
+        description: "3-5 positive content patterns detected. ALWAYS reference specific posts by their URL in markdown link format. Use the shortcodes from recentPosts.",
       },
       improvedHooks: {
         type: "array",
