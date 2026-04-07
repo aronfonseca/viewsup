@@ -294,7 +294,7 @@ const Results = () => {
               {analysis.patterns.map((p, i) => (
                 <li key={i} className="flex gap-3 text-sm text-foreground">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
-                  {p}
+                  <RichText text={p} />
                 </li>
               ))}
             </ul>
