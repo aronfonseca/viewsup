@@ -78,7 +78,7 @@ const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconCo
       ))}
     </ul>
     <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-      <p className="text-sm text-foreground italic">{insight}</p>
+      <p className="text-sm text-foreground italic"><RichText text={insight} /></p>
     </div>
   </div>
 );
