@@ -189,6 +189,7 @@ const ANALYSIS_SCHEMA = {
       "ctaStrength",
       "benchmarkComparison",
       "captionLanguageQuality",
+      "recentPosts",
       "issues",
       "patterns",
       "improvedHooks",
