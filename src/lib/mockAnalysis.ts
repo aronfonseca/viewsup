@@ -44,6 +44,12 @@ export interface CaptionLanguageQuality extends AdvancedSection {
   grammarErrors: number;
 }
 
+export interface RecentPost {
+  postUrl: string;
+  shortCode: string;
+  description: string;
+}
+
 export interface ProfileAnalysis {
   url: string;
   username: string;
@@ -55,6 +61,7 @@ export interface ProfileAnalysis {
   ctaStrength: CtaStrength;
   benchmarkComparison: BenchmarkComparison;
   captionLanguageQuality: CaptionLanguageQuality;
+  recentPosts: RecentPost[];
   issues: string[];
   patterns: string[];
   improvedHooks: string[];
