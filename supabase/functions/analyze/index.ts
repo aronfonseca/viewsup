@@ -286,14 +286,12 @@ serve(async (req) => {
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
 
-    // Detect language
-    const lang = (browserLanguage || "").toLowerCase();
-    const isPtBr = lang.startsWith("pt");
-    const outputLang = isPtBr ? "pt-BR" : "en-GB";
+    // Force PT-BR always
+    const outputLang = "pt-BR";
 
     const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
 
-OUTPUT LANGUAGE: ALL text in the response MUST be in ${outputLang === "pt-BR" ? "Português Brasileiro (PT-BR). Use gírias e expressões brasileiras naturais." : "British English (EN-GB)."}
+OUTPUT LANGUAGE: ALL text in the response MUST be in Português Brasileiro (PT-BR). Use gírias e expressões brasileiras naturais. NUNCA escreva em inglês. Todos os insights, issues, patterns, hooks, legendas, problemas e soluções DEVEM estar em português.
 
 Given an Instagram username, simulate having analyzed their profile and last 10 videos. Be specific, data-driven, brutally honest but constructive. Scores should be realistic (most profiles 35-70, rarely above 80).
 
@@ -324,7 +322,7 @@ Compare against TWO elite creators with specific gap percentages:
 ═══ MODULE 5: BURNING PROBLEMS + FONSECA FILMS SOLUTION ═══
 • Identify the 3 errors costing the client money RIGHT NOW.
 • For each, explain the business impact and how Fonseca Films (professional strategy + editing) would fix it.
-${outputLang === "pt-BR" ? '• Use language like: "A Fonseca Films resolve isso com...", "Nossa edição profissional garante..."' : '• Use language like: "Fonseca Films fixes this by...", "Our professional editing ensures..."'}
+• Use language like: "A Fonseca Films resolve isso com...", "Nossa edição profissional garante..."
 
 ═══ MODULE 6: CAPTION LANGUAGE QUALITY ═══
 • Analyze grammar, spelling, and phrasing quality of captions.
@@ -340,7 +338,7 @@ ${outputLang === "pt-BR" ? '• Use language like: "A Fonseca Films resolve isso
 • 5 scroll-stopping hooks for future content
 • 3 before/after caption rewrites`;
 
-    const userPrompt = `Analyze the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 6 modules. Language: ${outputLang}.`;
+    const userPrompt = `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 6 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
