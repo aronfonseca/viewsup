@@ -237,7 +237,10 @@ You MUST analyze these 6 advanced dimensions in detail:
 
 4. **CTA Strength (Chamada para Ação)** — Analyze how videos end. Look for: abrupt endings, multiple conflicting CTAs ("like, comment, share, click the link"). Recommend single Conversion Goal per video.
 
-5. **Benchmark Comparison** — Compare the profile against elite creators (Steven Bartlett, Alex Hormozi, etc). Analyze editing density gap, words per caption, B-roll usage. Show the technical difference.
+5. **Benchmark Comparison** — Compare the profile against TWO elite reference creators:
+   - **@hormozi (Alex Hormozi)** — The GOLD STANDARD for Hook Retention. His reels (https://www.instagram.com/hormozi/reels/) use aggressive hard hooks: bold text fills the screen in the first frame, pattern interrupts every 2-3 seconds, rapid cuts, and powerful opening lines. Compare the client's hook strategy, cut frequency, and visual density directly against Hormozi's style.
+   - **@steven (Steven Bartlett)** — The GOLD STANDARD for Storytelling & Emotional Pull. His content (https://www.instagram.com/steven/) uses cinematic B-roll, emotional narrative arcs, vulnerability-based hooks, and premium sound design. Compare the client's storytelling depth, emotional engagement, and production quality against Steven's style.
+   Analyze editing density gap, words per caption, B-roll usage, hook aggressiveness (vs Hormozi), and narrative depth (vs Steven). Show the technical difference against BOTH creators.
 
 6. **Caption Language Quality** — Analyze the English quality of captions. Look for grammar errors, spelling mistakes, awkward phrasing. Provide specific corrections.
 
