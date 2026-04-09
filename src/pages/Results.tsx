@@ -113,10 +113,10 @@ const Results = () => {
     analyzeProfile(url)
       .then((data) => { setAnalysis(data); setLoading(false); })
       .catch((err) => {
-        const msg = err instanceof Error ? err.message : "Analysis failed";
+        const msg = err instanceof Error ? err.message : "Falha na análise";
         setError(msg);
         setLoading(false);
-        toast({ title: "Analysis Error", description: msg, variant: "destructive" });
+        toast({ title: "Erro na Análise", description: msg, variant: "destructive" });
       });
   }, [url, navigate]);
 
@@ -128,8 +128,8 @@ const Results = () => {
           <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
         </div>
         <div className="text-center">
-          <p className="text-lg font-semibold text-foreground">Analyzing profile…</p>
-          <p className="text-sm text-muted-foreground mt-1">Scanning videos, detecting patterns, generating insights</p>
+          <p className="text-lg font-semibold text-foreground">Analisando perfil…</p>
+          <p className="text-sm text-muted-foreground mt-1">Escaneando vídeos, detectando padrões, gerando insights</p>
         </div>
       </div>
     );
@@ -140,17 +140,15 @@ const Results = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-6">
         <AlertTriangle className="h-12 w-12 text-destructive" />
         <div className="text-center max-w-md">
-          <p className="text-lg font-semibold text-foreground mb-2">Analysis Failed</p>
+          <p className="text-lg font-semibold text-foreground mb-2">Falha na Análise</p>
           <p className="text-sm text-muted-foreground mb-6">{error}</p>
-          <Button onClick={() => navigate("/")} className="gradient-bg text-primary-foreground">Try Again</Button>
+          <Button onClick={() => navigate("/")} className="gradient-bg text-primary-foreground">Tentar Novamente</Button>
         </div>
       </div>
     );
   }
 
   if (!analysis) return null;
-
-  const isPt = analysis.language === "pt-BR";
 
   return (
     <div className="min-h-screen bg-background">
@@ -164,26 +162,26 @@ const Results = () => {
         </div>
         <Button variant="ghost" onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          {isPt ? "Nova Análise" : "New Analysis"}
+          Nova Análise
         </Button>
       </nav>
 
       <main className="relative z-10 max-w-5xl mx-auto px-6 pb-20">
         {/* Header */}
         <div className="mb-10">
-          <p className="text-sm text-muted-foreground mb-1">{isPt ? "Análise para" : "Analysis for"}</p>
+          <p className="text-sm text-muted-foreground mb-1">Análise para</p>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">@{analysis.username}</h1>
         </div>
 
         {/* Score + Dimensions */}
         <div className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
           <div className="flex flex-col items-center justify-center p-8 rounded-xl bg-card border border-border card-shadow">
-            <p className="text-xs text-muted-foreground mb-4 uppercase tracking-wider">Performance Score</p>
+            <p className="text-xs text-muted-foreground mb-4 uppercase tracking-wider">Pontuação Geral</p>
             <ScoreRing score={analysis.overallScore} />
           </div>
           <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              {isPt ? "Dimensões" : "Dimension Breakdown"}
+              Dimensões
             </h2>
             {analysis.dimensions.map((d) => <DimensionBar key={d.name} dim={d} />)}
           </div>
@@ -193,17 +191,17 @@ const Results = () => {
         {analysis.profileHealth && (
           <>
             <h2 className="text-lg font-bold text-foreground mb-4">
-              🏥 {isPt ? "Saúde do Perfil" : "Profile Health"}
+              🏥 Saúde do Perfil
             </h2>
             <div className="grid md:grid-cols-3 gap-6 mb-10">
               <AdvancedCard
                 icon={Palette}
-                title={isPt ? "Consistência Visual" : "Visual Consistency"}
+                title="Consistência Visual"
                 score={analysis.profileHealth.visualConsistency.score}
                 stats={[
-                  { label: isPt ? "Padrão de Cores" : "Color Pattern", value: analysis.profileHealth.visualConsistency.hasColorPattern },
-                  { label: isPt ? "Padrão de Fonte" : "Font Pattern", value: analysis.profileHealth.visualConsistency.hasFontPattern },
-                  { label: isPt ? "Rosto Visível" : "Face Visible", value: analysis.profileHealth.visualConsistency.hostFaceVisible },
+                  { label: "Padrão de Cores", value: analysis.profileHealth.visualConsistency.hasColorPattern },
+                  { label: "Padrão de Fonte", value: analysis.profileHealth.visualConsistency.hasFontPattern },
+                  { label: "Rosto Visível", value: analysis.profileHealth.visualConsistency.hostFaceVisible },
                 ]}
                 issues={analysis.profileHealth.visualConsistency.issues}
                 insight={analysis.profileHealth.visualConsistency.insight}
@@ -211,10 +209,10 @@ const Results = () => {
               />
               <AdvancedCard
                 icon={Link2}
-                title={isPt ? "Bio & Hook" : "Bio & Hook"}
+                title="Bio & Hook"
                 stats={[
                   { label: "USP", value: analysis.profileHealth.bioHook.hasUSP },
-                  { label: isPt ? "Link Visível" : "Visible Link", value: analysis.profileHealth.bioHook.hasVisibleLink },
+                  { label: "Link Visível", value: analysis.profileHealth.bioHook.hasVisibleLink },
                 ]}
                 issues={analysis.profileHealth.bioHook.issues}
                 insight={analysis.profileHealth.bioHook.insight}
@@ -224,7 +222,7 @@ const Results = () => {
                 <div className="flex items-center gap-2 mb-4">
                   <Users className="h-5 w-5 text-warning" />
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                    {isPt ? "Engajamento" : "Engagement Ratio"}
+                    Engajamento
                   </h2>
                 </div>
                 <div className="flex items-center gap-4 mb-4">
@@ -237,11 +235,11 @@ const Results = () => {
                 </div>
                 <div className="flex gap-3 mb-4">
                   <div className="px-3 py-1.5 rounded-lg bg-secondary text-xs">
-                    <span className="text-muted-foreground">Avg Likes: </span>
+                    <span className="text-muted-foreground">Média de Likes: </span>
                     <span className="font-semibold text-foreground">{analysis.profileHealth.engagementRatio.avgLikes}</span>
                   </div>
                   <div className="px-3 py-1.5 rounded-lg bg-secondary text-xs">
-                    <span className="text-muted-foreground">Avg Comments: </span>
+                    <span className="text-muted-foreground">Média de Comentários: </span>
                     <span className="font-semibold text-foreground">{analysis.profileHealth.engagementRatio.avgComments}</span>
                   </div>
                 </div>
@@ -263,18 +261,18 @@ const Results = () => {
 
         {/* ══ Video Engineering ══ */}
         <h2 className="text-lg font-bold text-foreground mb-4">
-          🎬 {isPt ? "Engenharia de Vídeo" : "Video Engineering"}
+          🎬 Engenharia de Vídeo
         </h2>
         <div className="grid md:grid-cols-2 gap-6 mb-10">
           {analysis.hookRetention && (
             <AdvancedCard
               icon={Timer}
-              title="Hook Retention"
+              title="Retenção de Hook"
               score={analysis.hookRetention.score}
               stats={[
-                { label: isPt ? "Audiência Perdida (3s)" : "Audience Lost (3s)", value: `${analysis.hookRetention.audienceLostPercent}%` },
-                { label: isPt ? "Hook Visual" : "Visual Hook", value: analysis.hookRetention.hasVisualHook },
-                { label: isPt ? "Hook Verbal" : "Verbal Hook", value: analysis.hookRetention.hasVerbalHook },
+                { label: "Audiência Perdida (3s)", value: `${analysis.hookRetention.audienceLostPercent}%` },
+                { label: "Hook Visual", value: analysis.hookRetention.hasVisualHook },
+                { label: "Hook Verbal", value: analysis.hookRetention.hasVerbalHook },
               ]}
               issues={analysis.hookRetention.issues}
               insight={analysis.hookRetention.insight}
@@ -284,11 +282,11 @@ const Results = () => {
           {analysis.visualFatigue && (
             <AdvancedCard
               icon={Eye}
-              title={isPt ? "Fadiga Visual" : "Visual Fatigue"}
+              title="Fadiga Visual"
               score={analysis.visualFatigue.score}
               stats={[
-                { label: isPt ? "Média entre Cortes" : "Avg Between Cuts", value: `${analysis.visualFatigue.avgSecondsBetweenCuts}s` },
-                { label: isPt ? "Segmentos Estáticos" : "Static Segments", value: analysis.visualFatigue.staticSegments },
+                { label: "Média entre Cortes", value: `${analysis.visualFatigue.avgSecondsBetweenCuts}s` },
+                { label: "Segmentos Estáticos", value: analysis.visualFatigue.staticSegments },
               ]}
               issues={analysis.visualFatigue.issues}
               insight={analysis.visualFatigue.insight}
@@ -298,11 +296,11 @@ const Results = () => {
           {analysis.safeZoneAudit && (
             <AdvancedCard
               icon={Shield}
-              title="Safe Zone"
+              title="Zona Segura"
               score={analysis.safeZoneAudit.score}
               stats={[
-                { label: isPt ? "Legendas Fora da Zona" : "Captions Out of Zone", value: analysis.safeZoneAudit.captionsOutOfZone },
-                { label: isPt ? "CTAs Escondidos" : "CTAs Hidden", value: analysis.safeZoneAudit.ctasHidden },
+                { label: "Legendas Fora da Zona", value: analysis.safeZoneAudit.captionsOutOfZone },
+                { label: "CTAs Escondidos", value: analysis.safeZoneAudit.ctasHidden },
               ]}
               issues={analysis.safeZoneAudit.issues}
               insight={analysis.safeZoneAudit.insight}
@@ -312,11 +310,11 @@ const Results = () => {
           {analysis.audioClarity && (
             <AdvancedCard
               icon={Volume2}
-              title={isPt ? "Áudio & Sound Design" : "Audio & Sound Design"}
+              title="Áudio & Sound Design"
               score={analysis.audioClarity.score}
               stats={[
-                { label: isPt ? "Música BG" : "BG Music", value: analysis.audioClarity.hasBackgroundMusic },
-                { label: "SFX", value: analysis.audioClarity.hasSoundEffects },
+                { label: "Música BG", value: analysis.audioClarity.hasBackgroundMusic },
+                { label: "Efeitos Sonoros", value: analysis.audioClarity.hasSoundEffects },
               ]}
               issues={analysis.audioClarity.issues}
               insight={analysis.audioClarity.insight}
@@ -326,10 +324,10 @@ const Results = () => {
           {analysis.ctaStrength && (
             <AdvancedCard
               icon={MousePointerClick}
-              title={isPt ? "Força do CTA" : "CTA Strength"}
+              title="Força do CTA"
               score={analysis.ctaStrength.score}
               stats={[
-                { label: isPt ? "CTAs/Vídeo" : "Avg CTAs/Video", value: analysis.ctaStrength.avgCtasPerVideo },
+                { label: "CTAs/Vídeo", value: analysis.ctaStrength.avgCtasPerVideo },
               ]}
               issues={analysis.ctaStrength.issues}
               insight={analysis.ctaStrength.insight}
@@ -339,10 +337,10 @@ const Results = () => {
           {analysis.captionLanguageQuality && (
             <AdvancedCard
               icon={Languages}
-              title={isPt ? "Qualidade das Legendas" : "Caption Language Quality"}
+              title="Qualidade das Legendas"
               score={analysis.captionLanguageQuality.score}
               stats={[
-                { label: isPt ? "Erros de Gramática" : "Grammar Errors", value: analysis.captionLanguageQuality.grammarErrors },
+                { label: "Erros de Gramática", value: analysis.captionLanguageQuality.grammarErrors },
               ]}
               issues={analysis.captionLanguageQuality.issues}
               insight={analysis.captionLanguageQuality.insight}
@@ -355,16 +353,16 @@ const Results = () => {
         {analysis.benchmarkComparison && (
           <>
             <h2 className="text-lg font-bold text-foreground mb-4">
-              🏆 {isPt ? "Benchmark vs Elite" : "Benchmark vs Elite"}
+              🏆 Benchmark vs Elite
             </h2>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <AdvancedCard
                 icon={Trophy}
                 title="vs @hormozi"
                 stats={[
-                  { label: isPt ? "Gap Edição" : "Edit Density Gap", value: `${analysis.benchmarkComparison.hormoziGap.editDensityGap}%` },
-                  { label: isPt ? "Gap Hook" : "Hook Gap", value: `${analysis.benchmarkComparison.hormoziGap.hookAggressivenessGap}%` },
-                  { label: isPt ? "Gap Cortes" : "Cut Freq Gap", value: `${analysis.benchmarkComparison.hormoziGap.cutFrequencyGap}%` },
+                  { label: "Gap Edição", value: `${analysis.benchmarkComparison.hormoziGap.editDensityGap}%` },
+                  { label: "Gap Hook", value: `${analysis.benchmarkComparison.hormoziGap.hookAggressivenessGap}%` },
+                  { label: "Gap Cortes", value: `${analysis.benchmarkComparison.hormoziGap.cutFrequencyGap}%` },
                 ]}
                 issues={analysis.benchmarkComparison.hormoziGap.issues}
                 insight={analysis.benchmarkComparison.hormoziGap.insight}
@@ -374,9 +372,9 @@ const Results = () => {
                 icon={Trophy}
                 title="vs @steven"
                 stats={[
-                  { label: isPt ? "Gap Storytelling" : "Storytelling Gap", value: `${analysis.benchmarkComparison.stevenGap.storytellingGap}%` },
-                  { label: isPt ? "Gap Produção" : "Production Gap", value: `${analysis.benchmarkComparison.stevenGap.productionQualityGap}%` },
-                  { label: isPt ? "Gap Emoção" : "Emotion Gap", value: `${analysis.benchmarkComparison.stevenGap.emotionalDepthGap}%` },
+                  { label: "Gap Storytelling", value: `${analysis.benchmarkComparison.stevenGap.storytellingGap}%` },
+                  { label: "Gap Produção", value: `${analysis.benchmarkComparison.stevenGap.productionQualityGap}%` },
+                  { label: "Gap Emoção", value: `${analysis.benchmarkComparison.stevenGap.emotionalDepthGap}%` },
                 ]}
                 issues={analysis.benchmarkComparison.stevenGap.issues}
                 insight={analysis.benchmarkComparison.stevenGap.insight}
@@ -385,7 +383,7 @@ const Results = () => {
             </div>
             <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {isPt ? "3 Elementos que Faltam para Atingir o Nível Elite" : "3 Missing Elements to Reach Elite Level"}
+                3 Elementos que Faltam para Atingir o Nível Elite
               </h3>
               <div className="grid sm:grid-cols-3 gap-3">
                 {analysis.benchmarkComparison.top3MissingElements.map((el, i) => (
@@ -403,7 +401,7 @@ const Results = () => {
         {analysis.burningProblems && analysis.burningProblems.length > 0 && (
           <>
             <h2 className="text-lg font-bold text-foreground mb-4">
-              🔥 {isPt ? "Problemas que Estão Te Custando Dinheiro" : "The Burning Problems"}
+              🔥 Problemas que Estão Te Custando Dinheiro
             </h2>
             <div className="space-y-6 mb-10">
               {analysis.burningProblems.map((bp, i) => (
@@ -421,7 +419,7 @@ const Results = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <Target className="h-4 w-4 text-success" />
                       <span className="text-xs font-semibold text-success uppercase tracking-wider">
-                        {isPt ? "Solução Fonseca Films" : "Fonseca Films Solution"}
+                        Solução Fonseca Films
                       </span>
                     </div>
                     <p className="text-sm text-foreground"><RichText text={bp.solution} /></p>
@@ -436,7 +434,7 @@ const Results = () => {
         {analysis.contentPillars && analysis.contentPillars.length > 0 && (
           <>
             <h2 className="text-lg font-bold text-foreground mb-4">
-              📋 {isPt ? "Pilares de Conteúdo Sugeridos" : "Suggested Content Pillars"}
+              📋 Pilares de Conteúdo Sugeridos
             </h2>
             <div className="grid sm:grid-cols-3 gap-4 mb-10">
               {analysis.contentPillars.map((cp, i) => (
@@ -456,13 +454,13 @@ const Results = () => {
           </>
         )}
 
-        {/* Issues + Patterns */}
+        {/* Problemas + Padrões */}
         <div className="grid md:grid-cols-2 gap-6 mb-10">
           <div className="p-6 rounded-xl bg-card border border-border card-shadow">
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="h-4 w-4 text-destructive" />
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                {isPt ? "Problemas Detectados" : "Detected Issues"}
+                Problemas Detectados
               </h2>
             </div>
             <ul className="space-y-3">
@@ -478,7 +476,7 @@ const Results = () => {
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="h-4 w-4 text-success" />
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                {isPt ? "Padrões Positivos" : "Detected Patterns"}
+                Padrões Positivos
               </h2>
             </div>
             <ul className="space-y-3">
@@ -492,12 +490,12 @@ const Results = () => {
           </div>
         </div>
 
-        {/* Improved Hooks */}
+        {/* Hooks Gerados */}
         <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="h-4 w-4 text-warning" />
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              {isPt ? "Hooks Gerados por IA" : "AI-Generated Hooks"}
+              Hooks Gerados por IA
             </h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -507,12 +505,12 @@ const Results = () => {
           </div>
         </div>
 
-        {/* Rewritten Captions */}
+        {/* Legendas Reescritas */}
         <div className="p-6 rounded-xl bg-card border border-border card-shadow">
           <div className="flex items-center gap-2 mb-6">
             <RefreshCw className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              {isPt ? "Legendas Reescritas" : "Rewritten Captions"}
+              Legendas Reescritas
             </h2>
           </div>
           <div className="space-y-6">
@@ -523,7 +521,7 @@ const Results = () => {
                   <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
                 </div>
                 <div className="p-4 rounded-lg gradient-border bg-card">
-                  <p className="text-xs text-primary font-medium mb-2 uppercase">{isPt ? "Reescrita IA" : "AI Rewrite"}</p>
+                  <p className="text-xs text-primary font-medium mb-2 uppercase">Reescrita IA</p>
                   <p className="text-sm text-foreground whitespace-pre-line">{c.rewritten}</p>
                 </div>
               </div>

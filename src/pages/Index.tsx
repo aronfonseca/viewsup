@@ -16,9 +16,9 @@ const Index = () => {
   };
 
   const features = [
-    { icon: Search, title: "Deep Analysis", desc: "Scan your last 9 posts for hook quality, clarity, and structure" },
-    { icon: BarChart3, title: "Score & Insights", desc: "Get a 0–100 score across 5 key content dimensions" },
-    { icon: Lightbulb, title: "AI Rewrites", desc: "Receive improved hooks and rewritten captions instantly" },
+    { icon: Search, title: "Análise Profunda", desc: "Escaneie seus últimos 9 posts para qualidade de hook, clareza e estrutura" },
+    { icon: BarChart3, title: "Pontuação & Insights", desc: "Receba uma nota de 0 a 100 em 5 dimensões-chave de conteúdo" },
+    { icon: Lightbulb, title: "Reescritas com IA", desc: "Receba hooks melhorados e legendas reescritas instantaneamente" },
   ];
 
   return (
@@ -38,16 +38,16 @@ const Index = () => {
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-16 pb-24 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-xs font-medium text-muted-foreground mb-8">
           <Sparkles className="h-3 w-3 text-primary" />
-          AI-Powered Instagram Analytics
+          Diagnóstico de Instagram com IA
         </div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-          Turn your Instagram into a{" "}
-          <span className="gradient-text">growth machine</span>
+          Transforme seu Instagram em uma{" "}
+          <span className="gradient-text">máquina de crescimento</span>
         </h1>
 
         <p className="text-lg text-muted-foreground max-w-xl mb-10">
-          Paste any Instagram profile URL and get an instant AI diagnostic — scores, pattern detection, and rewritten captions that convert.
+          Cole qualquer URL de perfil do Instagram e receba um diagnóstico completo com IA — pontuações, detecção de padrões e legendas reescritas que convertem.
         </p>
 
         <form onSubmit={handleAnalyze} className="w-full max-w-lg flex flex-col sm:flex-row gap-3">
@@ -56,22 +56,22 @@ const Index = () => {
             <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://instagram.com/username"
+              placeholder="https://instagram.com/usuario"
               className="pl-10 h-12 bg-secondary border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
           <Button type="submit" className="h-12 px-8 gradient-bg font-semibold text-primary-foreground hover:opacity-90 transition-opacity">
-            Analyze Profile
+            Analisar Perfil
           </Button>
         </form>
 
-        <p className="text-xs text-muted-foreground mt-4">Free analysis • No login required • Results in seconds</p>
+        <p className="text-xs text-muted-foreground mt-4">Análise gratuita • Sem login • Resultados em segundos</p>
       </section>
 
       {/* Hero image */}
       <div className="relative z-0 max-w-5xl mx-auto px-6 -mt-8">
         <div className="rounded-2xl overflow-hidden glow">
-          <img src={heroBg} alt="AI analytics visualization" width={1920} height={1080} className="w-full h-auto opacity-60" />
+          <img src={heroBg} alt="Visualização de analytics com IA" width={1920} height={1080} className="w-full h-auto opacity-60" />
         </div>
       </div>
 
@@ -92,7 +92,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="relative z-10 text-center py-8 text-xs text-muted-foreground border-t border-border">
-        © 2026 ViralLens AI — Built for creators who want to grow.
+        © 2026 ViralLens AI — Feito para criadores que querem crescer.
       </footer>
     </div>
   );
