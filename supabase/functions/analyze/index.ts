@@ -9,13 +9,18 @@ const corsHeaders = {
 const ANALYSIS_SCHEMA = {
   name: "instagram_analysis",
   description:
-    "A structured Instagram profile analysis with scores, issues, patterns, hooks, rewritten captions, and advanced video diagnostics",
+    "Full Instagram audit: profile health, video engineering, benchmarking, conversion strategy, burning problems, and Fonseca Films solution",
   parameters: {
     type: "object",
     properties: {
+      language: {
+        type: "string",
+        enum: ["pt-BR", "en-GB"],
+        description: "Language used for all output text",
+      },
       overallScore: {
         type: "number",
-        description: "Overall content quality score from 0 to 100",
+        description: "Overall performance score 0–100",
       },
       dimensions: {
         type: "array",
@@ -24,64 +29,105 @@ const ANALYSIS_SCHEMA = {
           properties: {
             name: { type: "string" },
             score: { type: "number" },
-            label: {
-              type: "string",
-              enum: ["Very Weak", "Weak", "Below Average", "Average", "Good", "Strong", "Excellent"],
-            },
-            icon: {
-              type: "string",
-              enum: ["Zap", "Eye", "MessageCircle", "LayoutGrid", "Heart"],
-            },
+            label: { type: "string" },
+            icon: { type: "string", enum: ["Zap", "Eye", "MessageCircle", "LayoutGrid", "Heart"] },
           },
           required: ["name", "score", "label", "icon"],
           additionalProperties: false,
         },
-        description:
-          "Exactly 5 dimensions: Hook Strength (icon: Zap), Visual Clarity (icon: Eye), Engagement Trigger (icon: MessageCircle), Content Structure (icon: LayoutGrid), Emotional Pull (icon: Heart)",
+        description: "5 dimensions: Hook Strength, Visual Clarity, Engagement Trigger, Content Structure, Emotional Pull",
       },
+      // ── Module 2: Profile Health ──
+      profileHealth: {
+        type: "object",
+        properties: {
+          visualConsistency: {
+            type: "object",
+            properties: {
+              score: { type: "number" },
+              hasColorPattern: { type: "boolean" },
+              hasFontPattern: { type: "boolean" },
+              hostFaceVisible: { type: "boolean" },
+              issues: { type: "array", items: { type: "string" } },
+              insight: { type: "string" },
+            },
+            required: ["score", "hasColorPattern", "hasFontPattern", "hostFaceVisible", "issues", "insight"],
+            additionalProperties: false,
+          },
+          bioHook: {
+            type: "object",
+            properties: {
+              hasUSP: { type: "boolean", description: "Does the bio have a clear Unique Selling Proposition?" },
+              hasVisibleLink: { type: "boolean" },
+              issues: { type: "array", items: { type: "string" } },
+              insight: { type: "string" },
+            },
+            required: ["hasUSP", "hasVisibleLink", "issues", "insight"],
+            additionalProperties: false,
+          },
+          engagementRatio: {
+            type: "object",
+            properties: {
+              ratio: { type: "number", description: "Engagement-to-follower ratio as percentage" },
+              avgLikes: { type: "number" },
+              avgComments: { type: "number" },
+              healthLabel: { type: "string", enum: ["Healthy", "Average", "Low", "Critical"] },
+              issues: { type: "array", items: { type: "string" } },
+              insight: { type: "string" },
+            },
+            required: ["ratio", "avgLikes", "avgComments", "healthLabel", "issues", "insight"],
+            additionalProperties: false,
+          },
+        },
+        required: ["visualConsistency", "bioHook", "engagementRatio"],
+        additionalProperties: false,
+      },
+      // ── Module 3: Video Engineering ──
       hookRetention: {
         type: "object",
         properties: {
-          score: { type: "number", description: "Hook retention score 0-100" },
-          audienceLostPercent: { type: "number", description: "Estimated % of audience lost in first 3 seconds" },
-          issues: {
-            type: "array",
-            items: { type: "string" },
-            description: "3-5 specific hook retention problems found",
-          },
-          insight: { type: "string", description: "Actionable insight about Hard Hooks visuais" },
+          score: { type: "number" },
+          audienceLostPercent: { type: "number" },
+          hasVisualHook: { type: "boolean", description: "Dynamic text hook in first frame?" },
+          hasVerbalHook: { type: "boolean", description: "Strong verbal hook in first 3s?" },
+          issues: { type: "array", items: { type: "string" } },
+          insight: { type: "string" },
         },
-        required: ["score", "audienceLostPercent", "issues", "insight"],
+        required: ["score", "audienceLostPercent", "hasVisualHook", "hasVerbalHook", "issues", "insight"],
         additionalProperties: false,
       },
       visualFatigue: {
         type: "object",
         properties: {
-          score: { type: "number", description: "Visual dynamism score 0-100" },
-          avgSecondsBetweenCuts: { type: "number", description: "Average seconds between visual changes" },
-          staticSegments: { type: "number", description: "Number of segments with 5+ seconds of no visual change" },
-          issues: {
-            type: "array",
-            items: { type: "string" },
-            description: "3-5 specific visual fatigue problems",
-          },
-          insight: { type: "string", description: "Actionable insight about Dynamic Zooms and visual stimulation" },
+          score: { type: "number" },
+          avgSecondsBetweenCuts: { type: "number" },
+          staticSegments: { type: "number" },
+          issues: { type: "array", items: { type: "string" } },
+          insight: { type: "string" },
         },
         required: ["score", "avgSecondsBetweenCuts", "staticSegments", "issues", "insight"],
+        additionalProperties: false,
+      },
+      safeZoneAudit: {
+        type: "object",
+        properties: {
+          score: { type: "number" },
+          captionsOutOfZone: { type: "number", description: "Number of videos with captions outside safe zone" },
+          ctasHidden: { type: "number", description: "Number of videos with CTAs hidden by UI elements" },
+          issues: { type: "array", items: { type: "string" } },
+          insight: { type: "string" },
+        },
+        required: ["score", "captionsOutOfZone", "ctasHidden", "issues", "insight"],
         additionalProperties: false,
       },
       audioClarity: {
         type: "object",
         properties: {
-          score: { type: "number", description: "Audio quality and sound design score 0-100" },
+          score: { type: "number" },
           hasBackgroundMusic: { type: "boolean" },
           hasSoundEffects: { type: "boolean" },
-          issues: {
-            type: "array",
-            items: { type: "string" },
-            description: "3-5 audio quality problems detected",
-          },
-          insight: { type: "string", description: "Actionable insight about professional sound design" },
+          issues: { type: "array", items: { type: "string" } },
+          insight: { type: "string" },
         },
         required: ["score", "hasBackgroundMusic", "hasSoundEffects", "issues", "insight"],
         additionalProperties: false,
@@ -89,111 +135,130 @@ const ANALYSIS_SCHEMA = {
       ctaStrength: {
         type: "object",
         properties: {
-          score: { type: "number", description: "CTA effectiveness score 0-100" },
-          avgCtasPerVideo: { type: "number", description: "Average number of CTAs per video" },
-          issues: {
-            type: "array",
-            items: { type: "string" },
-            description: "3-5 CTA problems detected",
-          },
-          insight: { type: "string", description: "Actionable insight about single Conversion Goal strategy" },
+          score: { type: "number" },
+          avgCtasPerVideo: { type: "number" },
+          issues: { type: "array", items: { type: "string" } },
+          insight: { type: "string" },
         },
         required: ["score", "avgCtasPerVideo", "issues", "insight"],
         additionalProperties: false,
       },
+      // ── Module 4: Benchmarking ──
       benchmarkComparison: {
         type: "object",
         properties: {
-          comparedTo: { type: "string", description: "Name of elite creator compared against (e.g. Steven Bartlett, Alex Hormozi)" },
-          editDensityGap: { type: "number", description: "Percentage gap in editing density vs elite" },
-          captionWordCountAvg: { type: "number", description: "Average words per caption for this profile" },
-          eliteCaptionWordCountAvg: { type: "number", description: "Average words per caption for elite" },
-          issues: {
+          hormoziGap: {
+            type: "object",
+            properties: {
+              editDensityGap: { type: "number" },
+              hookAggressivenessGap: { type: "number" },
+              cutFrequencyGap: { type: "number" },
+              issues: { type: "array", items: { type: "string" } },
+              insight: { type: "string" },
+            },
+            required: ["editDensityGap", "hookAggressivenessGap", "cutFrequencyGap", "issues", "insight"],
+            additionalProperties: false,
+          },
+          stevenGap: {
+            type: "object",
+            properties: {
+              storytellingGap: { type: "number" },
+              productionQualityGap: { type: "number" },
+              emotionalDepthGap: { type: "number" },
+              issues: { type: "array", items: { type: "string" } },
+              insight: { type: "string" },
+            },
+            required: ["storytellingGap", "productionQualityGap", "emotionalDepthGap", "issues", "insight"],
+            additionalProperties: false,
+          },
+          top3MissingElements: {
             type: "array",
             items: { type: "string" },
-            description: "3-5 specific gaps compared to elite creators",
+            description: "3 key elements missing to reach elite level",
           },
-          insight: { type: "string", description: "Motivational insight comparing to elite level" },
         },
-        required: ["comparedTo", "editDensityGap", "captionWordCountAvg", "eliteCaptionWordCountAvg", "issues", "insight"],
+        required: ["hormoziGap", "stevenGap", "top3MissingElements"],
         additionalProperties: false,
       },
       captionLanguageQuality: {
         type: "object",
         properties: {
-          score: { type: "number", description: "English caption quality score 0-100" },
-          grammarErrors: { type: "number", description: "Number of grammar/spelling errors found" },
-          issues: {
-            type: "array",
-            items: { type: "string" },
-            description: "3-5 specific language quality issues",
-          },
-          insight: { type: "string", description: "Insight about caption language improvement" },
+          score: { type: "number" },
+          grammarErrors: { type: "number" },
+          issues: { type: "array", items: { type: "string" } },
+          insight: { type: "string" },
         },
         required: ["score", "grammarErrors", "issues", "insight"],
         additionalProperties: false,
       },
+      // ── Module 5: Conversion Strategy ──
+      contentPillars: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            theme: { type: "string" },
+            reasoning: { type: "string" },
+            exampleHook: { type: "string" },
+          },
+          required: ["theme", "reasoning", "exampleHook"],
+          additionalProperties: false,
+        },
+        description: "3 content pillar suggestions based on what performed best",
+      },
+      // ── Module 6: Burning Problems + Fonseca Films Solution ──
+      burningProblems: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            problem: { type: "string", description: "The error costing money NOW" },
+            impact: { type: "string", description: "Business impact of this problem" },
+            solution: { type: "string", description: "How Fonseca Films (strategy + editing) solves this" },
+          },
+          required: ["problem", "impact", "solution"],
+          additionalProperties: false,
+        },
+        description: "Exactly 3 burning problems with Fonseca Films solutions",
+      },
+      // ── Posts & Insights ──
       recentPosts: {
         type: "array",
         items: {
           type: "object",
           properties: {
-            postUrl: { type: "string", description: "Full Instagram post URL, e.g. https://instagram.com/p/ABC123" },
-            shortCode: { type: "string", description: "The post shortcode (e.g. ABC123)" },
-            description: { type: "string", description: "Brief description of the post content" },
+            postUrl: { type: "string" },
+            shortCode: { type: "string" },
+            description: { type: "string" },
           },
           required: ["postUrl", "shortCode", "description"],
           additionalProperties: false,
         },
-        description: "10 simulated recent posts with realistic Instagram shortcodes. Generate realistic-looking shortcodes (11 alphanumeric chars).",
+        description: "10 simulated recent posts with realistic shortcodes",
       },
-      issues: {
-        type: "array",
-        items: { type: "string" },
-        description: "4-8 specific content issues detected. ALWAYS reference specific posts by their URL in markdown link format, e.g. [this post](https://instagram.com/p/ABC123). Use the shortcodes from recentPosts.",
-      },
-      patterns: {
-        type: "array",
-        items: { type: "string" },
-        description: "3-5 positive content patterns detected. ALWAYS reference specific posts by their URL in markdown link format. Use the shortcodes from recentPosts.",
-      },
-      improvedHooks: {
-        type: "array",
-        items: { type: "string" },
-        description: "Exactly 5 compelling, scroll-stopping opening hooks for future posts",
-      },
+      issues: { type: "array", items: { type: "string" } },
+      patterns: { type: "array", items: { type: "string" } },
+      improvedHooks: { type: "array", items: { type: "string" }, description: "5 scroll-stopping hooks" },
       rewrittenCaptions: {
         type: "array",
         items: {
           type: "object",
           properties: {
-            original: { type: "string", description: "A realistic weak original caption" },
-            rewritten: {
-              type: "string",
-              description:
-                "A dramatically improved version with hooks, structure, CTAs, and emotional engagement. Use newlines for formatting.",
-            },
+            original: { type: "string" },
+            rewritten: { type: "string" },
           },
           required: ["original", "rewritten"],
           additionalProperties: false,
         },
-        description: "Exactly 3 before/after caption rewrites",
+        description: "3 before/after caption rewrites",
       },
     },
     required: [
-      "overallScore",
-      "dimensions",
-      "hookRetention",
-      "visualFatigue",
-      "audioClarity",
-      "ctaStrength",
-      "benchmarkComparison",
-      "captionLanguageQuality",
-      "recentPosts",
-      "issues",
-      "patterns",
-      "improvedHooks",
-      "rewrittenCaptions",
+      "language", "overallScore", "dimensions",
+      "profileHealth", "hookRetention", "visualFatigue", "safeZoneAudit",
+      "audioClarity", "ctaStrength", "benchmarkComparison", "captionLanguageQuality",
+      "contentPillars", "burningProblems",
+      "recentPosts", "issues", "patterns", "improvedHooks", "rewrittenCaptions",
     ],
     additionalProperties: false,
   },
@@ -205,7 +270,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url } = await req.json();
+    const { url, browserLanguage } = await req.json();
 
     if (!url || typeof url !== "string") {
       return new Response(
@@ -221,38 +286,61 @@ serve(async (req) => {
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
 
-    const systemPrompt = `You are an expert Instagram/Reels content strategist, video editor, and growth consultant. You analyze Instagram profiles and provide detailed, actionable feedback.
+    // Detect language
+    const lang = (browserLanguage || "").toLowerCase();
+    const isPtBr = lang.startsWith("pt");
+    const outputLang = isPtBr ? "pt-BR" : "en-GB";
 
-Given an Instagram username, simulate having analyzed their last 10 videos/reels and provide a comprehensive diagnostic report. Be specific, data-driven, and brutally honest. Use real-world social media best practices.
+    const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
 
-The analysis should feel personalized to the username provided — reference the type of content they might create based on their username/niche. Make scores realistic (most profiles score 40-75, rarely above 85).
+OUTPUT LANGUAGE: ALL text in the response MUST be in ${outputLang === "pt-BR" ? "Português Brasileiro (PT-BR). Use gírias e expressões brasileiras naturais." : "British English (EN-GB)."}
 
-You MUST analyze these 6 advanced dimensions in detail:
+Given an Instagram username, simulate having analyzed their profile and last 10 videos. Be specific, data-driven, brutally honest but constructive. Scores should be realistic (most profiles 35-70, rarely above 80).
 
-1. **Hook Retention (Gancho)** — Analyze the first 3 seconds of videos. Look for: silence at the start, delayed topic introduction, small/missing opening text. Estimate audience lost percentage. Recommend Hard Hooks visuais.
+You MUST complete ALL of these modules:
 
-2. **Visual Fatigue (Fadiga Visual)** — Analyze time between cuts and angle changes. Look for segments with 5+ seconds of no visual change (cut, zoom, sticker). Reference the 4-second brain rest threshold. Recommend Dynamic Zooms.
+═══ MODULE 1: PROFILE HEALTH ═══
+• Visual Consistency: Analyze the last 12 thumbnails. Check for color patterns, font consistency, whether the host's face is clearly visible to build authority.
+• Bio & Hook: Evaluate if the bio has a clear USP (Unique Selling Proposition) and visible link.
+• Engagement-to-Follower Ratio: Calculate audience health by comparing followers vs avg likes/comments on last 10 posts.
 
-3. **Audio Clarity & Sound Design Index** — Analyze audio quality and presence of background music/SFX. Look for: muffled audio, missing background music, music competing with voice. Reference the 30% conversion drop stat.
+═══ MODULE 2: VIDEO ENGINEERING ═══
+• Hook Analysis: First 3 seconds — is there a visual hook (dynamic text)? A strong verbal hook? Does the client start in silence?
+• Visual Fatigue: Count estimated cut frequency and graphic elements (B-roll, zooms, stickers). Flag any take lasting 3+ seconds without visual movement as "Low Retention".
+• Safe Zone Audit: Check if captions and CTAs are within Instagram's Safe Zone (not hidden by username overlay or side buttons).
+• Audio Clarity & Sound Design: Check for muffled audio, missing background music, or music competing with voice.
+• CTA Strength: Check video endings — abrupt? Multiple conflicting CTAs?
 
-4. **CTA Strength (Chamada para Ação)** — Analyze how videos end. Look for: abrupt endings, multiple conflicting CTAs ("like, comment, share, click the link"). Recommend single Conversion Goal per video.
+═══ MODULE 3: BENCHMARKING ═══
+Compare against TWO elite creators with specific gap percentages:
+• @hormozi (Alex Hormozi) — https://www.instagram.com/hormozi/reels/ — GOLD STANDARD for Hook Retention. Aggressive hard hooks, bold text in first frame, pattern interrupts every 2-3s, rapid cuts. Compare hook aggressiveness, cut frequency, edit density.
+• @steven (Steven Bartlett) — https://www.instagram.com/steven/ — GOLD STANDARD for Storytelling. Cinematic B-roll, emotional arcs, vulnerability hooks, premium sound. Compare storytelling depth, production quality, emotional engagement.
+• Gap Analysis: List the 3 elements missing to reach elite level (e.g., missing dynamic captions, noisy audio, no polemic hooks).
 
-5. **Benchmark Comparison** — Compare the profile against TWO elite reference creators:
-   - **@hormozi (Alex Hormozi)** — The GOLD STANDARD for Hook Retention. His reels (https://www.instagram.com/hormozi/reels/) use aggressive hard hooks: bold text fills the screen in the first frame, pattern interrupts every 2-3 seconds, rapid cuts, and powerful opening lines. Compare the client's hook strategy, cut frequency, and visual density directly against Hormozi's style.
-   - **@steven (Steven Bartlett)** — The GOLD STANDARD for Storytelling & Emotional Pull. His content (https://www.instagram.com/steven/) uses cinematic B-roll, emotional narrative arcs, vulnerability-based hooks, and premium sound design. Compare the client's storytelling depth, emotional engagement, and production quality against Steven's style.
-   Analyze editing density gap, words per caption, B-roll usage, hook aggressiveness (vs Hormozi), and narrative depth (vs Steven). Show the technical difference against BOTH creators.
+═══ MODULE 4: CONVERSION STRATEGY ═══
+• Content Pillars: Suggest 3 script themes based on what performed best on the profile.
+• CTA Strength is already covered above.
 
-6. **Caption Language Quality** — Analyze the English quality of captions. Look for grammar errors, spelling mistakes, awkward phrasing. Provide specific corrections.
+═══ MODULE 5: BURNING PROBLEMS + FONSECA FILMS SOLUTION ═══
+• Identify the 3 errors costing the client money RIGHT NOW.
+• For each, explain the business impact and how Fonseca Films (professional strategy + editing) would fix it.
+${outputLang === "pt-BR" ? '• Use language like: "A Fonseca Films resolve isso com...", "Nossa edição profissional garante..."' : '• Use language like: "Fonseca Films fixes this by...", "Our professional editing ensures..."'}
 
-CRITICAL RULE — POST REFERENCES:
-- First, generate 10 recent posts with realistic Instagram shortcodes (11 alphanumeric characters like "CxR4kL9mNpQ") in the recentPosts array.
-- Then, in ALL issues, patterns, hook retention issues, visual fatigue issues, audio clarity issues, CTA strength issues, benchmark issues, and caption language issues, you MUST reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE) or [post from 3 days ago](https://instagram.com/p/SHORTCODE).
-- Every issue and insight should mention at least one specific post link.
-- This makes the analysis feel real and data-driven.
+═══ MODULE 6: CAPTION LANGUAGE QUALITY ═══
+• Analyze grammar, spelling, and phrasing quality of captions.
 
-Issues should be specific with numbers. Patterns should include engagement multipliers. Hooks should be scroll-stopping. Caption rewrites should be dramatically better than originals.`;
+═══ POST REFERENCES (CRITICAL) ═══
+• Generate 10 recent posts with realistic Instagram shortcodes (11 alphanumeric chars) in recentPosts.
+• In ALL issues, insights, and analysis text, reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE).
+• Every issue must cite at least one specific post.
 
-    const userPrompt = `Analyze the Instagram profile @${username} (URL: ${url}). Provide a complete content diagnostic with all scores, advanced video analysis (hook retention, visual fatigue, audio clarity, CTA strength, benchmark comparison, caption language quality), issues, patterns, improved hooks, and rewritten captions. Make it feel like a real analysis based on their niche.`;
+═══ ADDITIONAL OUTPUTS ═══
+• 4-8 specific detected issues (with post links)
+• 3-5 positive patterns (with post links)
+• 5 scroll-stopping hooks for future content
+• 3 before/after caption rewrites`;
+
+    const userPrompt = `Analyze the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 6 modules. Language: ${outputLang}.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -268,16 +356,8 @@ Issues should be specific with numbers. Patterns should include engagement multi
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          tools: [
-            {
-              type: "function",
-              function: ANALYSIS_SCHEMA,
-            },
-          ],
-          tool_choice: {
-            type: "function",
-            function: { name: "instagram_analysis" },
-          },
+          tools: [{ type: "function", function: ANALYSIS_SCHEMA }],
+          tool_choice: { type: "function", function: { name: "instagram_analysis" } },
         }),
       }
     );
@@ -291,7 +371,7 @@ Issues should be specific with numbers. Patterns should include engagement multi
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add funds in Settings → Workspace → Usage." }),
+          JSON.stringify({ error: "AI credits exhausted. Please add funds." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -310,11 +390,7 @@ Issues should be specific with numbers. Patterns should include engagement multi
     const analysis = JSON.parse(toolCall.function.arguments);
 
     return new Response(
-      JSON.stringify({
-        url,
-        username,
-        ...analysis,
-      }),
+      JSON.stringify({ url, username, ...analysis }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
