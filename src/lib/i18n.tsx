@@ -188,19 +188,36 @@ interface I18nContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: (key: TranslationKey) => string;
+  companyName: string;
+  setCompanyName: (name: string) => void;
 }
+
+const DEFAULT_COMPANY = "ViralLens Insights";
 
 const I18nContext = createContext<I18nContextType>({
   lang: "pt-BR",
   setLang: () => {},
   t: (key) => key,
+  companyName: DEFAULT_COMPANY,
+  setCompanyName: () => {},
 });
 
 export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const [lang, setLang] = useState<Lang>("pt-BR");
-  const t = useCallback((key: TranslationKey) => translations[lang][key] || key, [lang]);
+  const [companyName, setCompanyNameState] = useState<string>(() => {
+    try { return localStorage.getItem("virallens_company") || DEFAULT_COMPANY; } catch { return DEFAULT_COMPANY; }
+  });
+  const setCompanyName = useCallback((name: string) => {
+    const val = name.trim() || DEFAULT_COMPANY;
+    setCompanyNameState(val);
+    try { localStorage.setItem("virallens_company", val); } catch {}
+  }, []);
+  const t = useCallback((key: TranslationKey) => {
+    const raw = translations[lang][key] || key;
+    return raw.replace(/Fonseca Films/g, companyName);
+  }, [lang, companyName]);
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
+    <I18nContext.Provider value={{ lang, setLang, t, companyName, setCompanyName }}>
       {children}
     </I18nContext.Provider>
   );
