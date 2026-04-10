@@ -379,7 +379,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, language } = await req.json();
+    const { url, language, companyName } = await req.json();
 
     if (!url || typeof url !== "string") {
       return new Response(
@@ -395,7 +395,7 @@ serve(async (req) => {
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
-    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang);
+    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, companyName || "ViralLens Insights");
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
