@@ -111,6 +111,27 @@ export interface RecentPost {
   description: string;
 }
 
+export interface TrendItem {
+  title: string;
+  description: string;
+  example: string;
+  relevance: string;
+}
+
+export interface ScriptSuggestion {
+  title: string;
+  hook: string;
+  visualDirection: string;
+  whyItWorks: string;
+}
+
+export interface RoiProjection {
+  currentEstimatedReach: number;
+  projectedReach: number;
+  growthPercent: number;
+  assumptions: string[];
+}
+
 export interface ProfileAnalysis {
   url: string;
   username: string;
@@ -132,13 +153,14 @@ export interface ProfileAnalysis {
   patterns: string[];
   improvedHooks: string[];
   rewrittenCaptions: { original: string; rewritten: string }[];
+  trendRadar: TrendItem[];
+  scriptSuggestions: ScriptSuggestion[];
+  roiProjection: RoiProjection;
 }
 
-export async function analyzeProfile(url: string): Promise<ProfileAnalysis> {
-  const browserLanguage = navigator.language || "en-GB";
-
+export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR"): Promise<ProfileAnalysis> {
   const { data, error } = await supabase.functions.invoke("analyze", {
-    body: { url, browserLanguage },
+    body: { url, language },
   });
 
   if (error) {
