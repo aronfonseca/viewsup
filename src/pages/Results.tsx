@@ -7,6 +7,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
@@ -165,7 +166,7 @@ const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t, lang } = useI18n();
+  const { t, lang, companyName, setCompanyName } = useI18n();
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
@@ -173,12 +174,14 @@ const Results = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"analysis" | "trends">("analysis");
   const [exporting, setExporting] = useState(false);
+  const [editingCompany, setEditingCompany] = useState(false);
+  const [companyDraft, setCompanyDraft] = useState(companyName);
 
   useEffect(() => {
     if (!url) { navigate("/"); return; }
     setLoading(true);
     setError(null);
-    analyzeProfile(url, lang)
+    analyzeProfile(url, lang, companyName)
       .then((data) => { setAnalysis(data); setLoading(false); })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : t("analysisFailed");
@@ -281,10 +284,34 @@ const Results = () => {
             <p className="text-sm text-muted-foreground mb-1">{t("analysisFor")}</p>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">@{analysis.username}</h1>
           </div>
-          <Button onClick={handleExportPDF} disabled={exporting} className="gradient-bg text-primary-foreground">
-            <Download className="h-4 w-4 mr-2" />
-            {exporting ? "..." : t("savePDF")}
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Company name badge */}
+            {editingCompany ? (
+              <form onSubmit={(e) => { e.preventDefault(); setCompanyName(companyDraft); setEditingCompany(false); }} className="flex items-center gap-2">
+                <Input
+                  value={companyDraft}
+                  onChange={(e) => setCompanyDraft(e.target.value)}
+                  placeholder="ViralLens Insights"
+                  className="h-9 w-48 bg-secondary border-border text-sm"
+                  autoFocus
+                />
+                <Button type="submit" size="sm" className="h-9 gradient-bg text-primary-foreground">OK</Button>
+              </form>
+            ) : (
+              <button
+                onClick={() => { setCompanyDraft(companyName); setEditingCompany(true); }}
+                className="px-3 py-1.5 rounded-lg bg-secondary border border-border text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors flex items-center gap-1.5"
+                title={lang === "pt-BR" ? "Clique para alterar o nome da empresa" : "Click to change company name"}
+              >
+                <Sparkles className="h-3 w-3 text-primary" />
+                {companyName}
+              </button>
+            )}
+            <Button onClick={handleExportPDF} disabled={exporting} className="gradient-bg text-primary-foreground">
+              <Download className="h-4 w-4 mr-2" />
+              {exporting ? "..." : t("savePDF")}
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}

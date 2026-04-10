@@ -286,9 +286,9 @@ const ANALYSIS_SCHEMA = {
   },
 };
 
-function buildPrompts(username: string, url: string, lang: string) {
+function buildPrompts(username: string, url: string, lang: string, company: string) {
   const isPT = lang === "pt-BR";
-
+  const c = company || "ViralLens Insights";
   const systemPrompt = isPT
     ? `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
 
@@ -317,9 +317,9 @@ Compare against @hormozi (Hook Retention) and @steven (Storytelling).
 ═══ MODULE 4: CONVERSION STRATEGY ═══
 • Content Pillars: 3 script themes based on top performance.
 
-═══ MODULE 5: BURNING PROBLEMS + FONSECA FILMS ═══
-• 3 errors costing money NOW with Fonseca Films solutions.
-• Use: "A Fonseca Films resolve isso com...", "Nossa edição profissional garante..."
+═══ MODULE 5: BURNING PROBLEMS + ${c} ═══
+• 3 errors costing money NOW with ${c} solutions.
+• Use: "A ${c} resolve isso com...", "Nossa edição profissional garante..."
 
 ═══ MODULE 6: CAPTION LANGUAGE QUALITY ═══
 • Analyze grammar, spelling, phrasing.
@@ -358,7 +358,7 @@ MODULE 1: PROFILE HEALTH - Visual Consistency, Bio & Hook, Engagement Ratio.
 MODULE 2: VIDEO ENGINEERING - Hook Analysis, Visual Fatigue, Safe Zone, Audio, CTA.
 MODULE 3: BENCHMARKING - Compare vs @hormozi and @steven with gap percentages.
 MODULE 4: CONVERSION - 3 Content Pillars.
-MODULE 5: BURNING PROBLEMS - 3 critical errors with Fonseca Films solutions. Use: "Fonseca Films solves this with...", "Our professional editing ensures..."
+MODULE 5: BURNING PROBLEMS - 3 critical errors with ${c} solutions. Use: "${c} solves this with...", "Our professional editing ensures..."
 MODULE 6: CAPTION QUALITY - Grammar and phrasing analysis.
 MODULE 7: TREND RADAR - 3 emerging trends the client is missing (caption styles, hooks, transitions).
 MODULE 8: SCRIPT SUGGESTIONS - 3 ready-to-record 5-second hook scripts with visual direction.
@@ -379,7 +379,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, language } = await req.json();
+    const { url, language, companyName } = await req.json();
 
     if (!url || typeof url !== "string") {
       return new Response(
@@ -395,7 +395,7 @@ serve(async (req) => {
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
-    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang);
+    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, companyName || "ViralLens Insights");
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",

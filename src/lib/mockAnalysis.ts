@@ -158,9 +158,9 @@ export interface ProfileAnalysis {
   roiProjection: RoiProjection;
 }
 
-export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR"): Promise<ProfileAnalysis> {
+export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR", companyName?: string): Promise<ProfileAnalysis> {
   const { data, error } = await supabase.functions.invoke("analyze", {
-    body: { url, language },
+    body: { url, language, companyName: companyName || "ViralLens Insights" },
   });
 
   if (error) {
