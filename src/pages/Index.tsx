@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Search, Sparkles, BarChart3, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n";
+import LanguageSelector from "@/components/LanguageSelector";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [url, setUrl] = useState("");
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,39 +19,35 @@ const Index = () => {
   };
 
   const features = [
-    { icon: Search, title: "Análise Profunda", desc: "Escaneie seus últimos 9 posts para qualidade de hook, clareza e estrutura" },
-    { icon: BarChart3, title: "Pontuação & Insights", desc: "Receba uma nota de 0 a 100 em 5 dimensões-chave de conteúdo" },
-    { icon: Lightbulb, title: "Reescritas com IA", desc: "Receba hooks melhorados e legendas reescritas instantaneamente" },
+    { icon: Search, title: t("feat1Title"), desc: t("feat1Desc") },
+    { icon: BarChart3, title: t("feat2Title"), desc: t("feat2Desc") },
+    { icon: Lightbulb, title: t("feat3Title"), desc: t("feat3Desc") },
   ];
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-30 pointer-events-none" style={{ background: "var(--gradient-glow)" }} />
 
-      {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold text-foreground">ViralLens AI</span>
+          <span className="text-lg font-bold text-foreground">{t("appName")}</span>
         </div>
+        <LanguageSelector />
       </nav>
 
-      {/* Hero */}
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-16 pb-24 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-xs font-medium text-muted-foreground mb-8">
           <Sparkles className="h-3 w-3 text-primary" />
-          Diagnóstico de Instagram com IA
+          {t("heroBadge")}
         </div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-          Transforme seu Instagram em uma{" "}
-          <span className="gradient-text">máquina de crescimento</span>
+          {t("heroTitle1")}
+          <span className="gradient-text">{t("heroHighlight")}</span>
         </h1>
 
-        <p className="text-lg text-muted-foreground max-w-xl mb-10">
-          Cole qualquer URL de perfil do Instagram e receba um diagnóstico completo com IA — pontuações, detecção de padrões e legendas reescritas que convertem.
-        </p>
+        <p className="text-lg text-muted-foreground max-w-xl mb-10">{t("heroDesc")}</p>
 
         <form onSubmit={handleAnalyze} className="w-full max-w-lg flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
@@ -56,26 +55,24 @@ const Index = () => {
             <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://instagram.com/usuario"
+              placeholder={t("placeholder")}
               className="pl-10 h-12 bg-secondary border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
           <Button type="submit" className="h-12 px-8 gradient-bg font-semibold text-primary-foreground hover:opacity-90 transition-opacity">
-            Analisar Perfil
+            {t("analyzeBtn")}
           </Button>
         </form>
 
-        <p className="text-xs text-muted-foreground mt-4">Análise gratuita • Sem login • Resultados em segundos</p>
+        <p className="text-xs text-muted-foreground mt-4">{t("freeAnalysis")}</p>
       </section>
 
-      {/* Hero image */}
       <div className="relative z-0 max-w-5xl mx-auto px-6 -mt-8">
         <div className="rounded-2xl overflow-hidden glow">
-          <img src={heroBg} alt="Visualização de analytics com IA" width={1920} height={1080} className="w-full h-auto opacity-60" />
+          <img src={heroBg} alt="AI analytics" width={1920} height={1080} className="w-full h-auto opacity-60" />
         </div>
       </div>
 
-      {/* Features */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 py-24">
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((f) => (
@@ -90,9 +87,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="relative z-10 text-center py-8 text-xs text-muted-foreground border-t border-border">
-        © 2026 ViralLens AI — Feito para criadores que querem crescer.
+        {t("footer")}
       </footer>
     </div>
   );

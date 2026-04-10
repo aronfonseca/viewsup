@@ -8,20 +8,12 @@ const corsHeaders = {
 
 const ANALYSIS_SCHEMA = {
   name: "instagram_analysis",
-  description:
-    "Full Instagram audit: profile health, video engineering, benchmarking, conversion strategy, burning problems, and Fonseca Films solution",
+  description: "Full Instagram audit with trend radar, script suggestions, and ROI projection",
   parameters: {
     type: "object",
     properties: {
-      language: {
-        type: "string",
-        enum: ["pt-BR", "en-GB"],
-        description: "Language used for all output text",
-      },
-      overallScore: {
-        type: "number",
-        description: "Overall performance score 0–100",
-      },
+      language: { type: "string", enum: ["pt-BR", "en-GB"] },
+      overallScore: { type: "number" },
       dimensions: {
         type: "array",
         items: {
@@ -35,9 +27,7 @@ const ANALYSIS_SCHEMA = {
           required: ["name", "score", "label", "icon"],
           additionalProperties: false,
         },
-        description: "5 dimensions: Hook Strength, Visual Clarity, Engagement Trigger, Content Structure, Emotional Pull",
       },
-      // ── Module 2: Profile Health ──
       profileHealth: {
         type: "object",
         properties: {
@@ -57,7 +47,7 @@ const ANALYSIS_SCHEMA = {
           bioHook: {
             type: "object",
             properties: {
-              hasUSP: { type: "boolean", description: "Does the bio have a clear Unique Selling Proposition?" },
+              hasUSP: { type: "boolean" },
               hasVisibleLink: { type: "boolean" },
               issues: { type: "array", items: { type: "string" } },
               insight: { type: "string" },
@@ -68,7 +58,7 @@ const ANALYSIS_SCHEMA = {
           engagementRatio: {
             type: "object",
             properties: {
-              ratio: { type: "number", description: "Engagement-to-follower ratio as percentage" },
+              ratio: { type: "number" },
               avgLikes: { type: "number" },
               avgComments: { type: "number" },
               healthLabel: { type: "string", enum: ["Healthy", "Average", "Low", "Critical"] },
@@ -82,14 +72,13 @@ const ANALYSIS_SCHEMA = {
         required: ["visualConsistency", "bioHook", "engagementRatio"],
         additionalProperties: false,
       },
-      // ── Module 3: Video Engineering ──
       hookRetention: {
         type: "object",
         properties: {
           score: { type: "number" },
           audienceLostPercent: { type: "number" },
-          hasVisualHook: { type: "boolean", description: "Dynamic text hook in first frame?" },
-          hasVerbalHook: { type: "boolean", description: "Strong verbal hook in first 3s?" },
+          hasVisualHook: { type: "boolean" },
+          hasVerbalHook: { type: "boolean" },
           issues: { type: "array", items: { type: "string" } },
           insight: { type: "string" },
         },
@@ -112,8 +101,8 @@ const ANALYSIS_SCHEMA = {
         type: "object",
         properties: {
           score: { type: "number" },
-          captionsOutOfZone: { type: "number", description: "Number of videos with captions outside safe zone" },
-          ctasHidden: { type: "number", description: "Number of videos with CTAs hidden by UI elements" },
+          captionsOutOfZone: { type: "number" },
+          ctasHidden: { type: "number" },
           issues: { type: "array", items: { type: "string" } },
           insight: { type: "string" },
         },
@@ -143,7 +132,6 @@ const ANALYSIS_SCHEMA = {
         required: ["score", "avgCtasPerVideo", "issues", "insight"],
         additionalProperties: false,
       },
-      // ── Module 4: Benchmarking ──
       benchmarkComparison: {
         type: "object",
         properties: {
@@ -171,11 +159,7 @@ const ANALYSIS_SCHEMA = {
             required: ["storytellingGap", "productionQualityGap", "emotionalDepthGap", "issues", "insight"],
             additionalProperties: false,
           },
-          top3MissingElements: {
-            type: "array",
-            items: { type: "string" },
-            description: "3 key elements missing to reach elite level",
-          },
+          top3MissingElements: { type: "array", items: { type: "string" } },
         },
         required: ["hormoziGap", "stevenGap", "top3MissingElements"],
         additionalProperties: false,
@@ -191,7 +175,6 @@ const ANALYSIS_SCHEMA = {
         required: ["score", "grammarErrors", "issues", "insight"],
         additionalProperties: false,
       },
-      // ── Module 5: Conversion Strategy ──
       contentPillars: {
         type: "array",
         items: {
@@ -204,24 +187,20 @@ const ANALYSIS_SCHEMA = {
           required: ["theme", "reasoning", "exampleHook"],
           additionalProperties: false,
         },
-        description: "3 content pillar suggestions based on what performed best",
       },
-      // ── Module 6: Burning Problems + Fonseca Films Solution ──
       burningProblems: {
         type: "array",
         items: {
           type: "object",
           properties: {
-            problem: { type: "string", description: "The error costing money NOW" },
-            impact: { type: "string", description: "Business impact of this problem" },
-            solution: { type: "string", description: "How Fonseca Films (strategy + editing) solves this" },
+            problem: { type: "string" },
+            impact: { type: "string" },
+            solution: { type: "string" },
           },
           required: ["problem", "impact", "solution"],
           additionalProperties: false,
         },
-        description: "Exactly 3 burning problems with Fonseca Films solutions",
       },
-      // ── Posts & Insights ──
       recentPosts: {
         type: "array",
         items: {
@@ -234,11 +213,10 @@ const ANALYSIS_SCHEMA = {
           required: ["postUrl", "shortCode", "description"],
           additionalProperties: false,
         },
-        description: "10 simulated recent posts with realistic shortcodes",
       },
       issues: { type: "array", items: { type: "string" } },
       patterns: { type: "array", items: { type: "string" } },
-      improvedHooks: { type: "array", items: { type: "string" }, description: "5 scroll-stopping hooks" },
+      improvedHooks: { type: "array", items: { type: "string" } },
       rewrittenCaptions: {
         type: "array",
         items: {
@@ -250,7 +228,50 @@ const ANALYSIS_SCHEMA = {
           required: ["original", "rewritten"],
           additionalProperties: false,
         },
-        description: "3 before/after caption rewrites",
+      },
+      // ── NEW: Trend Radar ──
+      trendRadar: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Trend name" },
+            description: { type: "string", description: "What the trend is about" },
+            example: { type: "string", description: "Concrete example of how to apply" },
+            relevance: { type: "string", description: "Why this matters for the client's niche" },
+          },
+          required: ["title", "description", "example", "relevance"],
+          additionalProperties: false,
+        },
+        description: "3 emerging trends detected by comparing client vs elite benchmarks",
+      },
+      // ── NEW: Script Suggestions ──
+      scriptSuggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Script title" },
+            hook: { type: "string", description: "The 5-second hook script, word by word" },
+            visualDirection: { type: "string", description: "Visual direction for recording" },
+            whyItWorks: { type: "string", description: "Why this hook works psychologically" },
+          },
+          required: ["title", "hook", "visualDirection", "whyItWorks"],
+          additionalProperties: false,
+        },
+        description: "3 ready-to-record 5-second hook scripts based on trending patterns",
+      },
+      // ── NEW: ROI Projection ──
+      roiProjection: {
+        type: "object",
+        properties: {
+          currentEstimatedReach: { type: "number", description: "Estimated current avg reach per video" },
+          projectedReach: { type: "number", description: "Projected reach after applying high-retention edits" },
+          growthPercent: { type: "number", description: "Percentage increase in reach" },
+          assumptions: { type: "array", items: { type: "string" }, description: "List of assumptions for the projection" },
+        },
+        required: ["currentEstimatedReach", "projectedReach", "growthPercent", "assumptions"],
+        additionalProperties: false,
       },
     },
     required: [
@@ -259,10 +280,98 @@ const ANALYSIS_SCHEMA = {
       "audioClarity", "ctaStrength", "benchmarkComparison", "captionLanguageQuality",
       "contentPillars", "burningProblems",
       "recentPosts", "issues", "patterns", "improvedHooks", "rewrittenCaptions",
+      "trendRadar", "scriptSuggestions", "roiProjection",
     ],
     additionalProperties: false,
   },
 };
+
+function buildPrompts(username: string, url: string, lang: string) {
+  const isPT = lang === "pt-BR";
+
+  const systemPrompt = isPT
+    ? `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
+
+OUTPUT LANGUAGE: ALL text in the response MUST be in Português Brasileiro (PT-BR). Use gírias e expressões brasileiras naturais. NUNCA escreva em inglês.
+
+Given an Instagram username, simulate having analyzed their profile and last 10 videos. Be specific, data-driven, brutally honest but constructive. Scores should be realistic (most profiles 35-70, rarely above 80).
+
+You MUST complete ALL modules:
+
+═══ MODULE 1: PROFILE HEALTH ═══
+• Visual Consistency: Analyze the last 12 thumbnails for color patterns, font consistency, host face visibility.
+• Bio & Hook: Evaluate USP and visible link.
+• Engagement-to-Follower Ratio: Calculate audience health.
+
+═══ MODULE 2: VIDEO ENGINEERING ═══
+• Hook Analysis: First 3 seconds — visual hook? Verbal hook?
+• Visual Fatigue: Cut frequency, B-roll, zooms. Flag takes >3s without movement.
+• Safe Zone Audit: Captions and CTAs within Instagram's Safe Zone.
+• Audio Clarity & Sound Design: Check for audio issues.
+• CTA Strength: Clear or confusing endings?
+
+═══ MODULE 3: BENCHMARKING ═══
+Compare against @hormozi (Hook Retention) and @steven (Storytelling).
+• Gap Analysis: 3 missing elements to reach elite level.
+
+═══ MODULE 4: CONVERSION STRATEGY ═══
+• Content Pillars: 3 script themes based on top performance.
+
+═══ MODULE 5: BURNING PROBLEMS + FONSECA FILMS ═══
+• 3 errors costing money NOW with Fonseca Films solutions.
+• Use: "A Fonseca Films resolve isso com...", "Nossa edição profissional garante..."
+
+═══ MODULE 6: CAPTION LANGUAGE QUALITY ═══
+• Analyze grammar, spelling, phrasing.
+
+═══ MODULE 7: TREND RADAR (NEW) ═══
+• Compare client content patterns vs elite benchmarks (Hormozi/Steven).
+• Identify 3 EMERGING TRENDS the client is NOT using: new caption styles, psychological hooks, sound design patterns, visual transitions, storytelling frameworks.
+• Each trend must have a concrete example of how to apply it.
+
+═══ MODULE 8: SCRIPT SUGGESTIONS (NEW) ═══
+• Generate 3 ready-to-record 5-second hook scripts.
+• Each must be based on what's currently trending/viral in the client's niche.
+• Include visual direction (what to show on screen) and psychological reasoning.
+
+═══ MODULE 9: ROI PROJECTION (NEW) ═══
+• Estimate current average reach per video based on engagement data.
+• Project reach improvement if client applies high-retention editing techniques.
+• Growth percentage must be realistic (typically 40-180% improvement).
+• List 3-4 assumptions behind the projection.
+
+═══ POST REFERENCES ═══
+• Generate 10 recent posts with realistic shortcodes in recentPosts.
+• Reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE).
+
+═══ ADDITIONAL OUTPUTS ═══
+• 4-8 specific issues, 3-5 positive patterns, 5 hooks, 3 caption rewrites`
+    : `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
+
+OUTPUT LANGUAGE: ALL text MUST be in British English (EN-GB).
+
+Given an Instagram username, simulate having analyzed their profile and last 10 videos. Be specific, data-driven, brutally honest but constructive. Scores should be realistic (most profiles 35-70, rarely above 80).
+
+Complete ALL modules:
+
+MODULE 1: PROFILE HEALTH - Visual Consistency, Bio & Hook, Engagement Ratio.
+MODULE 2: VIDEO ENGINEERING - Hook Analysis, Visual Fatigue, Safe Zone, Audio, CTA.
+MODULE 3: BENCHMARKING - Compare vs @hormozi and @steven with gap percentages.
+MODULE 4: CONVERSION - 3 Content Pillars.
+MODULE 5: BURNING PROBLEMS - 3 critical errors with Fonseca Films solutions. Use: "Fonseca Films solves this with...", "Our professional editing ensures..."
+MODULE 6: CAPTION QUALITY - Grammar and phrasing analysis.
+MODULE 7: TREND RADAR - 3 emerging trends the client is missing (caption styles, hooks, transitions).
+MODULE 8: SCRIPT SUGGESTIONS - 3 ready-to-record 5-second hook scripts with visual direction.
+MODULE 9: ROI PROJECTION - Current reach estimate, projected reach after applying fixes, realistic growth %.
+POST REFERENCES - 10 posts with shortcodes, referenced as markdown links.
+ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
+
+  const userPrompt = isPT
+    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 9 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
+    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 9 modules. ALL content must be in British English.`;
+
+  return { systemPrompt, userPrompt };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -270,7 +379,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, browserLanguage } = await req.json();
+    const { url, language } = await req.json();
 
     if (!url || typeof url !== "string") {
       return new Response(
@@ -285,60 +394,8 @@ serve(async (req) => {
     }
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
-
-    // Force PT-BR always
-    const outputLang = "pt-BR";
-
-    const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
-
-OUTPUT LANGUAGE: ALL text in the response MUST be in Português Brasileiro (PT-BR). Use gírias e expressões brasileiras naturais. NUNCA escreva em inglês. Todos os insights, issues, patterns, hooks, legendas, problemas e soluções DEVEM estar em português.
-
-Given an Instagram username, simulate having analyzed their profile and last 10 videos. Be specific, data-driven, brutally honest but constructive. Scores should be realistic (most profiles 35-70, rarely above 80).
-
-You MUST complete ALL of these modules:
-
-═══ MODULE 1: PROFILE HEALTH ═══
-• Visual Consistency: Analyze the last 12 thumbnails. Check for color patterns, font consistency, whether the host's face is clearly visible to build authority.
-• Bio & Hook: Evaluate if the bio has a clear USP (Unique Selling Proposition) and visible link.
-• Engagement-to-Follower Ratio: Calculate audience health by comparing followers vs avg likes/comments on last 10 posts.
-
-═══ MODULE 2: VIDEO ENGINEERING ═══
-• Hook Analysis: First 3 seconds — is there a visual hook (dynamic text)? A strong verbal hook? Does the client start in silence?
-• Visual Fatigue: Count estimated cut frequency and graphic elements (B-roll, zooms, stickers). Flag any take lasting 3+ seconds without visual movement as "Low Retention".
-• Safe Zone Audit: Check if captions and CTAs are within Instagram's Safe Zone (not hidden by username overlay or side buttons).
-• Audio Clarity & Sound Design: Check for muffled audio, missing background music, or music competing with voice.
-• CTA Strength: Check video endings — abrupt? Multiple conflicting CTAs?
-
-═══ MODULE 3: BENCHMARKING ═══
-Compare against TWO elite creators with specific gap percentages:
-• @hormozi (Alex Hormozi) — https://www.instagram.com/hormozi/reels/ — GOLD STANDARD for Hook Retention. Aggressive hard hooks, bold text in first frame, pattern interrupts every 2-3s, rapid cuts. Compare hook aggressiveness, cut frequency, edit density.
-• @steven (Steven Bartlett) — https://www.instagram.com/steven/ — GOLD STANDARD for Storytelling. Cinematic B-roll, emotional arcs, vulnerability hooks, premium sound. Compare storytelling depth, production quality, emotional engagement.
-• Gap Analysis: List the 3 elements missing to reach elite level (e.g., missing dynamic captions, noisy audio, no polemic hooks).
-
-═══ MODULE 4: CONVERSION STRATEGY ═══
-• Content Pillars: Suggest 3 script themes based on what performed best on the profile.
-• CTA Strength is already covered above.
-
-═══ MODULE 5: BURNING PROBLEMS + FONSECA FILMS SOLUTION ═══
-• Identify the 3 errors costing the client money RIGHT NOW.
-• For each, explain the business impact and how Fonseca Films (professional strategy + editing) would fix it.
-• Use language like: "A Fonseca Films resolve isso com...", "Nossa edição profissional garante..."
-
-═══ MODULE 6: CAPTION LANGUAGE QUALITY ═══
-• Analyze grammar, spelling, and phrasing quality of captions.
-
-═══ POST REFERENCES (CRITICAL) ═══
-• Generate 10 recent posts with realistic Instagram shortcodes (11 alphanumeric chars) in recentPosts.
-• In ALL issues, insights, and analysis text, reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE).
-• Every issue must cite at least one specific post.
-
-═══ ADDITIONAL OUTPUTS ═══
-• 4-8 specific detected issues (with post links)
-• 3-5 positive patterns (with post links)
-• 5 scroll-stopping hooks for future content
-• 3 before/after caption rewrites`;
-
-    const userPrompt = `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 6 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`;
+    const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
+    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang);
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
