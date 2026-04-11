@@ -265,12 +265,86 @@ const ANALYSIS_SCHEMA = {
       roiProjection: {
         type: "object",
         properties: {
-          currentEstimatedReach: { type: "number", description: "Estimated current avg reach per video" },
-          projectedReach: { type: "number", description: "Projected reach after applying high-retention edits" },
-          growthPercent: { type: "number", description: "Percentage increase in reach" },
-          assumptions: { type: "array", items: { type: "string" }, description: "List of assumptions for the projection" },
+          currentEstimatedReach: { type: "number" },
+          projectedReach: { type: "number" },
+          growthPercent: { type: "number" },
+          assumptions: { type: "array", items: { type: "string" } },
         },
         required: ["currentEstimatedReach", "projectedReach", "growthPercent", "assumptions"],
+        additionalProperties: false,
+      },
+      viralScore: {
+        type: "object",
+        properties: {
+          probability: { type: "number", description: "0-100 viral probability" },
+          hookStrengthFactor: { type: "number", description: "0-100 hook strength contribution" },
+          editDensityFactor: { type: "number", description: "0-100 edit density contribution" },
+          verdict: { type: "string", description: "One-sentence verdict about virality potential" },
+        },
+        required: ["probability", "hookStrengthFactor", "editDensityFactor", "verdict"],
+        additionalProperties: false,
+      },
+      mentalHeatmap: {
+        type: "object",
+        properties: {
+          totalDurationSeconds: { type: "number" },
+          triggers: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                timestampSeconds: { type: "number" },
+                type: { type: "string", enum: ["zoom", "sfx", "cut", "text"] },
+                label: { type: "string" },
+              },
+              required: ["timestampSeconds", "type", "label"],
+              additionalProperties: false,
+            },
+          },
+          insight: { type: "string" },
+        },
+        required: ["totalDurationSeconds", "triggers", "insight"],
+        additionalProperties: false,
+      },
+      hookStyles: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            topic: { type: "string" },
+            reversePsychology: { type: "string" },
+            extremeCuriosity: { type: "string" },
+            bruteAuthority: { type: "string" },
+            acidHumor: { type: "string" },
+          },
+          required: ["topic", "reversePsychology", "extremeCuriosity", "bruteAuthority", "acidHumor"],
+          additionalProperties: false,
+        },
+        description: "3 topics with 4 hook style variations each",
+      },
+      soundscapeArchitect: {
+        type: "object",
+        properties: {
+          idealGenre: { type: "string" },
+          bpmRange: { type: "string" },
+          retentionSpeed: { type: "string" },
+          trackSuggestions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                artist: { type: "string" },
+                bpm: { type: "number" },
+                mood: { type: "string" },
+              },
+              required: ["title", "artist", "bpm", "mood"],
+              additionalProperties: false,
+            },
+          },
+          insight: { type: "string" },
+        },
+        required: ["idealGenre", "bpmRange", "retentionSpeed", "trackSuggestions", "insight"],
         additionalProperties: false,
       },
     },
@@ -281,6 +355,7 @@ const ANALYSIS_SCHEMA = {
       "contentPillars", "burningProblems",
       "recentPosts", "issues", "patterns", "improvedHooks", "rewrittenCaptions",
       "trendRadar", "scriptSuggestions", "roiProjection",
+      "viralScore", "mentalHeatmap", "hookStyles", "soundscapeArchitect",
     ],
     additionalProperties: false,
   },
