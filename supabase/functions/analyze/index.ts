@@ -472,8 +472,8 @@ POST REFERENCES - 10 posts with shortcodes, referenced as markdown links.
 ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
 
   const userPrompt = isPT
-    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 9 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
-    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 9 modules. ALL content must be in British English.`;
+    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 13 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
+    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 13 modules. ALL content must be in British English.`;
 
   return { systemPrompt, userPrompt };
 }
