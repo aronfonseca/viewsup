@@ -449,7 +449,6 @@ const Results = () => {
 
               {/* ══ HOOK SWAPPER ══ */}
               {analysis.hookStyles && analysis.hookStyles.length > 0 && (() => {
-                const [activeStyle, setActiveStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
                 const styleKeys = [
                   { key: "reversePsychology" as const, label: t("styleReversePsych"), icon: "🧠" },
                   { key: "extremeCuriosity" as const, label: t("styleExtremeCuriosity"), icon: "🔥" },
