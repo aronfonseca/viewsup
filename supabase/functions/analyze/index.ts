@@ -265,12 +265,86 @@ const ANALYSIS_SCHEMA = {
       roiProjection: {
         type: "object",
         properties: {
-          currentEstimatedReach: { type: "number", description: "Estimated current avg reach per video" },
-          projectedReach: { type: "number", description: "Projected reach after applying high-retention edits" },
-          growthPercent: { type: "number", description: "Percentage increase in reach" },
-          assumptions: { type: "array", items: { type: "string" }, description: "List of assumptions for the projection" },
+          currentEstimatedReach: { type: "number" },
+          projectedReach: { type: "number" },
+          growthPercent: { type: "number" },
+          assumptions: { type: "array", items: { type: "string" } },
         },
         required: ["currentEstimatedReach", "projectedReach", "growthPercent", "assumptions"],
+        additionalProperties: false,
+      },
+      viralScore: {
+        type: "object",
+        properties: {
+          probability: { type: "number", description: "0-100 viral probability" },
+          hookStrengthFactor: { type: "number", description: "0-100 hook strength contribution" },
+          editDensityFactor: { type: "number", description: "0-100 edit density contribution" },
+          verdict: { type: "string", description: "One-sentence verdict about virality potential" },
+        },
+        required: ["probability", "hookStrengthFactor", "editDensityFactor", "verdict"],
+        additionalProperties: false,
+      },
+      mentalHeatmap: {
+        type: "object",
+        properties: {
+          totalDurationSeconds: { type: "number" },
+          triggers: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                timestampSeconds: { type: "number" },
+                type: { type: "string", enum: ["zoom", "sfx", "cut", "text"] },
+                label: { type: "string" },
+              },
+              required: ["timestampSeconds", "type", "label"],
+              additionalProperties: false,
+            },
+          },
+          insight: { type: "string" },
+        },
+        required: ["totalDurationSeconds", "triggers", "insight"],
+        additionalProperties: false,
+      },
+      hookStyles: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            topic: { type: "string" },
+            reversePsychology: { type: "string" },
+            extremeCuriosity: { type: "string" },
+            bruteAuthority: { type: "string" },
+            acidHumor: { type: "string" },
+          },
+          required: ["topic", "reversePsychology", "extremeCuriosity", "bruteAuthority", "acidHumor"],
+          additionalProperties: false,
+        },
+        description: "3 topics with 4 hook style variations each",
+      },
+      soundscapeArchitect: {
+        type: "object",
+        properties: {
+          idealGenre: { type: "string" },
+          bpmRange: { type: "string" },
+          retentionSpeed: { type: "string" },
+          trackSuggestions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                artist: { type: "string" },
+                bpm: { type: "number" },
+                mood: { type: "string" },
+              },
+              required: ["title", "artist", "bpm", "mood"],
+              additionalProperties: false,
+            },
+          },
+          insight: { type: "string" },
+        },
+        required: ["idealGenre", "bpmRange", "retentionSpeed", "trackSuggestions", "insight"],
         additionalProperties: false,
       },
     },
@@ -281,6 +355,7 @@ const ANALYSIS_SCHEMA = {
       "contentPillars", "burningProblems",
       "recentPosts", "issues", "patterns", "improvedHooks", "rewrittenCaptions",
       "trendRadar", "scriptSuggestions", "roiProjection",
+      "viralScore", "mentalHeatmap", "hookStyles", "soundscapeArchitect",
     ],
     additionalProperties: false,
   },
@@ -340,6 +415,32 @@ Compare against @hormozi (Hook Retention) and @steven (Storytelling).
 • Growth percentage must be realistic (typically 40-180% improvement).
 • List 3-4 assumptions behind the projection.
 
+═══ MODULE 10: PREDICTIVE VIRAL SCORE ═══
+• Calcule a probabilidade de viralização (0-100%) baseada na força do hook e na densidade de edição.
+• hookStrengthFactor (0-100): quanto o gancho contribui para retenção.
+• editDensityFactor (0-100): quanto a frequência de cortes/zooms/SFX contribui.
+• Dê um veredicto de uma frase sobre o potencial viral.
+
+═══ MODULE 11: MENTAL HEATMAP ═══
+• Para o vídeo mais representativo, crie uma linha do tempo com 'Dopamine Triggers'.
+• totalDurationSeconds: duração total do vídeo.
+• triggers: array com timestampSeconds, type (zoom/sfx/cut/text), e label descrevendo o que deveria acontecer naquele momento.
+• Mínimo 6 triggers distribuídos ao longo do vídeo. A ${c} insere esses triggers profissionalmente.
+
+═══ MODULE 12: HOOK SWAPPER ═══
+• Para 3 tópicos relevantes ao nicho do cliente, gere 4 variações de gancho:
+  - reversePsychology: gancho de psicologia reversa
+  - extremeCuriosity: gancho de curiosidade extrema
+  - bruteAuthority: gancho de autoridade bruta
+  - acidHumor: gancho de humor ácido
+
+═══ MODULE 13: SOUNDSCAPE ARCHITECT ═══
+• Sugira o gênero musical ideal baseado na 'Retention Speed' detectada.
+• bpmRange: faixa de BPM ideal (ex: "120-135").
+• retentionSpeed: classificação (Lenta/Média/Rápida/Frenética).
+• 3 sugestões de trilha com título, artista, bpm e mood.
+• Insight sobre como a ${c} otimiza o sound design.
+
 ═══ POST REFERENCES ═══
 • Generate 10 recent posts with realistic shortcodes in recentPosts.
 • Reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE).
@@ -363,12 +464,16 @@ MODULE 6: CAPTION QUALITY - Grammar and phrasing analysis.
 MODULE 7: TREND RADAR - 3 emerging trends the client is missing (caption styles, hooks, transitions).
 MODULE 8: SCRIPT SUGGESTIONS - 3 ready-to-record 5-second hook scripts with visual direction.
 MODULE 9: ROI PROJECTION - Current reach estimate, projected reach after applying fixes, realistic growth %.
+MODULE 10: PREDICTIVE VIRAL SCORE - Probability (0-100%), hookStrengthFactor, editDensityFactor, verdict.
+MODULE 11: MENTAL HEATMAP - Timeline of Dopamine Triggers (zoom/sfx/cut/text) for the most representative video. Min 6 triggers. ${c} expertise applies.
+MODULE 12: HOOK SWAPPER - 3 topics × 4 hook styles: reversePsychology, extremeCuriosity, bruteAuthority, acidHumor.
+MODULE 13: SOUNDSCAPE ARCHITECT - Ideal genre, BPM range, retention speed, 3 track suggestions with title/artist/bpm/mood. ${c} sound design insight.
 POST REFERENCES - 10 posts with shortcodes, referenced as markdown links.
 ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
 
   const userPrompt = isPT
-    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 9 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
-    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 9 modules. ALL content must be in British English.`;
+    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 13 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
+    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 13 modules. ALL content must be in British English.`;
 
   return { systemPrompt, userPrompt };
 }

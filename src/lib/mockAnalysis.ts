@@ -132,6 +132,48 @@ export interface RoiProjection {
   assumptions: string[];
 }
 
+export interface ViralScore {
+  probability: number;
+  hookStrengthFactor: number;
+  editDensityFactor: number;
+  verdict: string;
+}
+
+export interface DopamineTrigger {
+  timestampSeconds: number;
+  type: "zoom" | "sfx" | "cut" | "text";
+  label: string;
+}
+
+export interface MentalHeatmap {
+  totalDurationSeconds: number;
+  triggers: DopamineTrigger[];
+  insight: string;
+}
+
+export interface HookStyleSet {
+  topic: string;
+  reversePsychology: string;
+  extremeCuriosity: string;
+  bruteAuthority: string;
+  acidHumor: string;
+}
+
+export interface TrackSuggestion {
+  title: string;
+  artist: string;
+  bpm: number;
+  mood: string;
+}
+
+export interface SoundscapeArchitect {
+  idealGenre: string;
+  bpmRange: string;
+  retentionSpeed: string;
+  trackSuggestions: TrackSuggestion[];
+  insight: string;
+}
+
 export interface ProfileAnalysis {
   url: string;
   username: string;
@@ -156,6 +198,10 @@ export interface ProfileAnalysis {
   trendRadar: TrendItem[];
   scriptSuggestions: ScriptSuggestion[];
   roiProjection: RoiProjection;
+  viralScore: ViralScore;
+  mentalHeatmap: MentalHeatmap;
+  hookStyles: HookStyleSet[];
+  soundscapeArchitect: SoundscapeArchitect;
 }
 
 export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR", companyName?: string): Promise<ProfileAnalysis> {
