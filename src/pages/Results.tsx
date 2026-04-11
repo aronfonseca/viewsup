@@ -1,11 +1,12 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, lazy, Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw,
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
   Link2, Users, Shield, Flame, Target, FileText, Radar, Video, Download,
-  BarChart3, Crosshair, Brain, Music, Zap,
+  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical,
 } from "lucide-react";
+const RetentionLab = lazy(() => import("@/components/RetentionLab"));
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -172,7 +173,7 @@ const Results = () => {
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"analysis" | "trends">("analysis");
+  const [activeTab, setActiveTab] = useState<"analysis" | "trends" | "retention-lab">("analysis");
   const [exporting, setExporting] = useState(false);
   const [activeHookStyle, setActiveHookStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
   const [editingCompany, setEditingCompany] = useState(false);
@@ -333,6 +334,15 @@ const Results = () => {
           >
             <Radar className="h-4 w-4" />
             {t("tabTrendRadar")}
+          </button>
+          <button
+            onClick={() => setActiveTab("retention-lab")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+              activeTab === "retention-lab" ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FlaskConical className="h-4 w-4" />
+            {t("tabRetentionLab")}
           </button>
         </div>
 
