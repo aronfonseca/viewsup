@@ -363,7 +363,173 @@ const Results = () => {
                 </div>
               )}
 
-              {/* Profile Health */}
+              {/* ══ PREDICTIVE VIRAL SCORE ══ */}
+              {analysis.viralScore && (
+                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crosshair className="h-5 w-5 text-accent" />
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("viralScoreTitle")}</h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-6">{t("viralScoreDesc")}</p>
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative h-32 w-32">
+                      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke={analysis.viralScore.probability >= 60 ? "hsl(var(--success))" : analysis.viralScore.probability >= 35 ? "hsl(var(--warning))" : "hsl(var(--destructive))"} strokeWidth="8" strokeDasharray={`${(analysis.viralScore.probability / 100) * 264} 264`} strokeLinecap="round" />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-foreground">{analysis.viralScore.probability}%</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-2">{t("viralProbability")}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="p-4 rounded-lg bg-secondary text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t("hookStrength")}</p>
+                      <p className="text-2xl font-bold text-foreground">{analysis.viralScore.hookStrengthFactor}</p>
+                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${analysis.viralScore.hookStrengthFactor}%` }} /></div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-secondary text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t("editDensity")}</p>
+                      <p className="text-2xl font-bold text-foreground">{analysis.viralScore.editDensityFactor}</p>
+                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-accent" style={{ width: `${analysis.viralScore.editDensityFactor}%` }} /></div>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <p className="text-xs font-semibold text-primary uppercase mb-1">{t("viralVerdict")}</p>
+                    <p className="text-sm text-foreground italic">{analysis.viralScore.verdict}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ══ MENTAL HEATMAP ══ */}
+              {analysis.mentalHeatmap && analysis.mentalHeatmap.triggers.length > 0 && (
+                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Brain className="h-5 w-5 text-warning" />
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("mentalHeatmapTitle")}</h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-6">{t("mentalHeatmapDesc")}</p>
+                  {/* Timeline bar */}
+                  <div className="relative mb-6">
+                    <div className="h-10 rounded-lg bg-secondary relative overflow-visible">
+                      {analysis.mentalHeatmap.triggers.map((tr, i) => {
+                        const pct = Math.min((tr.timestampSeconds / analysis.mentalHeatmap.totalDurationSeconds) * 100, 100);
+                        const colors: Record<string, string> = { zoom: "bg-primary", sfx: "bg-accent", cut: "bg-warning", text: "bg-success" };
+                        const icons: Record<string, string> = { zoom: "🔍", sfx: "🔊", cut: "✂️", text: "💬" };
+                        return (
+                          <div key={i} className="absolute top-0 flex flex-col items-center group" style={{ left: `${pct}%`, transform: "translateX(-50%)" }}>
+                            <div className={`h-10 w-1.5 rounded-full ${colors[tr.type] || "bg-muted-foreground"} opacity-80`} />
+                            <span className="text-lg mt-1">{icons[tr.type]}</span>
+                            <div className="hidden group-hover:block absolute top-12 z-20 px-3 py-2 rounded-lg bg-popover border border-border shadow-lg text-xs text-foreground whitespace-nowrap max-w-xs">
+                              <span className="font-bold">{tr.timestampSeconds}s</span> — {tr.label}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>0s</span>
+                      <span>{analysis.mentalHeatmap.totalDurationSeconds}s</span>
+                    </div>
+                  </div>
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-4 mb-4">
+                    {[{ key: "zoom", color: "bg-primary" }, { key: "sfx", color: "bg-accent" }, { key: "cut", color: "bg-warning" }, { key: "text", color: "bg-success" }].map(({ key, color }) => (
+                      <div key={key} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+                        {t((`trigger${key.charAt(0).toUpperCase()}${key.slice(1)}`) as any)}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <p className="text-sm text-foreground italic"><RichText text={analysis.mentalHeatmap.insight} /></p>
+                  </div>
+                </div>
+              )}
+
+              {/* ══ HOOK SWAPPER ══ */}
+              {analysis.hookStyles && analysis.hookStyles.length > 0 && (() => {
+                const [activeStyle, setActiveStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
+                const styleKeys = [
+                  { key: "reversePsychology" as const, label: t("styleReversePsych"), icon: "🧠" },
+                  { key: "extremeCuriosity" as const, label: t("styleExtremeCuriosity"), icon: "🔥" },
+                  { key: "bruteAuthority" as const, label: t("styleBruteAuthority"), icon: "👊" },
+                  { key: "acidHumor" as const, label: t("styleAcidHumor"), icon: "😈" },
+                ];
+                return (
+                  <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="h-5 w-5 text-primary" />
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("hookSwapperTitle")}</h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-4">{t("hookSwapperDesc")}</p>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {styleKeys.map(({ key, label, icon }) => (
+                        <button key={key} onClick={() => setActiveStyle(key)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${activeStyle === key ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                          <span>{icon}</span> {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      {analysis.hookStyles.map((hs, i) => (
+                        <div key={i} className="p-5 rounded-xl bg-secondary/50 border border-border">
+                          <h3 className="font-semibold text-foreground text-sm mb-3">{hs.topic}</h3>
+                          <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                            <p className="text-sm text-foreground font-medium">"{hs[activeStyle]}"</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* ══ SOUNDSCAPE ARCHITECT ══ */}
+              {analysis.soundscapeArchitect && (
+                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Music className="h-5 w-5 text-success" />
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("soundscapeTitle")}</h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-6">{t("soundscapeDesc")}</p>
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="p-4 rounded-lg bg-secondary text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t("idealGenre")}</p>
+                      <p className="text-lg font-bold text-foreground">{analysis.soundscapeArchitect.idealGenre}</p>
+                    </div>
+                    <div className="p-4 rounded-lg gradient-bg text-center">
+                      <p className="text-xs text-primary-foreground/70 mb-1">{t("bpmRange")}</p>
+                      <p className="text-lg font-bold text-primary-foreground">{analysis.soundscapeArchitect.bpmRange}</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-secondary text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t("retentionSpeed")}</p>
+                      <p className="text-lg font-bold text-foreground">{analysis.soundscapeArchitect.retentionSpeed}</p>
+                    </div>
+                  </div>
+                  {analysis.soundscapeArchitect.trackSuggestions.length > 0 && (
+                    <>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("trackSuggestions")}</h3>
+                      <div className="grid sm:grid-cols-3 gap-3 mb-4">
+                        {analysis.soundscapeArchitect.trackSuggestions.map((tr, i) => (
+                          <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                            <p className="font-semibold text-foreground text-sm">{tr.title}</p>
+                            <p className="text-xs text-muted-foreground">{tr.artist}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-medium">{tr.bpm} BPM</span>
+                              <span className="text-xs text-muted-foreground">{tr.mood}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <p className="text-sm text-foreground italic"><RichText text={analysis.soundscapeArchitect.insight} /></p>
+                  </div>
+                </div>
+              )}
+
+
               {analysis.profileHealth && (
                 <>
                   <h2 className="text-lg font-bold text-foreground mb-4">{t("profileHealth")}</h2>
