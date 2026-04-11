@@ -198,6 +198,10 @@ export interface ProfileAnalysis {
   trendRadar: TrendItem[];
   scriptSuggestions: ScriptSuggestion[];
   roiProjection: RoiProjection;
+  viralScore: ViralScore;
+  mentalHeatmap: MentalHeatmap;
+  hookStyles: HookStyleSet[];
+  soundscapeArchitect: SoundscapeArchitect;
 }
 
 export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR", companyName?: string): Promise<ProfileAnalysis> {
