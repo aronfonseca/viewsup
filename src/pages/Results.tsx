@@ -464,8 +464,8 @@ const Results = () => {
                     <p className="text-xs text-muted-foreground mb-4">{t("hookSwapperDesc")}</p>
                     <div className="flex flex-wrap gap-2 mb-6">
                       {styleKeys.map(({ key, label, icon }) => (
-                        <button key={key} onClick={() => setActiveStyle(key)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${activeStyle === key ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                        <button key={key} onClick={() => setActiveHookStyle(key)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${activeHookStyle === key ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
                           <span>{icon}</span> {label}
                         </button>
                       ))}
@@ -475,7 +475,7 @@ const Results = () => {
                         <div key={i} className="p-5 rounded-xl bg-secondary/50 border border-border">
                           <h3 className="font-semibold text-foreground text-sm mb-3">{hs.topic}</h3>
                           <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                            <p className="text-sm text-foreground font-medium">"{hs[activeStyle]}"</p>
+                            <p className="text-sm text-foreground font-medium">"{hs[activeHookStyle]}"</p>
                           </div>
                         </div>
                       ))}
