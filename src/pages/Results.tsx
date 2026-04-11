@@ -174,7 +174,7 @@ const Results = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"analysis" | "trends">("analysis");
   const [exporting, setExporting] = useState(false);
-  const [editingCompany, setEditingCompany] = useState(false);
+  const [activeHookStyle, setActiveHookStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
   const [companyDraft, setCompanyDraft] = useState(companyName);
 
   useEffect(() => {
