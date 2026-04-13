@@ -166,6 +166,16 @@ export interface TrackSuggestion {
   mood: string;
 }
 
+export interface VideoIdea {
+  title: string;
+  format: "Tutorial" | "Polêmica" | "Comparativo" | "Bastidores" | "Prova Social";
+  hookVerbal: string;
+  structure: { gancho: string; desenvolvimento: string; cta: string };
+  bestDay: string;
+  bestTime: string;
+  hashtags: string[];
+}
+
 export interface SoundscapeArchitect {
   idealGenre: string;
   bpmRange: string;
@@ -202,6 +212,7 @@ export interface ProfileAnalysis {
   mentalHeatmap: MentalHeatmap;
   hookStyles: HookStyleSet[];
   soundscapeArchitect: SoundscapeArchitect;
+  videoIdeas: VideoIdea[];
 }
 
 export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR", companyName?: string): Promise<ProfileAnalysis> {

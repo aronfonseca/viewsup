@@ -348,6 +348,34 @@ const ANALYSIS_SCHEMA = {
         additionalProperties: false,
       },
     },
+      videoIdeas: {
+        type: "array",
+        description: "10 video ideas covering the 3 content pillars with mixed formats",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Video title with hook already written" },
+            format: { type: "string", enum: ["Tutorial", "Polêmica", "Comparativo", "Bastidores", "Prova Social"] },
+            hookVerbal: { type: "string", description: "Verbal hook for the first 3 seconds" },
+            structure: {
+              type: "object",
+              properties: {
+                gancho: { type: "string", description: "Act 1: Hook" },
+                desenvolvimento: { type: "string", description: "Act 2: Development" },
+                cta: { type: "string", description: "Act 3: Call to Action" },
+              },
+              required: ["gancho", "desenvolvimento", "cta"],
+              additionalProperties: false,
+            },
+            bestDay: { type: "string", description: "Best day of the week to post" },
+            bestTime: { type: "string", description: "Best time to post (e.g. 18:30)" },
+            hashtags: { type: "array", items: { type: "string" }, description: "5-8 strategic hashtags" },
+          },
+          required: ["title", "format", "hookVerbal", "structure", "bestDay", "bestTime", "hashtags"],
+          additionalProperties: false,
+        },
+      },
+    },
     required: [
       "language", "overallScore", "dimensions",
       "profileHealth", "hookRetention", "visualFatigue", "safeZoneAudit",
@@ -355,7 +383,7 @@ const ANALYSIS_SCHEMA = {
       "contentPillars", "burningProblems",
       "recentPosts", "issues", "patterns", "improvedHooks", "rewrittenCaptions",
       "trendRadar", "scriptSuggestions", "roiProjection",
-      "viralScore", "mentalHeatmap", "hookStyles", "soundscapeArchitect",
+      "viralScore", "mentalHeatmap", "hookStyles", "soundscapeArchitect", "videoIdeas",
     ],
     additionalProperties: false,
   },
