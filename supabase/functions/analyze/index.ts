@@ -347,6 +347,33 @@ const ANALYSIS_SCHEMA = {
         required: ["idealGenre", "bpmRange", "retentionSpeed", "trackSuggestions", "insight"],
         additionalProperties: false,
       },
+      videoIdeas: {
+        type: "array",
+        description: "10 video ideas covering the 3 content pillars with mixed formats",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Video title with hook already written" },
+            format: { type: "string", enum: ["Tutorial", "Polêmica", "Comparativo", "Bastidores", "Prova Social"] },
+            hookVerbal: { type: "string", description: "Verbal hook for the first 3 seconds" },
+            structure: {
+              type: "object",
+              properties: {
+                gancho: { type: "string", description: "Act 1: Hook" },
+                desenvolvimento: { type: "string", description: "Act 2: Development" },
+                cta: { type: "string", description: "Act 3: Call to Action" },
+              },
+              required: ["gancho", "desenvolvimento", "cta"],
+              additionalProperties: false,
+            },
+            bestDay: { type: "string", description: "Best day of the week to post" },
+            bestTime: { type: "string", description: "Best time to post (e.g. 18:30)" },
+            hashtags: { type: "array", items: { type: "string" }, description: "5-8 strategic hashtags" },
+          },
+          required: ["title", "format", "hookVerbal", "structure", "bestDay", "bestTime", "hashtags"],
+          additionalProperties: false,
+        },
+      },
     },
     required: [
       "language", "overallScore", "dimensions",
@@ -355,7 +382,7 @@ const ANALYSIS_SCHEMA = {
       "contentPillars", "burningProblems",
       "recentPosts", "issues", "patterns", "improvedHooks", "rewrittenCaptions",
       "trendRadar", "scriptSuggestions", "roiProjection",
-      "viralScore", "mentalHeatmap", "hookStyles", "soundscapeArchitect",
+      "viralScore", "mentalHeatmap", "hookStyles", "soundscapeArchitect", "videoIdeas",
     ],
     additionalProperties: false,
   },
@@ -441,6 +468,12 @@ Compare against @hormozi (Hook Retention) and @steven (Storytelling).
 • 3 sugestões de trilha com título, artista, bpm e mood.
 • Insight sobre como a ${c} otimiza o sound design.
 
+═══ MODULE 14: 10 VÍDEOS PARA GRAVAR AGORA ═══
+• Gere 10 ideias de vídeo baseadas nos 3 pilares de conteúdo identificados.
+• Misture os 5 formatos: Tutorial, Polêmica, Comparativo, Bastidores, Prova Social.
+• Para cada vídeo: título com gancho, formato, hook verbal dos primeiros 3s, estrutura em 3 atos (Gancho → Desenvolvimento → CTA), melhor dia e horário para postar, 5-8 hashtags estratégicas.
+• Os vídeos devem ser variados e cobrir diferentes ângulos do nicho.
+
 ═══ POST REFERENCES ═══
 • Generate 10 recent posts with realistic shortcodes in recentPosts.
 • Reference specific posts using markdown links: [this reel](https://instagram.com/p/SHORTCODE).
@@ -468,12 +501,13 @@ MODULE 10: PREDICTIVE VIRAL SCORE - Probability (0-100%), hookStrengthFactor, ed
 MODULE 11: MENTAL HEATMAP - Timeline of Dopamine Triggers (zoom/sfx/cut/text) for the most representative video. Min 6 triggers. ${c} expertise applies.
 MODULE 12: HOOK SWAPPER - 3 topics × 4 hook styles: reversePsychology, extremeCuriosity, bruteAuthority, acidHumor.
 MODULE 13: SOUNDSCAPE ARCHITECT - Ideal genre, BPM range, retention speed, 3 track suggestions with title/artist/bpm/mood. ${c} sound design insight.
+MODULE 14: 10 VIDEOS TO RECORD NOW - 10 video ideas based on 3 content pillars. Mix formats: Tutorial, Polêmica, Comparativo, Bastidores, Prova Social. Each with title+hook, format, 3s verbal hook, 3-act structure (Hook→Development→CTA), best day/time to post, 5-8 strategic hashtags.
 POST REFERENCES - 10 posts with shortcodes, referenced as markdown links.
 ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
 
   const userPrompt = isPT
-    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 13 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
-    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 13 modules. ALL content must be in British English.`;
+    ? `Analise o perfil do Instagram @${username} (URL: ${url}). Forneça a auditoria completa em todos os 14 módulos. IMPORTANTE: Todo o conteúdo DEVE ser em Português Brasileiro (PT-BR).`
+    : `Analyse the Instagram profile @${username} (URL: ${url}). Provide the complete audit across all 14 modules. ALL content must be in British English.`;
 
   return { systemPrompt, userPrompt };
 }

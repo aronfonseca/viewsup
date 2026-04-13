@@ -144,6 +144,15 @@ const translations = {
     retLabCopy: "Copiar",
     retLabCopied: "Legenda copiada!",
     retLabNewVideo: "Analisar Outro Vídeo",
+    // Video Ideas
+    videoIdeasTitle: "🎬 10 Vídeos Para Gravar Agora",
+    videoIdeasDesc: "Ideias de conteúdo baseadas nos pilares identificados, com ganchos prontos e horários otimizados",
+    videoStructure: "Estrutura em 3 Atos",
+    videoHookAct: "Gancho",
+    videoDevelopment: "Desenvolvimento",
+    videoCta: "CTA",
+    videoBestTime: "Melhor Horário",
+    videoHashtags: "Hashtags",
   },
   "en-GB": {
     appName: "ViralLens AI",
@@ -280,6 +289,15 @@ const translations = {
     retLabCopy: "Copy",
     retLabCopied: "Caption copied!",
     retLabNewVideo: "Analyse Another Video",
+    // Video Ideas
+    videoIdeasTitle: "🎬 10 Videos to Record Now",
+    videoIdeasDesc: "Content ideas based on identified pillars, with ready-made hooks and optimised schedules",
+    videoStructure: "3-Act Structure",
+    videoHookAct: "Hook",
+    videoDevelopment: "Development",
+    videoCta: "CTA",
+    videoBestTime: "Best Time",
+    videoHashtags: "Hashtags",
   },
 } as const;
 
