@@ -347,7 +347,6 @@ const ANALYSIS_SCHEMA = {
         required: ["idealGenre", "bpmRange", "retentionSpeed", "trackSuggestions", "insight"],
         additionalProperties: false,
       },
-    },
       videoIdeas: {
         type: "array",
         description: "10 video ideas covering the 3 content pillars with mixed formats",
