@@ -1,0 +1,164 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useI18n } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import LanguageSelector from "@/components/LanguageSelector";
+import { Sparkles, LogOut, Search, Clock, ExternalLink, User } from "lucide-react";
+
+interface Report {
+  id: string;
+  username: string;
+  profile_url: string;
+  language: string;
+  created_at: string;
+}
+
+const Dashboard = () => {
+  const { user, signOut } = useAuth();
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const [url, setUrl] = useState("");
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user!.id)
+        .single();
+      if (profile) setDisplayName(profile.display_name || user!.email || "");
+
+      // Fetch reports
+      const { data } = await supabase
+        .from("reports")
+        .select("id, username, profile_url, language, created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (data) setReports(data);
+      setLoading(false);
+    };
+    fetchData();
+  }, [user]);
+
+  const handleAnalyze = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+    navigate(`/results?url=${encodeURIComponent(url.trim())}`);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span className="font-bold text-foreground">{t("appName")}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <LanguageSelector />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-sm">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-foreground">{displayName}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-1" />
+              {t("authLogout")}
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Welcome + New Analysis */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {t("dashWelcome")}, {displayName.split("@")[0]}! 👋
+          </h1>
+          <p className="text-muted-foreground">{t("dashSubtitle")}</p>
+        </div>
+
+        <Card className="border-border bg-card">
+          <CardContent className="pt-6">
+            <form onSubmit={handleAnalyze} className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder={t("placeholder")}
+                  className="pl-10"
+                />
+              </div>
+              <Button type="submit" className="gradient-bg text-primary-foreground">
+                {t("analyzeBtn")}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Reports History */}
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            {t("dashHistory")}
+          </h2>
+
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          ) : reports.length === 0 ? (
+            <Card className="border-border bg-card">
+              <CardContent className="py-12 text-center">
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">{t("dashNoReports")}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3">
+              {reports.map((r) => (
+                <Card
+                  key={r.id}
+                  className="border-border bg-card hover:border-primary/30 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/results?url=${encodeURIComponent(r.profile_url)}`)}
+                >
+                  <CardContent className="py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-primary-foreground font-bold">
+                        {r.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">@{r.username}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(r.created_at).toLocaleDateString()} · {r.language}
+                        </p>
+                      </div>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Dashboard;
