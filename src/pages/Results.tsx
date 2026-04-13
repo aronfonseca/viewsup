@@ -4,7 +4,7 @@ import {
   Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw,
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
   Link2, Users, Shield, Flame, Target, FileText, Radar, Video, Download,
-  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical,
+  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard,
 } from "lucide-react";
 const RetentionLab = lazy(() => import("@/components/RetentionLab"));
 import { Button } from "@/components/ui/button";
@@ -716,6 +716,82 @@ const Results = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </>
+              )}
+
+              {/* ══ 10 VÍDEOS PARA GRAVAR AGORA ══ */}
+              {analysis.videoIdeas && analysis.videoIdeas.length > 0 && (
+                <>
+                  <h2 className="text-lg font-bold text-foreground mb-2">{t("videoIdeasTitle")}</h2>
+                  <p className="text-sm text-muted-foreground mb-4">{t("videoIdeasDesc")}</p>
+                  <div className="grid sm:grid-cols-2 gap-4 mb-10">
+                    {analysis.videoIdeas.map((v, i) => {
+                      const formatColors: Record<string, string> = {
+                        Tutorial: "bg-primary/20 text-primary",
+                        "Polêmica": "bg-destructive/20 text-destructive",
+                        Comparativo: "bg-warning/20 text-warning",
+                        Bastidores: "bg-accent/20 text-accent-foreground",
+                        "Prova Social": "bg-success/20 text-success",
+                      };
+                      const badgeClass = formatColors[v.format] || "bg-secondary text-muted-foreground";
+                      return (
+                        <div key={i} className="p-5 rounded-xl bg-card border border-border card-shadow flex flex-col">
+                          {/* Header */}
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="h-8 w-8 rounded-lg gradient-bg flex items-center justify-center shrink-0 text-primary-foreground font-bold text-sm">
+                              {i + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground text-sm leading-tight">{v.title}</h3>
+                              <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${badgeClass}`}>
+                                {v.format}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Hook verbal */}
+                          <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 mb-3">
+                            <p className="text-xs text-muted-foreground mb-1 font-medium">🎤 Hook (3s)</p>
+                            <p className="text-sm text-foreground font-medium">"{v.hookVerbal}"</p>
+                          </div>
+
+                          {/* 3-Act Structure */}
+                          <div className="space-y-1.5 mb-3">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("videoStructure")}</p>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              <div className="p-2 rounded bg-primary/10 text-center">
+                                <p className="text-[10px] text-primary font-bold">{t("videoHookAct")}</p>
+                                <p className="text-[11px] text-foreground mt-0.5">{v.structure.gancho}</p>
+                              </div>
+                              <div className="p-2 rounded bg-secondary text-center">
+                                <p className="text-[10px] text-muted-foreground font-bold">{t("videoDevelopment")}</p>
+                                <p className="text-[11px] text-foreground mt-0.5">{v.structure.desenvolvimento}</p>
+                              </div>
+                              <div className="p-2 rounded bg-success/10 text-center">
+                                <p className="text-[10px] text-success font-bold">{t("videoCta")}</p>
+                                <p className="text-[11px] text-foreground mt-0.5">{v.structure.cta}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Best time */}
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>{t("videoBestTime")}: <span className="text-foreground font-medium">{v.bestDay} — {v.bestTime}</span></span>
+                          </div>
+
+                          {/* Hashtags */}
+                          <div className="flex flex-wrap gap-1 mt-auto">
+                            {v.hashtags.map((tag, j) => (
+                              <span key={j} className="px-1.5 py-0.5 rounded bg-secondary text-[10px] text-muted-foreground">
+                                {tag.startsWith("#") ? tag : `#${tag}`}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </>
               )}
