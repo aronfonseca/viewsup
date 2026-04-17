@@ -512,6 +512,50 @@ ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
   return { systemPrompt, userPrompt };
 }
 
+async function scrapeInstagramProfile(username: string, apifyToken: string) {
+  const runUrl = `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`;
+  const res = await fetch(runUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ usernames: [username], resultsLimit: 12 }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    console.error("Apify scraper error:", res.status, txt);
+    throw new Error(`Apify error: ${res.status}`);
+  }
+  const items = await res.json();
+  return Array.isArray(items) && items.length > 0 ? items[0] : null;
+}
+
+function summariseScrape(profile: any) {
+  if (!profile) return "No public data returned by scraper.";
+  const posts = (profile.latestPosts || profile.posts || []).slice(0, 12).map((p: any) => ({
+    shortCode: p.shortCode || p.code,
+    url: p.url,
+    type: p.type,
+    caption: (p.caption || "").slice(0, 280),
+    likes: p.likesCount,
+    comments: p.commentsCount,
+    videoViews: p.videoViewCount,
+    duration: p.videoDuration,
+    timestamp: p.timestamp,
+  }));
+  return JSON.stringify({
+    username: profile.username,
+    fullName: profile.fullName,
+    biography: profile.biography,
+    externalUrl: profile.externalUrl,
+    followersCount: profile.followersCount,
+    followsCount: profile.followsCount,
+    postsCount: profile.postsCount,
+    verified: profile.verified,
+    businessCategory: profile.businessCategoryName,
+    profilePicUrl: profile.profilePicUrl,
+    recentPosts: posts,
+  }, null, 2);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -527,64 +571,108 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+    if (!APIFY_API_KEY) throw new Error("APIFY_API_KEY is not configured");
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
     const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, companyName || "Viewsup Insights");
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          tools: [{ type: "function", function: ANALYSIS_SCHEMA }],
-          tool_choice: { type: "function", function: { name: "instagram_analysis" } },
-        }),
-      }
-    );
+    // 1) Scrape Instagram profile via Apify
+    let scrapeSummary = "";
+    try {
+      const profile = await scrapeInstagramProfile(username, APIFY_API_KEY);
+      scrapeSummary = summariseScrape(profile);
+    } catch (e) {
+      console.warn("Scrape failed, continuing with simulated audit:", e);
+      scrapeSummary = "Scraping failed — provide a best-effort simulated audit.";
+    }
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    // 2) Call Anthropic Claude with tool calling for structured output
+    const enrichedUserPrompt = `${userPrompt}\n\n=== REAL SCRAPED DATA (use this as the source of truth) ===\n${scrapeSummary}`;
+
+    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 16000,
+        temperature: 0.2,
+        system: systemPrompt,
+        tools: [
+          {
+            name: ANALYSIS_SCHEMA.name,
+            description: ANALYSIS_SCHEMA.description,
+            input_schema: ANALYSIS_SCHEMA.parameters,
+          },
+        ],
+        tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
+        messages: [{ role: "user", content: enrichedUserPrompt }],
+      }),
+    });
+
+    if (!anthropicRes.ok) {
+      const errorText = await anthropicRes.text();
+      console.error("Anthropic API error:", anthropicRes.status, errorText);
+      if (anthropicRes.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "Anthropic rate limit exceeded. Try again shortly." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
+      if (anthropicRes.status === 401) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Invalid Anthropic API key." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+      throw new Error(`Anthropic API error: ${anthropicRes.status}`);
     }
 
-    const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-
-    if (!toolCall?.function?.arguments) {
+    const data = await anthropicRes.json();
+    const toolUse = (data.content || []).find((b: any) => b.type === "tool_use");
+    if (!toolUse?.input) {
+      console.error("No tool_use in Anthropic response:", JSON.stringify(data).slice(0, 500));
       throw new Error("AI did not return structured analysis");
     }
 
-    const analysis = JSON.parse(toolCall.function.arguments);
+    const analysis = toolUse.input;
+    const result = { url, username, ...analysis };
+
+    // 3) Persist to reports table linked to logged-in user
+    try {
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader) {
+        const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+        const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.45.0");
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          const { error: insertError } = await supabase.from("reports").insert({
+            user_id: userData.user.id,
+            username,
+            profile_url: url,
+            language: outputLang,
+            analysis_data: result as any,
+          });
+          if (insertError) console.warn("Report save failed:", insertError.message);
+        }
+      }
+    } catch (e) {
+      console.warn("Persist step skipped:", e);
+    }
 
     return new Response(
-      JSON.stringify({ url, username, ...analysis }),
+      JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
