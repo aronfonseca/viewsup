@@ -5,7 +5,7 @@ export type Lang = "pt-BR" | "en-GB";
 const translations = {
   "pt-BR": {
     // Nav
-    appName: "ViralLens AI",
+    appName: "Viewsup AI",
     newAnalysis: "Nova Análise",
     // Index
     heroBadge: "Diagnóstico de Instagram com IA",
@@ -21,7 +21,7 @@ const translations = {
     feat2Desc: "Receba uma nota de 0 a 100 em 5 dimensões-chave de conteúdo",
     feat3Title: "Reescritas com IA",
     feat3Desc: "Receba hooks melhorados e legendas reescritas instantaneamente",
-    footer: "© 2026 ViralLens AI — Feito para criadores que querem crescer.",
+    footer: "© 2026 Viewsup AI — Feito para criadores que querem crescer.",
     // Results
     analysisFor: "Análise para",
     overallScore: "Pontuação Geral",
@@ -177,7 +177,7 @@ const translations = {
     dashNoReports: "Nenhum relatório salvo ainda. Faça sua primeira análise!",
   },
   "en-GB": {
-    appName: "ViralLens AI",
+    appName: "Viewsup AI",
     newAnalysis: "New Analysis",
     heroBadge: "AI-Powered Instagram Diagnostics",
     heroTitle1: "Turn your Instagram into a ",
@@ -192,7 +192,7 @@ const translations = {
     feat2Desc: "Get a score from 0 to 100 across 5 key content dimensions",
     feat3Title: "AI Rewrites",
     feat3Desc: "Get improved hooks and rewritten captions instantly",
-    footer: "© 2026 ViralLens AI — Built for creators who want to grow.",
+    footer: "© 2026 Viewsup AI — Built for creators who want to grow.",
     analysisFor: "Analysis for",
     overallScore: "Overall Score",
     dimensions: "Dimensions",
@@ -355,7 +355,7 @@ interface I18nContextType {
   setCompanyName: (name: string) => void;
 }
 
-const DEFAULT_COMPANY = "ViralLens Insights";
+const DEFAULT_COMPANY = "Viewsup Insights";
 
 const I18nContext = createContext<I18nContextType>({
   lang: "pt-BR",
