@@ -202,7 +202,11 @@ ${c} offers professional editing to optimize all these aspects.`;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+      console.error("Missing required server configuration: LOVABLE_API_KEY");
+      return new Response(
+        JSON.stringify({ error: "Erro interno, tente novamente." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiResponse = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
@@ -260,7 +264,7 @@ ${c} offers professional editing to optimize all these aspects.`;
     });
   } catch (err) {
     console.error("analyze-video error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Video analysis failed" }), {
+    return new Response(JSON.stringify({ error: "Erro interno, tente novamente." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
