@@ -623,7 +623,7 @@ serve(async (req) => {
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
-    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, companyName || "Viewsup Insights");
+    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, safeCompanyName);
 
     // 1) Scrape Instagram profile via Apify
     let scrapeSummary = "";
