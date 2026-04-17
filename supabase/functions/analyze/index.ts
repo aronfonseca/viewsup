@@ -593,6 +593,21 @@ serve(async (req) => {
       );
     }
 
+    const INSTAGRAM_URL_RE = /^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._]{1,30}\/?(\?.*)?$/;
+    if (url.length > 200 || !INSTAGRAM_URL_RE.test(url)) {
+      return new Response(
+        JSON.stringify({
+          error: "URL inválida. Forneça um link de perfil do Instagram (ex: https://www.instagram.com/usuario).",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const safeCompanyName =
+      typeof companyName === "string"
+        ? companyName.replace(/[<>{}`$]/g, "").slice(0, 80).trim() || "Viewsup Insights"
+        : "Viewsup Insights";
+
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
     if (!ANTHROPIC_API_KEY || !APIFY_API_KEY) {
