@@ -595,8 +595,16 @@ serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
-    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
-    if (!APIFY_API_KEY) throw new Error("APIFY_API_KEY is not configured");
+    if (!ANTHROPIC_API_KEY || !APIFY_API_KEY) {
+      console.error("Missing required server configuration", {
+        hasAnthropic: !!ANTHROPIC_API_KEY,
+        hasApify: !!APIFY_API_KEY,
+      });
+      return new Response(
+        JSON.stringify({ error: "Erro interno, tente novamente." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
@@ -644,17 +652,14 @@ serve(async (req) => {
       console.error("Anthropic API error:", anthropicRes.status, errorText);
       if (anthropicRes.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Anthropic rate limit exceeded. Try again shortly." }),
+          JSON.stringify({ error: "Estamos com muitas solicitações no momento. Tente novamente em instantes." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (anthropicRes.status === 401) {
-        return new Response(
-          JSON.stringify({ error: "Invalid Anthropic API key." }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      throw new Error(`Anthropic API error: ${anthropicRes.status}`);
+      return new Response(
+        JSON.stringify({ error: "Erro interno, tente novamente." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await anthropicRes.json();
@@ -687,9 +692,8 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("analyze error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: "Erro interno, tente novamente." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
