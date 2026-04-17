@@ -85,7 +85,7 @@ serve(async (req) => {
     const formData = await req.formData();
     const videoFile = formData.get("video") as File | null;
     const language = (formData.get("language") as string) || "pt-BR";
-    const companyName = (formData.get("companyName") as string) || "ViralLens Insights";
+    const companyName = (formData.get("companyName") as string) || "Viewsup Insights";
     const niche = (formData.get("niche") as string) || "";
 
     if (!videoFile) {
