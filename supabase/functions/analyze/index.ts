@@ -669,26 +669,14 @@ serve(async (req) => {
 
     // 3) Persist to reports table linked to logged-in user
     try {
-      const authHeader = req.headers.get("Authorization");
-      if (authHeader) {
-        const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-        const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-        const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.45.0");
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-          global: { headers: { Authorization: authHeader } },
-        });
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData?.user) {
-          const { error: insertError } = await supabase.from("reports").insert({
-            user_id: userData.user.id,
-            username,
-            profile_url: url,
-            language: outputLang,
-            analysis_data: result as any,
-          });
-          if (insertError) console.warn("Report save failed:", insertError.message);
-        }
-      }
+      const { error: insertError } = await authedSupabase.from("reports").insert({
+        user_id: authData.user.id,
+        username,
+        profile_url: url,
+        language: outputLang,
+        analysis_data: result as any,
+      });
+      if (insertError) console.warn("Report save failed:", insertError.message);
     } catch (e) {
       console.warn("Persist step skipped:", e);
     }
