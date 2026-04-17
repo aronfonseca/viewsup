@@ -221,7 +221,7 @@ const Results = () => {
         heightLeft -= pdf.internal.pageSize.getHeight();
       }
 
-      pdf.save(`virallens-${analysis?.username || "report"}.pdf`);
+      pdf.save(`viewsup-${analysis?.username || "report"}.pdf`);
       toast({ title: "PDF", description: lang === "pt-BR" ? "Relatório exportado com sucesso!" : "Report exported successfully!" });
     } catch {
       toast({ title: "Error", description: "Failed to export PDF", variant: "destructive" });
@@ -293,7 +293,7 @@ const Results = () => {
                 <Input
                   value={companyDraft}
                   onChange={(e) => setCompanyDraft(e.target.value)}
-                  placeholder="ViralLens Insights"
+                  placeholder="Viewsup Insights"
                   className="h-9 w-48 bg-secondary border-border text-sm"
                   autoFocus
                 />

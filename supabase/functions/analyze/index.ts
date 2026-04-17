@@ -390,7 +390,7 @@ const ANALYSIS_SCHEMA = {
 
 function buildPrompts(username: string, url: string, lang: string, company: string) {
   const isPT = lang === "pt-BR";
-  const c = company || "ViralLens Insights";
+  const c = company || "Viewsup Insights";
   const systemPrompt = isPT
     ? `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance. Your benchmarks are Alex Hormozi and Steven Bartlett.
 
@@ -534,7 +534,7 @@ serve(async (req) => {
 
     const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
-    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, companyName || "ViralLens Insights");
+    const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, companyName || "Viewsup Insights");
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",

@@ -217,7 +217,7 @@ export interface ProfileAnalysis {
 
 export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR", companyName?: string): Promise<ProfileAnalysis> {
   const { data, error } = await supabase.functions.invoke("analyze", {
-    body: { url, language, companyName: companyName || "ViralLens Insights" },
+    body: { url, language, companyName: companyName || "Viewsup Insights" },
   });
 
   if (error) {
