@@ -644,6 +644,8 @@ serve(async (req) => {
     // 2) Call Anthropic Claude with tool calling for structured output
     const enrichedUserPrompt = `${userPrompt}\n\n=== REAL SCRAPED DATA (use this as the source of truth) ===\n${scrapeSummary}`;
 
+    console.log("[Anthropic] → POST /v1/messages | model: claude-sonnet-4-6 | prompt chars:", enrichedUserPrompt.length);
+    const anthropicStart = Date.now();
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -667,10 +669,11 @@ serve(async (req) => {
         messages: [{ role: "user", content: enrichedUserPrompt }],
       }),
     });
+    console.log("[Anthropic] ← status:", anthropicRes.status, anthropicRes.statusText, "| elapsed:", Date.now() - anthropicStart, "ms");
 
     if (!anthropicRes.ok) {
       const errorText = await anthropicRes.text();
-      console.error("Anthropic API error:", anthropicRes.status, errorText);
+      console.error("[Anthropic] error body:", errorText.slice(0, 2000));
       if (anthropicRes.status === 429) {
         return new Response(
           JSON.stringify({ error: "Estamos com muitas solicitações no momento. Tente novamente em instantes." }),
