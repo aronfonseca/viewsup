@@ -614,8 +614,10 @@ serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
+    console.log("[Secrets] ANTHROPIC_API_KEY present:", !!ANTHROPIC_API_KEY, "length:", ANTHROPIC_API_KEY?.length ?? 0);
+    console.log("[Secrets] APIFY_API_KEY present:", !!APIFY_API_KEY, "length:", APIFY_API_KEY?.length ?? 0);
     if (!ANTHROPIC_API_KEY || !APIFY_API_KEY) {
-      console.error("Missing required server configuration", {
+      console.error("[Secrets] Missing required server configuration", {
         hasAnthropic: !!ANTHROPIC_API_KEY,
         hasApify: !!APIFY_API_KEY,
       });
