@@ -52,7 +52,26 @@ const Index = () => {
           <Sparkles className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold text-foreground">{t("appName")}</span>
         </div>
-        <LanguageSelector />
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          {user ? (
+            <Button size="sm" onClick={() => navigate("/dashboard")} className="gradient-bg text-primary-foreground">
+              <LayoutDashboard className="h-4 w-4 mr-1" />
+              {dashboardLabel}
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                <LogIn className="h-4 w-4 mr-1" />
+                {loginLabel}
+              </Button>
+              <Button size="sm" onClick={() => navigate("/auth?mode=signup")} className="gradient-bg text-primary-foreground">
+                <UserPlus className="h-4 w-4 mr-1" />
+                {signupLabel}
+              </Button>
+            </>
+          )}
+        </div>
       </nav>
 
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-16 pb-24 max-w-3xl mx-auto">
