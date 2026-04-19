@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Mail, Lock, User } from "lucide-react";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const initialMode = searchParams.get("mode") === "signup" ? false : true;
+  const [isLogin, setIsLogin] = useState(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -21,10 +24,9 @@ const Auth = () => {
   const { toast } = useToast();
 
   // Redirect if already logged in
-  if (user) {
-    navigate("/dashboard", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (user) navigate(redirectTo, { replace: true });
+  }, [user, navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +34,7 @@ const Auth = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        navigate("/dashboard", { replace: true });
+        navigate(redirectTo, { replace: true });
       } else {
         await signUp(email, password, displayName);
         toast({
