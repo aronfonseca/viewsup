@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Sparkles, BarChart3, Lightbulb } from "lucide-react";
+import { Search, Sparkles, BarChart3, Lightbulb, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [url, setUrl] = useState("");
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { user, loading } = useAuth();
+
+  // Redirect logged-in users straight to their dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    navigate(`/results?url=${encodeURIComponent(url.trim())}`);
+    const target = `/results?url=${encodeURIComponent(url.trim())}`;
+    if (!user) {
+      navigate(`/auth?redirect=${encodeURIComponent(target)}`);
+      return;
+    }
+    navigate(target);
   };
+
+  const isPt = lang === "pt-BR";
+  const loginLabel = isPt ? "Entrar" : "Sign In";
+  const signupLabel = isPt ? "Criar conta" : "Sign Up";
+  const dashboardLabel = isPt ? "Meu painel" : "Dashboard";
 
   const features = [
     { icon: Search, title: t("feat1Title"), desc: t("feat1Desc") },
@@ -33,7 +52,26 @@ const Index = () => {
           <Sparkles className="h-6 w-6 text-primary" />
           <span className="text-lg font-bold text-foreground">{t("appName")}</span>
         </div>
-        <LanguageSelector />
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          {user ? (
+            <Button size="sm" onClick={() => navigate("/dashboard")} className="gradient-bg text-primary-foreground">
+              <LayoutDashboard className="h-4 w-4 mr-1" />
+              {dashboardLabel}
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                <LogIn className="h-4 w-4 mr-1" />
+                {loginLabel}
+              </Button>
+              <Button size="sm" onClick={() => navigate("/auth?mode=signup")} className="gradient-bg text-primary-foreground">
+                <UserPlus className="h-4 w-4 mr-1" />
+                {signupLabel}
+              </Button>
+            </>
+          )}
+        </div>
       </nav>
 
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-16 pb-24 max-w-3xl mx-auto">
