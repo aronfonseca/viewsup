@@ -514,17 +514,21 @@ ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
 
 async function scrapeInstagramProfile(username: string, apifyToken: string) {
   const runUrl = `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`;
+  console.log("[Apify] → POST instagram-profile-scraper | username:", username);
+  const startedAt = Date.now();
   const res = await fetch(runUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ usernames: [username], resultsLimit: 12 }),
   });
+  console.log("[Apify] ← status:", res.status, res.statusText, "| elapsed:", Date.now() - startedAt, "ms");
   if (!res.ok) {
     const txt = await res.text();
-    console.error("Apify scraper error:", res.status, txt);
-    throw new Error(`Apify error: ${res.status}`);
+    console.error("[Apify] error body:", txt.slice(0, 1000));
+    throw new Error(`Apify error: ${res.status} - ${txt.slice(0, 200)}`);
   }
   const items = await res.json();
+  console.log("[Apify] received items count:", Array.isArray(items) ? items.length : "non-array");
   return Array.isArray(items) && items.length > 0 ? items[0] : null;
 }
 
