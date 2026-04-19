@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Sparkles, BarChart3, Lightbulb } from "lucide-react";
+import { Search, Sparkles, BarChart3, Lightbulb, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [url, setUrl] = useState("");
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { user, loading } = useAuth();
+
+  // Redirect logged-in users straight to their dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    navigate(`/results?url=${encodeURIComponent(url.trim())}`);
+    const target = `/results?url=${encodeURIComponent(url.trim())}`;
+    if (!user) {
+      navigate(`/auth?redirect=${encodeURIComponent(target)}`);
+      return;
+    }
+    navigate(target);
   };
+
+  const isPt = lang === "pt-BR";
+  const loginLabel = isPt ? "Entrar" : "Sign In";
+  const signupLabel = isPt ? "Criar conta" : "Sign Up";
+  const dashboardLabel = isPt ? "Meu painel" : "Dashboard";
 
   const features = [
     { icon: Search, title: t("feat1Title"), desc: t("feat1Desc") },
