@@ -567,14 +567,9 @@ serve(async (req) => {
         : "Viewsup Insights";
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
     console.log("[Secrets] ANTHROPIC_API_KEY present:", !!ANTHROPIC_API_KEY, "length:", ANTHROPIC_API_KEY?.length ?? 0);
-    console.log("[Secrets] APIFY_API_KEY present:", !!APIFY_API_KEY, "length:", APIFY_API_KEY?.length ?? 0);
-    if (!ANTHROPIC_API_KEY || !APIFY_API_KEY) {
-      console.error("[Secrets] Missing required server configuration", {
-        hasAnthropic: !!ANTHROPIC_API_KEY,
-        hasApify: !!APIFY_API_KEY,
-      });
+    if (!ANTHROPIC_API_KEY) {
+      console.error("[Secrets] Missing ANTHROPIC_API_KEY");
       return new Response(
         JSON.stringify({ error: "Erro interno, tente novamente." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -585,18 +580,8 @@ serve(async (req) => {
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
     const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, safeCompanyName);
 
-    // 1) Scrape Instagram profile via Apify
-    let scrapeSummary = "";
-    try {
-      const profile = await scrapeInstagramProfile(username, APIFY_API_KEY);
-      scrapeSummary = summariseScrape(profile);
-    } catch (e) {
-      console.warn("Scrape failed, continuing with simulated audit:", e);
-      scrapeSummary = "Scraping failed — provide a best-effort simulated audit.";
-    }
-
-    // 2) Call Anthropic Claude with tool calling for structured output
-    const enrichedUserPrompt = `${userPrompt}\n\n=== REAL SCRAPED DATA (use this as the source of truth) ===\n${scrapeSummary}`;
+    // Apify removed — Claude simulates the audit from the URL/username alone.
+    const enrichedUserPrompt = userPrompt;
 
     console.log("[Anthropic] → POST /v1/messages | model: claude-sonnet-4-6 | prompt chars:", enrichedUserPrompt.length);
     const anthropicStart = Date.now();
