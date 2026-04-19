@@ -512,53 +512,7 @@ ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
   return { systemPrompt, userPrompt };
 }
 
-async function scrapeInstagramProfile(username: string, apifyToken: string) {
-  const runUrl = `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`;
-  console.log("[Apify] → POST instagram-profile-scraper | username:", username);
-  const startedAt = Date.now();
-  const res = await fetch(runUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ usernames: [username], resultsLimit: 12 }),
-  });
-  console.log("[Apify] ← status:", res.status, res.statusText, "| elapsed:", Date.now() - startedAt, "ms");
-  if (!res.ok) {
-    const txt = await res.text();
-    console.error("[Apify] error body:", txt.slice(0, 1000));
-    throw new Error(`Apify error: ${res.status} - ${txt.slice(0, 200)}`);
-  }
-  const items = await res.json();
-  console.log("[Apify] received items count:", Array.isArray(items) ? items.length : "non-array");
-  return Array.isArray(items) && items.length > 0 ? items[0] : null;
-}
-
-function summariseScrape(profile: any) {
-  if (!profile) return "No public data returned by scraper.";
-  const posts = (profile.latestPosts || profile.posts || []).slice(0, 12).map((p: any) => ({
-    shortCode: p.shortCode || p.code,
-    url: p.url,
-    type: p.type,
-    caption: (p.caption || "").slice(0, 280),
-    likes: p.likesCount,
-    comments: p.commentsCount,
-    videoViews: p.videoViewCount,
-    duration: p.videoDuration,
-    timestamp: p.timestamp,
-  }));
-  return JSON.stringify({
-    username: profile.username,
-    fullName: profile.fullName,
-    biography: profile.biography,
-    externalUrl: profile.externalUrl,
-    followersCount: profile.followersCount,
-    followsCount: profile.followsCount,
-    postsCount: profile.postsCount,
-    verified: profile.verified,
-    businessCategory: profile.businessCategoryName,
-    profilePicUrl: profile.profilePicUrl,
-    recentPosts: posts,
-  }, null, 2);
-}
+// Apify scraping removed — Claude now performs the audit using only the profile URL/username.
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -613,14 +567,9 @@ serve(async (req) => {
         : "Viewsup Insights";
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
     console.log("[Secrets] ANTHROPIC_API_KEY present:", !!ANTHROPIC_API_KEY, "length:", ANTHROPIC_API_KEY?.length ?? 0);
-    console.log("[Secrets] APIFY_API_KEY present:", !!APIFY_API_KEY, "length:", APIFY_API_KEY?.length ?? 0);
-    if (!ANTHROPIC_API_KEY || !APIFY_API_KEY) {
-      console.error("[Secrets] Missing required server configuration", {
-        hasAnthropic: !!ANTHROPIC_API_KEY,
-        hasApify: !!APIFY_API_KEY,
-      });
+    if (!ANTHROPIC_API_KEY) {
+      console.error("[Secrets] Missing ANTHROPIC_API_KEY");
       return new Response(
         JSON.stringify({ error: "Erro interno, tente novamente." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -631,18 +580,8 @@ serve(async (req) => {
     const outputLang = language === "en-GB" ? "en-GB" : "pt-BR";
     const { systemPrompt, userPrompt } = buildPrompts(username, url, outputLang, safeCompanyName);
 
-    // 1) Scrape Instagram profile via Apify
-    let scrapeSummary = "";
-    try {
-      const profile = await scrapeInstagramProfile(username, APIFY_API_KEY);
-      scrapeSummary = summariseScrape(profile);
-    } catch (e) {
-      console.warn("Scrape failed, continuing with simulated audit:", e);
-      scrapeSummary = "Scraping failed — provide a best-effort simulated audit.";
-    }
-
-    // 2) Call Anthropic Claude with tool calling for structured output
-    const enrichedUserPrompt = `${userPrompt}\n\n=== REAL SCRAPED DATA (use this as the source of truth) ===\n${scrapeSummary}`;
+    // Apify removed — Claude simulates the audit from the URL/username alone.
+    const enrichedUserPrompt = userPrompt;
 
     console.log("[Anthropic] → POST /v1/messages | model: claude-sonnet-4-6 | prompt chars:", enrichedUserPrompt.length);
     const anthropicStart = Date.now();
