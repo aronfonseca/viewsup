@@ -514,17 +514,21 @@ ADDITIONAL - 4-8 issues, 3-5 patterns, 5 hooks, 3 caption rewrites.`;
 
 async function scrapeInstagramProfile(username: string, apifyToken: string) {
   const runUrl = `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`;
+  console.log("[Apify] → POST instagram-profile-scraper | username:", username);
+  const startedAt = Date.now();
   const res = await fetch(runUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ usernames: [username], resultsLimit: 12 }),
   });
+  console.log("[Apify] ← status:", res.status, res.statusText, "| elapsed:", Date.now() - startedAt, "ms");
   if (!res.ok) {
     const txt = await res.text();
-    console.error("Apify scraper error:", res.status, txt);
-    throw new Error(`Apify error: ${res.status}`);
+    console.error("[Apify] error body:", txt.slice(0, 1000));
+    throw new Error(`Apify error: ${res.status} - ${txt.slice(0, 200)}`);
   }
   const items = await res.json();
+  console.log("[Apify] received items count:", Array.isArray(items) ? items.length : "non-array");
   return Array.isArray(items) && items.length > 0 ? items[0] : null;
 }
 
@@ -610,8 +614,10 @@ serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
+    console.log("[Secrets] ANTHROPIC_API_KEY present:", !!ANTHROPIC_API_KEY, "length:", ANTHROPIC_API_KEY?.length ?? 0);
+    console.log("[Secrets] APIFY_API_KEY present:", !!APIFY_API_KEY, "length:", APIFY_API_KEY?.length ?? 0);
     if (!ANTHROPIC_API_KEY || !APIFY_API_KEY) {
-      console.error("Missing required server configuration", {
+      console.error("[Secrets] Missing required server configuration", {
         hasAnthropic: !!ANTHROPIC_API_KEY,
         hasApify: !!APIFY_API_KEY,
       });
@@ -638,6 +644,8 @@ serve(async (req) => {
     // 2) Call Anthropic Claude with tool calling for structured output
     const enrichedUserPrompt = `${userPrompt}\n\n=== REAL SCRAPED DATA (use this as the source of truth) ===\n${scrapeSummary}`;
 
+    console.log("[Anthropic] → POST /v1/messages | model: claude-sonnet-4-6 | prompt chars:", enrichedUserPrompt.length);
+    const anthropicStart = Date.now();
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -661,10 +669,11 @@ serve(async (req) => {
         messages: [{ role: "user", content: enrichedUserPrompt }],
       }),
     });
+    console.log("[Anthropic] ← status:", anthropicRes.status, anthropicRes.statusText, "| elapsed:", Date.now() - anthropicStart, "ms");
 
     if (!anthropicRes.ok) {
       const errorText = await anthropicRes.text();
-      console.error("Anthropic API error:", anthropicRes.status, errorText);
+      console.error("[Anthropic] error body:", errorText.slice(0, 2000));
       if (anthropicRes.status === 429) {
         return new Response(
           JSON.stringify({ error: "Estamos com muitas solicitações no momento. Tente novamente em instantes." }),
