@@ -583,31 +583,50 @@ serve(async (req) => {
     // Apify removed — Claude simulates the audit from the URL/username alone.
     const enrichedUserPrompt = userPrompt;
 
-    console.log("[Anthropic] → POST /v1/messages | model: claude-sonnet-4-6 | prompt chars:", enrichedUserPrompt.length);
+    const ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929";
+    console.log("[Anthropic] → POST /v1/messages | model:", ANTHROPIC_MODEL, "| prompt chars:", enrichedUserPrompt.length);
     const anthropicStart = Date.now();
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 16000,
-        temperature: 0.2,
-        system: systemPrompt,
-        tools: [
-          {
-            name: ANALYSIS_SCHEMA.name,
-            description: ANALYSIS_SCHEMA.description,
-            input_schema: ANALYSIS_SCHEMA.parameters,
-          },
-        ],
-        tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
-        messages: [{ role: "user", content: enrichedUserPrompt }],
-      }),
-    });
+
+    // Hard timeout below the 150s edge-function idle limit so we always return cleanly.
+    const ac = new AbortController();
+    const timeoutId = setTimeout(() => ac.abort(), 135_000);
+
+    let anthropicRes: Response;
+    try {
+      anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: 8000,
+          temperature: 0.2,
+          system: systemPrompt,
+          tools: [
+            {
+              name: ANALYSIS_SCHEMA.name,
+              description: ANALYSIS_SCHEMA.description,
+              input_schema: ANALYSIS_SCHEMA.parameters,
+            },
+          ],
+          tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
+          messages: [{ role: "user", content: enrichedUserPrompt }],
+        }),
+        signal: ac.signal,
+      });
+    } catch (e) {
+      clearTimeout(timeoutId);
+      const isAbort = (e as Error)?.name === "AbortError";
+      console.error("[Anthropic] fetch failed:", isAbort ? "TIMEOUT after 135s" : (e as Error).message);
+      return new Response(
+        JSON.stringify({ error: isAbort ? "A análise demorou demais. Tente novamente." : "Erro de rede ao consultar IA." }),
+        { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    clearTimeout(timeoutId);
     console.log("[Anthropic] ← status:", anthropicRes.status, anthropicRes.statusText, "| elapsed:", Date.now() - anthropicStart, "ms");
 
     if (!anthropicRes.ok) {
