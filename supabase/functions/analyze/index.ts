@@ -589,7 +589,7 @@ serve(async (req) => {
 
     // Hard timeout below the 150s edge-function idle limit so we always return cleanly.
     const ac = new AbortController();
-    const timeoutId = setTimeout(() => ac.abort(), 135_000);
+    const timeoutId = setTimeout(() => ac.abort(), 140_000);
 
     let anthropicRes: Response;
     try {
@@ -602,7 +602,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: ANTHROPIC_MODEL,
-          max_tokens: 8000,
+          max_tokens: 16000,
           temperature: 0.2,
           system: systemPrompt,
           tools: [
