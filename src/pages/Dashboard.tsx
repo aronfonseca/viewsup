@@ -176,6 +176,68 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Video Analyses History */}
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FlaskConical className="h-5 w-5 text-primary" />
+            {t("dashVideoHistory")}
+          </h2>
+
+          {loading ? null : videoJobs.length === 0 ? (
+            <Card className="border-border bg-card">
+              <CardContent className="py-10 text-center">
+                <Video className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+                <p className="text-sm text-muted-foreground">{t("dashVideoHistoryEmpty")}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3">
+              {videoJobs.map((v) => {
+                const verdict = v.result_data?.verdict;
+                const isCompleted = v.status === "completed";
+                const isFailed = v.status === "failed";
+                return (
+                  <Card key={v.id} className="border-border bg-card">
+                    <CardContent className="py-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                          {isCompleted ? (
+                            verdict === "PRONTO_PARA_POSTAR"
+                              ? <CheckCircle2 className="h-5 w-5 text-success" />
+                              : <AlertTriangle className="h-5 w-5 text-warning" />
+                          ) : isFailed ? (
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
+                          ) : (
+                            <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm text-foreground truncate">{v.file_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(v.created_at).toLocaleString()}
+                            {v.file_size && ` · ${(v.file_size / 1024 / 1024).toFixed(1)} MB`}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${
+                        isCompleted ? "bg-success/15 text-success" :
+                        isFailed ? "bg-destructive/15 text-destructive" :
+                        v.status === "processing" ? "bg-warning/15 text-warning" :
+                        "bg-warning/15 text-warning"
+                      }`}>
+                        {isCompleted ? t("retLabStatusCompleted") :
+                         isFailed ? t("retLabStatusFailed") :
+                         v.status === "processing" ? t("retLabStatusProcessing") :
+                         t("retLabStatusPending")}
+                      </span>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
