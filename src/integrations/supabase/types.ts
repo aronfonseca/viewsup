@@ -116,6 +116,60 @@ export type Database = {
         }
         Relationships: []
       }
+      video_jobs: {
+        Row: {
+          company_name: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          language: string
+          mime_type: string | null
+          result_data: Json | null
+          started_at: string | null
+          status: string
+          storage_path: string
+          user_id: string
+          video_expires_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          language?: string
+          mime_type?: string | null
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string
+          storage_path: string
+          user_id: string
+          video_expires_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          language?: string
+          mime_type?: string | null
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string
+          storage_path?: string
+          user_id?: string
+          video_expires_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
