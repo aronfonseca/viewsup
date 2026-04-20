@@ -190,6 +190,9 @@ const translations = {
     dashSubtitle: "Gerencie suas análises e descubra novas oportunidades de crescimento.",
     dashHistory: "Histórico de Relatórios",
     dashNoReports: "Nenhum relatório salvo ainda. Faça sua primeira análise!",
+    dashVideoHistory: "Histórico de Vídeos Analisados",
+    dashVideoHistoryEmpty: "Nenhum vídeo analisado ainda. Use o Laboratório de Retenção em qualquer relatório.",
+    dashViewVideo: "Ver análise",
   },
   "en-GB": {
     appName: "Viewsup AI",
@@ -372,6 +375,9 @@ const translations = {
     dashSubtitle: "Manage your analyses and discover new growth opportunities.",
     dashHistory: "Report History",
     dashNoReports: "No saved reports yet. Run your first analysis!",
+    dashVideoHistory: "Analysed Videos History",
+    dashVideoHistoryEmpty: "No videos analysed yet. Use the Retention Lab inside any report.",
+    dashViewVideo: "View analysis",
   },
 } as const;
 

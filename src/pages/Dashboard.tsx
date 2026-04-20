@@ -5,9 +5,12 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import LanguageSelector from "@/components/LanguageSelector";
-import { Sparkles, LogOut, Search, Clock, ExternalLink, User } from "lucide-react";
+import {
+  Sparkles, LogOut, Search, Clock, ExternalLink, User,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical,
+} from "lucide-react";
 
 interface Report {
   id: string;
@@ -15,6 +18,15 @@ interface Report {
   profile_url: string;
   language: string;
   created_at: string;
+}
+
+interface VideoJobRow {
+  id: string;
+  file_name: string;
+  file_size: number | null;
+  status: string;
+  created_at: string;
+  result_data: { verdict?: string } | null;
 }
 
 const Dashboard = () => {
