@@ -215,18 +215,85 @@ export interface ProfileAnalysis {
   videoIdeas: VideoIdea[];
 }
 
-export async function analyzeProfile(url: string, language: "pt-BR" | "en-GB" = "pt-BR", companyName?: string): Promise<ProfileAnalysis> {
-  const { data, error } = await supabase.functions.invoke("analyze", {
-    body: { url, language, companyName: companyName || "Viewsup Insights" },
+/**
+ * Enqueue an async analysis job and start the background worker.
+ * Returns the jobId immediately — the caller polls analysis_jobs for status.
+ */
+export async function startAnalysisJob(
+  url: string,
+  language: "pt-BR" | "en-GB" = "pt-BR",
+  companyName?: string,
+): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
+
+  const { data: job, error: insertErr } = await supabase
+    .from("analysis_jobs")
+    .insert({
+      user_id: user.id,
+      instagram_url: url,
+      username,
+      language,
+      company_name: companyName || "Viewsup Insights",
+      status: "pending",
+    })
+    .select("id")
+    .single();
+
+  if (insertErr || !job) throw new Error(insertErr?.message || "Failed to create job");
+
+  // Fire-and-forget: trigger the worker. It returns 202 immediately.
+  supabase.functions.invoke("process-job", { body: { jobId: job.id } }).catch((e) => {
+    console.warn("process-job invoke failed:", e);
   });
 
-  if (error) {
-    throw new Error(error.message || "Analysis failed");
-  }
+  return job.id;
+}
 
-  if (data?.error) {
-    throw new Error(data.error);
-  }
+/**
+ * Poll a job until it reaches a terminal state. Resolves with the analysis
+ * payload on success, rejects on failure / timeout.
+ */
+export async function waitForAnalysisJob(
+  jobId: string,
+  opts: { intervalMs?: number; timeoutMs?: number; onTick?: (status: string) => void } = {},
+): Promise<ProfileAnalysis> {
+  const interval = opts.intervalMs ?? 5000;
+  const timeout = opts.timeoutMs ?? 5 * 60 * 1000; // 5 minutes
+  const start = Date.now();
 
-  return data as ProfileAnalysis;
+  while (Date.now() - start < timeout) {
+    const { data, error } = await supabase
+      .from("analysis_jobs")
+      .select("status, result_data, error_message")
+      .eq("id", jobId)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Job not found");
+
+    opts.onTick?.(data.status);
+
+    if (data.status === "completed" && data.result_data) {
+      return data.result_data as unknown as ProfileAnalysis;
+    }
+    if (data.status === "failed") {
+      throw new Error(data.error_message || "Analysis failed");
+    }
+    await new Promise((r) => setTimeout(r, interval));
+  }
+  throw new Error("Analysis timed out");
+}
+
+/** Convenience wrapper: enqueue + poll. */
+export async function analyzeProfile(
+  url: string,
+  language: "pt-BR" | "en-GB" = "pt-BR",
+  companyName?: string,
+  onStatus?: (status: string) => void,
+): Promise<ProfileAnalysis> {
+  const jobId = await startAnalysisJob(url, language, companyName);
+  return waitForAnalysisJob(jobId, { onTick: onStatus });
 }
