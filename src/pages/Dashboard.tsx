@@ -35,12 +35,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [url, setUrl] = useState("");
   const [reports, setReports] = useState<Report[]>([]);
+  const [videoJobs, setVideoJobs] = useState<VideoJobRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("display_name")
@@ -48,14 +48,22 @@ const Dashboard = () => {
         .single();
       if (profile) setDisplayName(profile.display_name || user!.email || "");
 
-      // Fetch reports
-      const { data } = await supabase
-        .from("reports")
-        .select("id, username, profile_url, language, created_at")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (data) setReports(data);
+      const [reportsRes, videosRes] = await Promise.all([
+        supabase
+          .from("reports")
+          .select("id, username, profile_url, language, created_at")
+          .eq("user_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase
+          .from("video_jobs")
+          .select("id, file_name, file_size, status, created_at, result_data")
+          .eq("user_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
+      if (reportsRes.data) setReports(reportsRes.data);
+      if (videosRes.data) setVideoJobs(videosRes.data as unknown as VideoJobRow[]);
       setLoading(false);
     };
     fetchData();
