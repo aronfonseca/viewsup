@@ -154,6 +154,34 @@ const ANALYSIS_SCHEMA = {
           additionalProperties: false,
         },
       },
+      trendRadar: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+            example: { type: "string" },
+            relevance: { type: "string" },
+          },
+          required: ["title", "description", "example", "relevance"],
+          additionalProperties: false,
+        },
+      },
+      scriptSuggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            hook: { type: "string" },
+            visualDirection: { type: "string" },
+            whyItWorks: { type: "string" },
+          },
+          required: ["title", "hook", "visualDirection", "whyItWorks"],
+          additionalProperties: false,
+        },
+      },
     },
     required: [
       "overallScore",
@@ -167,6 +195,8 @@ const ANALYSIS_SCHEMA = {
       "improvedHooks",
       "rewrittenCaptions",
       "videoIdeas",
+      "trendRadar",
+      "scriptSuggestions",
     ],
     additionalProperties: false,
   },
