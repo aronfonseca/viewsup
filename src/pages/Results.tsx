@@ -233,15 +233,34 @@ const Results = () => {
   };
 
   if (loading) {
+    const isPt = lang === "pt-BR";
+    const statusLabel: Record<string, string> = isPt
+      ? {
+          pending: "Na fila…",
+          processing: "Coletando dados do perfil e gerando insights com IA…",
+          completed: "Quase lá…",
+          failed: "Erro",
+        }
+      : {
+          pending: "Queued…",
+          processing: "Collecting profile data and generating AI insights…",
+          completed: "Almost there…",
+          failed: "Error",
+        };
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-6">
         <div className="relative">
           <div className="h-16 w-16 rounded-full gradient-bg animate-spin opacity-30" />
           <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
         </div>
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <p className="text-lg font-semibold text-foreground">{t("analyzing")}</p>
-          <p className="text-sm text-muted-foreground mt-1">{t("analyzingDesc")}</p>
+          <p className="text-sm text-muted-foreground mt-1">{statusLabel[jobStatus] ?? statusLabel.pending}</p>
+          <p className="text-xs text-muted-foreground/70 mt-3">
+            {isPt
+              ? "Isso pode levar até 2 minutos. Você pode fechar esta aba — o relatório ficará salvo no seu painel."
+              : "This can take up to 2 minutes. You can close this tab — the report will be saved to your dashboard."}
+          </p>
         </div>
       </div>
     );
