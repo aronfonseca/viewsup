@@ -53,7 +53,7 @@ const RetentionLab = () => {
       toast({ title: t("retLabError"), description: t("retLabInvalidFormat"), variant: "destructive" });
       return;
     }
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > 300 * 1024 * 1024) {
       toast({ title: t("retLabError"), description: t("retLabTooLarge"), variant: "destructive" });
       return;
     }
