@@ -291,7 +291,7 @@ const translations = {
     retLabUploadDesc: "Upload your video before posting — AI will analyse hook, pacing, and audio",
     retLabError: "Error",
     retLabInvalidFormat: "Invalid format. Use MP4 or MOV.",
-    retLabTooLarge: "Video must be under 20MB.",
+    retLabTooLarge: "Video must be under 300MB.",
     retLabChange: "Change Video",
     retLabAnalyzing: "Analysing…",
     retLabAnalyzeBtn: "Pre-Flight Analysis",
