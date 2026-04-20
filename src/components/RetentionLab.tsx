@@ -132,7 +132,7 @@ const RetentionLab = () => {
           <Upload className={`h-12 w-12 mx-auto mb-4 ${dragOver ? "text-primary" : "text-muted-foreground"}`} />
           <p className="text-lg font-semibold text-foreground mb-1">{t("retLabUploadTitle")}</p>
           <p className="text-sm text-muted-foreground">{t("retLabUploadDesc")}</p>
-          <p className="text-xs text-muted-foreground mt-2">MP4 / MOV • Max 20MB</p>
+          <p className="text-xs text-muted-foreground mt-2">MP4 / MOV • Max 300MB</p>
         </div>
       ) : (
         <div className="space-y-6">
