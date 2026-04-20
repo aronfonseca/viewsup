@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_jobs: {
+        Row: {
+          company_name: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          instagram_url: string
+          language: string
+          result_data: Json | null
+          started_at: string | null
+          status: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instagram_url: string
+          language?: string
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instagram_url?: string
+          language?: string
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
