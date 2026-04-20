@@ -117,9 +117,9 @@ serve(async (req) => {
       });
     }
 
-    const maxSize = 20 * 1024 * 1024; // 20MB
+    const maxSize = 300 * 1024 * 1024; // 300MB
     if (videoFile.size > maxSize) {
-      return new Response(JSON.stringify({ error: "Video must be under 20MB" }), {
+      return new Response(JSON.stringify({ error: "Video must be under 300MB" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
