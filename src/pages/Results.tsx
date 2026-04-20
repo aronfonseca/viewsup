@@ -368,7 +368,7 @@ const Results = () => {
         </div>
 
         <div ref={reportRef}>
-          {activeTab === "analysis" ? (
+          {activeTab === "analysis" && (
             <>
               {/* Score + Dimensions */}
               <div className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
@@ -929,7 +929,9 @@ const Results = () => {
                 </div>
               </div>
             </>
-          ) : (
+          )}
+
+          {activeTab === "trends" && (
             /* ══ TREND RADAR TAB ══ */
             <div>
               <h2 className="text-lg font-bold text-foreground mb-2">{t("trendRadar")}</h2>
