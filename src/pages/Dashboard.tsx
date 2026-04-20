@@ -5,9 +5,12 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import LanguageSelector from "@/components/LanguageSelector";
-import { Sparkles, LogOut, Search, Clock, ExternalLink, User } from "lucide-react";
+import {
+  Sparkles, LogOut, Search, Clock, ExternalLink, User,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical,
+} from "lucide-react";
 
 interface Report {
   id: string;
@@ -17,18 +20,27 @@ interface Report {
   created_at: string;
 }
 
+interface VideoJobRow {
+  id: string;
+  file_name: string;
+  file_size: number | null;
+  status: string;
+  created_at: string;
+  result_data: { verdict?: string } | null;
+}
+
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
   const [url, setUrl] = useState("");
   const [reports, setReports] = useState<Report[]>([]);
+  const [videoJobs, setVideoJobs] = useState<VideoJobRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("display_name")
@@ -36,14 +48,22 @@ const Dashboard = () => {
         .single();
       if (profile) setDisplayName(profile.display_name || user!.email || "");
 
-      // Fetch reports
-      const { data } = await supabase
-        .from("reports")
-        .select("id, username, profile_url, language, created_at")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (data) setReports(data);
+      const [reportsRes, videosRes] = await Promise.all([
+        supabase
+          .from("reports")
+          .select("id, username, profile_url, language, created_at")
+          .eq("user_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase
+          .from("video_jobs")
+          .select("id, file_name, file_size, status, created_at, result_data")
+          .eq("user_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
+      if (reportsRes.data) setReports(reportsRes.data);
+      if (videosRes.data) setVideoJobs(videosRes.data as unknown as VideoJobRow[]);
       setLoading(false);
     };
     fetchData();
@@ -153,6 +173,68 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Video Analyses History */}
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FlaskConical className="h-5 w-5 text-primary" />
+            {t("dashVideoHistory")}
+          </h2>
+
+          {loading ? null : videoJobs.length === 0 ? (
+            <Card className="border-border bg-card">
+              <CardContent className="py-10 text-center">
+                <Video className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+                <p className="text-sm text-muted-foreground">{t("dashVideoHistoryEmpty")}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3">
+              {videoJobs.map((v) => {
+                const verdict = v.result_data?.verdict;
+                const isCompleted = v.status === "completed";
+                const isFailed = v.status === "failed";
+                return (
+                  <Card key={v.id} className="border-border bg-card">
+                    <CardContent className="py-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                          {isCompleted ? (
+                            verdict === "PRONTO_PARA_POSTAR"
+                              ? <CheckCircle2 className="h-5 w-5 text-success" />
+                              : <AlertTriangle className="h-5 w-5 text-warning" />
+                          ) : isFailed ? (
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
+                          ) : (
+                            <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm text-foreground truncate">{v.file_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(v.created_at).toLocaleString()}
+                            {v.file_size && ` · ${(v.file_size / 1024 / 1024).toFixed(1)} MB`}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${
+                        isCompleted ? "bg-success/15 text-success" :
+                        isFailed ? "bg-destructive/15 text-destructive" :
+                        v.status === "processing" ? "bg-warning/15 text-warning" :
+                        "bg-warning/15 text-warning"
+                      }`}>
+                        {isCompleted ? t("retLabStatusCompleted") :
+                         isFailed ? t("retLabStatusFailed") :
+                         v.status === "processing" ? t("retLabStatusProcessing") :
+                         t("retLabStatusPending")}
+                      </span>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>
