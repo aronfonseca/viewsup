@@ -73,19 +73,37 @@ const RetentionLab = () => {
     if (!videoFile) return;
     setAnalyzing(true);
     try {
-      const formData = new FormData();
-      formData.append("video", videoFile);
-      formData.append("language", lang);
-      formData.append("companyName", companyName);
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData?.user) throw new Error("Not authenticated");
 
+      const ext = videoFile.name.split(".").pop()?.toLowerCase() || "mp4";
+      const storagePath = `${userData.user.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      console.log("[RetentionLab] uploading to storage:", storagePath, `${(videoFile.size / 1024 / 1024).toFixed(1)}MB`);
+
+      const { error: upErr } = await supabase.storage
+        .from("video-uploads")
+        .upload(storagePath, videoFile, {
+          contentType: videoFile.type || "video/mp4",
+          upsert: false,
+        });
+      if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
+
+      console.log("[RetentionLab] upload done, invoking analyze-video...");
       const { data, error } = await supabase.functions.invoke("analyze-video", {
-        body: formData,
+        body: {
+          storagePath,
+          language: lang,
+          companyName,
+          mimeType: videoFile.type || "video/mp4",
+        },
       });
 
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
+      console.log("[RetentionLab] analysis received");
       setAnalysis(data as VideoAnalysis);
     } catch (err) {
+      console.error("[RetentionLab] analyze error:", err);
       const msg = err instanceof Error ? err.message : "Analysis failed";
       toast({ title: t("retLabError"), description: msg, variant: "destructive" });
     } finally {
