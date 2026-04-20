@@ -172,6 +172,7 @@ const Results = () => {
   const url = searchParams.get("url") || "";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
+  const [jobStatus, setJobStatus] = useState<string>("pending");
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"analysis" | "trends" | "retention-lab">("analysis");
   const [exporting, setExporting] = useState(false);
@@ -183,7 +184,8 @@ const Results = () => {
     if (!url) { navigate("/"); return; }
     setLoading(true);
     setError(null);
-    analyzeProfile(url, lang, companyName)
+    setJobStatus("pending");
+    analyzeProfile(url, lang, companyName, (s) => setJobStatus(s))
       .then((data) => { setAnalysis(data); setLoading(false); })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : t("analysisFailed");
