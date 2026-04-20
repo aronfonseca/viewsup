@@ -314,7 +314,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: ANTHROPIC_MODEL,
-          max_tokens: 16000,
+          max_tokens: 4000,
           temperature: 0.2,
           system: systemPrompt,
           tools: [
@@ -332,7 +332,7 @@ serve(async (req) => {
     } catch (e) {
       clearTimeout(timeoutId);
       const isAbort = (e as Error)?.name === "AbortError";
-      console.error("[Anthropic] fetch failed:", isAbort ? "TIMEOUT after 135s" : (e as Error).message);
+      console.error("[Anthropic] fetch failed:", isAbort ? "TIMEOUT after 140s" : (e as Error).message);
       return new Response(
         JSON.stringify({ error: isAbort ? "A análise demorou demais. Tente novamente." : "Erro de rede ao consultar IA." }),
         { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
