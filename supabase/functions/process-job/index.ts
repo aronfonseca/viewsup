@@ -154,6 +154,34 @@ const ANALYSIS_SCHEMA = {
           additionalProperties: false,
         },
       },
+      trendRadar: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+            example: { type: "string" },
+            relevance: { type: "string" },
+          },
+          required: ["title", "description", "example", "relevance"],
+          additionalProperties: false,
+        },
+      },
+      scriptSuggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            hook: { type: "string" },
+            visualDirection: { type: "string" },
+            whyItWorks: { type: "string" },
+          },
+          required: ["title", "hook", "visualDirection", "whyItWorks"],
+          additionalProperties: false,
+        },
+      },
     },
     required: [
       "overallScore",
@@ -167,6 +195,8 @@ const ANALYSIS_SCHEMA = {
       "improvedHooks",
       "rewrittenCaptions",
       "videoIdeas",
+      "trendRadar",
+      "scriptSuggestions",
     ],
     additionalProperties: false,
   },
@@ -302,7 +332,7 @@ async function processJob(jobId: string) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 4000,
+        max_tokens: 6000,
         temperature: 0.2,
         system: systemPrompt,
         tools: [{
