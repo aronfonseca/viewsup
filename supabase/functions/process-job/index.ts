@@ -11,12 +11,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Normalised niche list — must mirror the public.profile_niche enum
+const NICHE_ENUM = [
+  "Imobiliaria", "Fitness", "Beleza", "Moda", "Alimentacao", "Educacao",
+  "Tecnologia", "Marketing", "Financas", "Saude", "Coaching", "Ecommerce",
+  "Turismo", "Automotivo", "Entretenimento", "Servicos", "B2B", "Lifestyle",
+  "Arte", "Outros",
+];
+
 const ANALYSIS_SCHEMA = {
   name: "instagram_analysis",
   description: "Lean Instagram audit focused on the most essential retention and content outputs",
   parameters: {
     type: "object",
     properties: {
+      nicho: {
+        type: "string",
+        enum: NICHE_ENUM,
+        description: "Detected primary niche of the profile (normalised list).",
+      },
+      pais: {
+        type: "string",
+        description: "Best-guess country of the profile (e.g. 'Brasil', 'Portugal', 'United Kingdom'). 'Desconhecido' if not inferrable.",
+      },
       overallScore: { type: "number" },
       dimensions: {
         type: "array",
@@ -184,6 +201,8 @@ const ANALYSIS_SCHEMA = {
       },
     },
     required: [
+      "nicho",
+      "pais",
       "overallScore",
       "dimensions",
       "profileHealth",
@@ -202,7 +221,80 @@ const ANALYSIS_SCHEMA = {
   },
 };
 
-function buildPrompts(username: string, url: string, lang: string, company: string, scrapedSummary: string) {
+interface PriorAnalysis {
+  created_at: string;
+  score_geral: number | null;
+  hook_strength: number | null;
+  retention: number | null;
+  engagement: number | null;
+  viral_score: number | null;
+  problemas_detectados: string[];
+}
+
+interface NicheInsightRow {
+  nicho: string;
+  total_analises: number;
+  avg_score_geral: number | null;
+  avg_hook_strength: number | null;
+  avg_retention: number | null;
+  avg_engagement: number | null;
+  avg_viral_score: number | null;
+  top_problemas: { problema: string; count: number }[];
+  top_solucoes: { solucao: string; count: number }[];
+  insight_text: string | null;
+}
+
+function buildPriorContext(prior: PriorAnalysis | null, isPT: boolean): string {
+  if (!prior) return "";
+  const date = new Date(prior.created_at).toISOString().slice(0, 10);
+  if (isPT) {
+    return `\n\nHISTÓRICO DESTE PERFIL (análise anterior em ${date}):
+- Score geral anterior: ${prior.score_geral ?? "?"}
+- Hook anterior: ${prior.hook_strength ?? "?"} | Retenção: ${prior.retention ?? "?"} | Engajamento: ${prior.engagement ?? "?"} | Viral: ${prior.viral_score ?? "?"}
+- Problemas detectados antes: ${(prior.problemas_detectados || []).slice(0, 5).join(" | ") || "(nenhum)"}
+INSTRUÇÃO: Compare com a análise atual. Mencione explicitamente em pelo menos 1 burningProblem.solution ou em patterns o que MELHOROU, o que PIOROU e o que SEGUE IGUAL desde a última análise.`;
+  }
+  return `\n\nPROFILE HISTORY (previous analysis on ${date}):
+- Previous overall score: ${prior.score_geral ?? "?"}
+- Previous hook: ${prior.hook_strength ?? "?"} | retention: ${prior.retention ?? "?"} | engagement: ${prior.engagement ?? "?"} | viral: ${prior.viral_score ?? "?"}
+- Previous problems: ${(prior.problemas_detectados || []).slice(0, 5).join(" | ") || "(none)"}
+INSTRUCTION: Compare to the current analysis. Explicitly mention in at least 1 burningProblems.solution or in patterns what IMPROVED, what GOT WORSE and what STAYED THE SAME since last time.`;
+}
+
+function buildNicheContext(insight: NicheInsightRow | null, isPT: boolean): string {
+  if (!insight || insight.total_analises < 2) return "";
+  const top3Problems = (insight.top_problemas || []).slice(0, 3).map(p => `• ${p.problema} (${p.count}x)`).join("\n") || "(sem dados)";
+  const top3Solutions = (insight.top_solucoes || []).slice(0, 3).map(s => `• ${s.solucao} (${s.count}x)`).join("\n") || "(sem dados)";
+  const avg = (n: number | null) => n == null ? "?" : Number(n).toFixed(1);
+  if (isPT) {
+    return `\n\nINSIGHTS DO NICHO "${insight.nicho}" (baseado em ${insight.total_analises} análises anteriores):
+Médias do nicho — Score geral: ${avg(insight.avg_score_geral)} | Hook: ${avg(insight.avg_hook_strength)} | Retenção: ${avg(insight.avg_retention)} | Engajamento: ${avg(insight.avg_engagement)} | Viral: ${avg(insight.avg_viral_score)}
+Top 3 problemas mais comuns no nicho:
+${top3Problems}
+Top 3 soluções mais sugeridas no nicho:
+${top3Solutions}
+${insight.insight_text ? `\nResumo estratégico do nicho: ${insight.insight_text}` : ""}
+INSTRUÇÃO: Use estes dados reais de outras análises do mesmo nicho para enriquecer suas recomendações. Compare o perfil atual com a média do nicho em pelo menos 1 burningProblem.`;
+  }
+  return `\n\nNICHE INSIGHTS for "${insight.nicho}" (based on ${insight.total_analises} prior analyses):
+Niche averages — Overall: ${avg(insight.avg_score_geral)} | Hook: ${avg(insight.avg_hook_strength)} | Retention: ${avg(insight.avg_retention)} | Engagement: ${avg(insight.avg_engagement)} | Viral: ${avg(insight.avg_viral_score)}
+Top 3 most common problems in the niche:
+${top3Problems}
+Top 3 most suggested solutions in the niche:
+${top3Solutions}
+${insight.insight_text ? `\nStrategic niche summary: ${insight.insight_text}` : ""}
+INSTRUCTION: Use this real data from other analyses in the same niche to enrich your recommendations. Compare the current profile against the niche average in at least 1 burningProblem.`;
+}
+
+function buildPrompts(
+  username: string,
+  url: string,
+  lang: string,
+  company: string,
+  scrapedSummary: string,
+  priorContext: string,
+  nicheContext: string,
+) {
   const isPT = lang === "pt-BR";
   const c = company || "Viewsup Insights";
   const langLine = isPT
@@ -215,6 +307,8 @@ ${langLine}
 
 Given an Instagram profile and (when available) recent post data, deliver a lean but high-quality audit. Be specific, realistic, concise and constructive. Scores realistic (most profiles 35-70, rarely above 80).
 
+ALWAYS classify the profile into one of the normalised niches in the "nicho" enum. Pick the closest match — use "Outros" only as a last resort.
+
 Return ONLY the fields defined in the tool schema, mentioning ${c} naturally in burningProblems solutions when relevant.
 
 Keep each text field tight so the full JSON stays compact.`;
@@ -223,13 +317,13 @@ Keep each text field tight so the full JSON stays compact.`;
     ? `Analise o perfil do Instagram @${username} (URL: ${url}).
 
 DADOS COLETADOS:
-${scrapedSummary}
+${scrapedSummary}${priorContext}${nicheContext}
 
 Retorne apenas a análise enxuta definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
     : `Analyse the Instagram profile @${username} (URL: ${url}).
 
 SCRAPED DATA:
-${scrapedSummary}
+${scrapedSummary}${priorContext}${nicheContext}
 
 Return only the lean analysis defined in the schema. ALL content must be in British English.`;
 
@@ -237,11 +331,23 @@ Return only the lean analysis defined in the schema. ALL content must be in Brit
 }
 
 // --- Apify Instagram scraping (best-effort; failure is non-fatal) ---
-async function scrapeInstagram(username: string): Promise<string> {
+interface ScrapeResult {
+  summary: string;
+  followers: number | null;
+  avgLikes: number | null;
+  avgComments: number | null;
+  avgViews: number | null;
+}
+
+async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
+  const empty: ScrapeResult = {
+    summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
+    followers: null, avgLikes: null, avgComments: null, avgViews: null,
+  };
   if (!APIFY_API_KEY) {
     console.log("[Apify] no key — skipping scrape");
-    return "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.";
+    return empty;
   }
   const ac = new AbortController();
   const timeoutId = setTimeout(() => ac.abort(), 90_000);
@@ -259,24 +365,109 @@ async function scrapeInstagram(username: string): Promise<string> {
     clearTimeout(timeoutId);
     if (!res.ok) {
       console.warn("[Apify] non-OK status:", res.status);
-      return "Sem dados de scraping disponíveis. Faça análise simulada baseada no username.";
+      return empty;
     }
     const items = (await res.json()) as any[];
     const profile = items?.[0];
-    if (!profile) return "Sem dados de scraping disponíveis.";
-    const posts = (profile.latestPosts || []).slice(0, 8).map((p: any, i: number) =>
-      `Post ${i + 1}: ${p.type || "?"} | likes=${p.likesCount ?? "?"} comments=${p.commentsCount ?? "?"} | caption="${(p.caption || "").slice(0, 180)}"`
+    if (!profile) return empty;
+    const latest = (profile.latestPosts || []).slice(0, 8) as any[];
+    const posts = latest.map((p, i) =>
+      `Post ${i + 1}: ${p.type || "?"} | likes=${p.likesCount ?? "?"} comments=${p.commentsCount ?? "?"} views=${p.videoViewCount ?? p.videoPlayCount ?? "?"} | caption="${(p.caption || "").slice(0, 180)}"`
     ).join("\n");
-    return `Bio: ${profile.biography || "(empty)"}
+    const avg = (key: string) => {
+      const vals = latest.map((p: any) => Number(p[key])).filter((n) => Number.isFinite(n) && n > 0);
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+    };
+    const summary = `Bio: ${profile.biography || "(empty)"}
 Followers: ${profile.followersCount ?? "?"} | Following: ${profile.followsCount ?? "?"} | Posts: ${profile.postsCount ?? "?"}
 Verified: ${!!profile.verified} | Business: ${!!profile.isBusinessAccount}
 External link: ${profile.externalUrl || "(none)"}
 Recent posts:
 ${posts || "(none)"}`;
+    return {
+      summary,
+      followers: Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null,
+      avgLikes: avg("likesCount"),
+      avgComments: avg("commentsCount"),
+      avgViews: avg("videoViewCount") ?? avg("videoPlayCount"),
+    };
   } catch (e) {
     clearTimeout(timeoutId);
     console.warn("[Apify] failed:", (e as Error).message);
-    return "Sem dados de scraping disponíveis (apify timeout/error). Faça análise simulada.";
+    return empty;
+  }
+}
+
+// Pull most-recent prior analysis for the same username (any user) for trend comparison
+async function fetchPriorAnalysis(admin: any, userId: string, username: string): Promise<PriorAnalysis | null> {
+  const { data, error } = await admin
+    .from("profile_history")
+    .select("created_at, score_geral, hook_strength, retention, engagement, viral_score, problemas_detectados")
+    .eq("user_id", userId)
+    .ilike("username", username)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.warn("[history] fetch failed:", error.message);
+    return null;
+  }
+  return data as PriorAnalysis | null;
+}
+
+async function fetchNicheInsight(admin: any, nicho: string): Promise<NicheInsightRow | null> {
+  const { data, error } = await admin
+    .from("nicho_insights")
+    .select("*")
+    .eq("nicho", nicho)
+    .maybeSingle();
+  if (error) {
+    console.warn("[niche] fetch failed:", error.message);
+    return null;
+  }
+  return data as NicheInsightRow | null;
+}
+
+function pickDimensionScore(dimensions: any[], regex: RegExp): number | null {
+  if (!Array.isArray(dimensions)) return null;
+  const d = dimensions.find((x) => regex.test(String(x?.name || x?.label || "")));
+  return d && Number.isFinite(d.score) ? Number(d.score) : null;
+}
+
+async function recordHistory(
+  admin: any,
+  job: any,
+  result: any,
+  scrape: ScrapeResult,
+) {
+  try {
+    const burning = Array.isArray(result.burningProblems) ? result.burningProblems : [];
+    const dims = result.dimensions || [];
+    const row = {
+      user_id: job.user_id,
+      username: result.username,
+      instagram_url: job.instagram_url,
+      nicho: NICHE_ENUM.includes(result.nicho) ? result.nicho : "Outros",
+      pais: typeof result.pais === "string" ? result.pais.slice(0, 60) : null,
+      score_geral: Number.isFinite(result.overallScore) ? result.overallScore : null,
+      hook_strength: result.hookRetention?.score ?? pickDimensionScore(dims, /hook|gancho/i),
+      retention: pickDimensionScore(dims, /reten|retain/i),
+      engagement: result.profileHealth?.engagementRatio?.ratio ?? pickDimensionScore(dims, /engaj|engage/i),
+      visual_branding: result.profileHealth?.visualConsistency?.score ?? pickDimensionScore(dims, /visual|brand/i),
+      storytelling: pickDimensionScore(dims, /story|narrat/i),
+      viral_score: result.viralScore?.probability ?? null,
+      seguidores: scrape.followers,
+      media_views: scrape.avgViews,
+      media_likes: scrape.avgLikes ?? result.profileHealth?.engagementRatio?.avgLikes ?? null,
+      media_comentarios: scrape.avgComments ?? result.profileHealth?.engagementRatio?.avgComments ?? null,
+      problemas_detectados: burning.map((b: any) => String(b?.problem || "").slice(0, 240)).filter(Boolean),
+      solucoes_sugeridas: burning.map((b: any) => String(b?.solution || "").slice(0, 240)).filter(Boolean),
+    };
+    const { error } = await admin.from("profile_history").insert(row);
+    if (error) console.warn("[history] insert failed:", error.message);
+    else console.log("[history] saved for", row.username, "nicho=", row.nicho);
+  } catch (e) {
+    console.warn("[history] unexpected error:", (e as Error).message);
   }
 }
 
@@ -311,16 +502,50 @@ async function processJob(jobId: string) {
     if (!ANTHROPIC_API_KEY) throw new Error("Missing ANTHROPIC_API_KEY");
 
     const username = job.username as string;
-    const scrapedSummary = await scrapeInstagram(username);
+    const isPT = job.language === "pt-BR";
+
+    // Run scrape and prior-history fetch in parallel
+    const [scrape, prior] = await Promise.all([
+      scrapeInstagram(username),
+      fetchPriorAnalysis(admin, job.user_id, username),
+    ]);
+
+    // Niche insight requires the niche, which we don't know yet → do a 2-pass:
+    // pass 1 (cheap) we can skip; instead we ask Claude to pick the niche, then
+    // re-prompt with niche context. To avoid 2x AI cost, we send the FULL niche
+    // table summary in the first pass: Claude self-selects the niche AND uses it.
+    // Here we fetch the full insights table so the model has cross-niche context.
+    const { data: allInsights } = await admin
+      .from("nicho_insights")
+      .select("nicho, total_analises, avg_score_geral, top_problemas, top_solucoes, insight_text")
+      .gte("total_analises", 2)
+      .order("total_analises", { ascending: false })
+      .limit(20);
+
+    // For the prompt we pass a compact map; once the niche is detected we update profile_history.
+    const nicheTableSummary = (allInsights ?? []).map((row: any) => {
+      const tops = (row.top_problemas ?? []).slice(0, 2).map((p: any) => p.problema).join("; ");
+      return `${row.nicho}: ${row.total_analises} análises, score médio ${Number(row.avg_score_geral ?? 0).toFixed(1)}, top problemas: ${tops || "—"}`;
+    }).join("\n");
+
+    const priorContext = buildPriorContext(prior, isPT);
+    const nicheContext = nicheTableSummary
+      ? (isPT
+        ? `\n\nDADOS DE NICHOS (referência cruzada):\n${nicheTableSummary}\n\nApós escolher o "nicho" do perfil, use os top problemas/soluções desse nicho específico para enriquecer sua análise.`
+        : `\n\nNICHE BENCHMARKS (cross-reference):\n${nicheTableSummary}\n\nAfter picking the profile's "nicho", use that niche's top problems/solutions to enrich your analysis.`)
+      : "";
+
     const { systemPrompt, userPrompt } = buildPrompts(
       username,
       job.instagram_url,
       job.language,
       job.company_name || "Viewsup Insights",
-      scrapedSummary,
+      scrape.summary,
+      priorContext,
+      nicheContext,
     );
 
-    console.log("[Worker] calling Anthropic for job:", jobId);
+    console.log("[Worker] calling Anthropic for job:", jobId, "| prior=", !!prior, "| niche-rows=", allInsights?.length ?? 0);
     const ac = new AbortController();
     const timeoutId = setTimeout(() => ac.abort(), 240_000);
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -369,6 +594,9 @@ async function processJob(jobId: string) {
       result_data: result,
       completed_at: new Date().toISOString(),
     }).eq("id", jobId);
+
+    // Record into learning system (trigger will recompute nicho_insights)
+    await recordHistory(admin, job, result, scrape);
 
     // Mirror to legacy reports table for dashboard listing
     try {
