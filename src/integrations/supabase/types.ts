@@ -59,6 +59,123 @@ export type Database = {
         }
         Relationships: []
       }
+      nicho_insights: {
+        Row: {
+          avg_engagement: number | null
+          avg_hook_strength: number | null
+          avg_retention: number | null
+          avg_score_geral: number | null
+          avg_viral_score: number | null
+          insight_generated_at: string | null
+          insight_generated_at_count: number
+          insight_text: string | null
+          nicho: Database["public"]["Enums"]["profile_niche"]
+          top_problemas: Json
+          top_solucoes: Json
+          total_analises: number
+          updated_at: string
+        }
+        Insert: {
+          avg_engagement?: number | null
+          avg_hook_strength?: number | null
+          avg_retention?: number | null
+          avg_score_geral?: number | null
+          avg_viral_score?: number | null
+          insight_generated_at?: string | null
+          insight_generated_at_count?: number
+          insight_text?: string | null
+          nicho: Database["public"]["Enums"]["profile_niche"]
+          top_problemas?: Json
+          top_solucoes?: Json
+          total_analises?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_engagement?: number | null
+          avg_hook_strength?: number | null
+          avg_retention?: number | null
+          avg_score_geral?: number | null
+          avg_viral_score?: number | null
+          insight_generated_at?: string | null
+          insight_generated_at_count?: number
+          insight_text?: string | null
+          nicho?: Database["public"]["Enums"]["profile_niche"]
+          top_problemas?: Json
+          top_solucoes?: Json
+          total_analises?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profile_history: {
+        Row: {
+          created_at: string
+          engagement: number | null
+          hook_strength: number | null
+          id: string
+          instagram_url: string
+          media_comentarios: number | null
+          media_likes: number | null
+          media_views: number | null
+          nicho: Database["public"]["Enums"]["profile_niche"]
+          pais: string | null
+          problemas_detectados: string[]
+          retention: number | null
+          score_geral: number | null
+          seguidores: number | null
+          solucoes_sugeridas: string[]
+          storytelling: number | null
+          user_id: string
+          username: string
+          viral_score: number | null
+          visual_branding: number | null
+        }
+        Insert: {
+          created_at?: string
+          engagement?: number | null
+          hook_strength?: number | null
+          id?: string
+          instagram_url: string
+          media_comentarios?: number | null
+          media_likes?: number | null
+          media_views?: number | null
+          nicho?: Database["public"]["Enums"]["profile_niche"]
+          pais?: string | null
+          problemas_detectados?: string[]
+          retention?: number | null
+          score_geral?: number | null
+          seguidores?: number | null
+          solucoes_sugeridas?: string[]
+          storytelling?: number | null
+          user_id: string
+          username: string
+          viral_score?: number | null
+          visual_branding?: number | null
+        }
+        Update: {
+          created_at?: string
+          engagement?: number | null
+          hook_strength?: number | null
+          id?: string
+          instagram_url?: string
+          media_comentarios?: number | null
+          media_likes?: number | null
+          media_views?: number | null
+          nicho?: Database["public"]["Enums"]["profile_niche"]
+          pais?: string | null
+          problemas_detectados?: string[]
+          retention?: number | null
+          score_geral?: number | null
+          seguidores?: number | null
+          solucoes_sugeridas?: string[]
+          storytelling?: number | null
+          user_id?: string
+          username?: string
+          viral_score?: number | null
+          visual_branding?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -175,10 +292,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      recompute_nicho_insights: {
+        Args: { _nicho: Database["public"]["Enums"]["profile_niche"] }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      profile_niche:
+        | "Imobiliaria"
+        | "Fitness"
+        | "Beleza"
+        | "Moda"
+        | "Alimentacao"
+        | "Educacao"
+        | "Tecnologia"
+        | "Marketing"
+        | "Financas"
+        | "Saude"
+        | "Coaching"
+        | "Ecommerce"
+        | "Turismo"
+        | "Automotivo"
+        | "Entretenimento"
+        | "Servicos"
+        | "B2B"
+        | "Lifestyle"
+        | "Arte"
+        | "Outros"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -305,6 +445,29 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      profile_niche: [
+        "Imobiliaria",
+        "Fitness",
+        "Beleza",
+        "Moda",
+        "Alimentacao",
+        "Educacao",
+        "Tecnologia",
+        "Marketing",
+        "Financas",
+        "Saude",
+        "Coaching",
+        "Ecommerce",
+        "Turismo",
+        "Automotivo",
+        "Entretenimento",
+        "Servicos",
+        "B2B",
+        "Lifestyle",
+        "Arte",
+        "Outros",
+      ],
+    },
   },
 } as const
