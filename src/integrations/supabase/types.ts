@@ -209,6 +209,7 @@ export type Database = {
           created_at: string
           id: string
           language: string
+          profile_pic_url: string | null
           profile_url: string
           user_id: string | null
           username: string
@@ -218,6 +219,7 @@ export type Database = {
           created_at?: string
           id?: string
           language?: string
+          profile_pic_url?: string | null
           profile_url: string
           user_id?: string | null
           username: string
@@ -227,6 +229,7 @@ export type Database = {
           created_at?: string
           id?: string
           language?: string
+          profile_pic_url?: string | null
           profile_url?: string
           user_id?: string | null
           username?: string

@@ -337,13 +337,14 @@ interface ScrapeResult {
   avgLikes: number | null;
   avgComments: number | null;
   avgViews: number | null;
+  profilePicUrl: string | null;
 }
 
 async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
   const empty: ScrapeResult = {
     summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
-    followers: null, avgLikes: null, avgComments: null, avgViews: null,
+    followers: null, avgLikes: null, avgComments: null, avgViews: null, profilePicUrl: null,
   };
   if (!APIFY_API_KEY) {
     console.log("[Apify] no key — skipping scrape");
@@ -390,6 +391,7 @@ ${posts || "(none)"}`;
       avgLikes: avg("likesCount"),
       avgComments: avg("commentsCount"),
       avgViews: avg("videoViewCount") ?? avg("videoPlayCount"),
+      profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null,
     };
   } catch (e) {
     clearTimeout(timeoutId);
@@ -606,6 +608,7 @@ async function processJob(jobId: string) {
         profile_url: job.instagram_url,
         language: job.language,
         analysis_data: result,
+        profile_pic_url: scrape.profilePicUrl,
       });
     } catch (e) {
       console.warn("[Worker] reports mirror failed:", (e as Error).message);

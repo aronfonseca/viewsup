@@ -18,6 +18,7 @@ interface Report {
   profile_url: string;
   language: string;
   created_at: string;
+  profile_pic_url: string | null;
 }
 
 interface VideoJobRow {
@@ -51,7 +52,7 @@ const Dashboard = () => {
       const [reportsRes, videosRes] = await Promise.all([
         supabase
           .from("reports")
-          .select("id, username, profile_url, language, created_at")
+          .select("id, username, profile_url, language, created_at, profile_pic_url")
           .eq("user_id", user!.id)
           .order("created_at", { ascending: false })
           .limit(20),
@@ -159,7 +160,26 @@ const Dashboard = () => {
                 >
                   <CardContent className="py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-primary-foreground font-bold">
+                      {r.profile_pic_url ? (
+                        <img
+                          src={r.profile_pic_url}
+                          alt={`@${r.username} profile`}
+                          className="h-10 w-10 rounded-full object-cover border border-border"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            // If the Instagram CDN URL expires, fall back to the initial badge
+                            const img = e.currentTarget;
+                            const fallback = img.nextElementSibling as HTMLElement | null;
+                            img.style.display = "none";
+                            if (fallback) fallback.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-primary-foreground font-bold"
+                        style={{ display: r.profile_pic_url ? "none" : "flex" }}
+                      >
                         {r.username.charAt(0).toUpperCase()}
                       </div>
                       <div>
