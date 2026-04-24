@@ -18,6 +18,7 @@ interface Report {
   profile_url: string;
   language: string;
   created_at: string;
+  profile_pic_url: string | null;
 }
 
 interface VideoJobRow {
