@@ -608,6 +608,7 @@ async function processJob(jobId: string) {
         profile_url: job.instagram_url,
         language: job.language,
         analysis_data: result,
+        profile_pic_url: scrape.profilePicUrl,
       });
     } catch (e) {
       console.warn("[Worker] reports mirror failed:", (e as Error).message);
