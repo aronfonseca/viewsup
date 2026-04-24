@@ -337,13 +337,14 @@ interface ScrapeResult {
   avgLikes: number | null;
   avgComments: number | null;
   avgViews: number | null;
+  profilePicUrl: string | null;
 }
 
 async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
   const empty: ScrapeResult = {
     summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
-    followers: null, avgLikes: null, avgComments: null, avgViews: null,
+    followers: null, avgLikes: null, avgComments: null, avgViews: null, profilePicUrl: null,
   };
   if (!APIFY_API_KEY) {
     console.log("[Apify] no key — skipping scrape");
