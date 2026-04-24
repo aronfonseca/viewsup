@@ -52,7 +52,7 @@ const Dashboard = () => {
       const [reportsRes, videosRes] = await Promise.all([
         supabase
           .from("reports")
-          .select("id, username, profile_url, language, created_at")
+          .select("id, username, profile_url, language, created_at, profile_pic_url")
           .eq("user_id", user!.id)
           .order("created_at", { ascending: false })
           .limit(20),
