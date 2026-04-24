@@ -161,28 +161,19 @@ const Dashboard = () => {
                 >
                   <CardContent className="py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {r.profile_pic_url ? (
-                        <img
-                          src={r.profile_pic_url}
-                          alt={`@${r.username} profile`}
-                          className="h-10 w-10 rounded-full object-cover border border-border"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            // If the Instagram CDN URL expires, fall back to the initial badge
-                            const img = e.currentTarget;
-                            const fallback = img.nextElementSibling as HTMLElement | null;
-                            img.style.display = "none";
-                            if (fallback) fallback.style.display = "flex";
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-primary-foreground font-bold"
-                        style={{ display: r.profile_pic_url ? "none" : "flex" }}
-                      >
-                        {r.username.charAt(0).toUpperCase()}
-                      </div>
+                      <Avatar className="h-10 w-10 border border-border">
+                        {r.profile_pic_url && (
+                          <AvatarImage
+                            src={r.profile_pic_url}
+                            alt={`@${r.username} profile`}
+                            referrerPolicy="no-referrer"
+                            className="object-cover"
+                          />
+                        )}
+                        <AvatarFallback className="gradient-bg text-primary-foreground font-bold">
+                          {r.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <p className="font-semibold text-foreground">@{r.username}</p>
                         <p className="text-xs text-muted-foreground">
