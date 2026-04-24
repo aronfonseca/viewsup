@@ -601,8 +601,9 @@ async function processJob(jobId: string) {
     await recordHistory(admin, job, result, scrape);
 
     // Mirror to legacy reports table for dashboard listing
+    console.log(`[Worker] profile_pic_url for @${username}:`, scrape.profilePicUrl ?? "(null)");
     try {
-      await admin.from("reports").insert({
+      const { error: reportErr } = await admin.from("reports").insert({
         user_id: job.user_id,
         username,
         profile_url: job.instagram_url,
@@ -610,6 +611,11 @@ async function processJob(jobId: string) {
         analysis_data: result,
         profile_pic_url: scrape.profilePicUrl,
       });
+      if (reportErr) {
+        console.warn("[Worker] reports mirror error:", reportErr.message);
+      } else {
+        console.log(`[Worker] reports row saved with profile_pic_url=${scrape.profilePicUrl ? "yes" : "no"}`);
+      }
     } catch (e) {
       console.warn("[Worker] reports mirror failed:", (e as Error).message);
     }
