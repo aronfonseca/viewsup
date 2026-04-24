@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
-import heroBg from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [url, setUrl] = useState("");
