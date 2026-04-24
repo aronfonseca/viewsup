@@ -104,10 +104,9 @@ const Index = () => {
         <p className="text-xs text-muted-foreground mt-4">{t("freeAnalysis")}</p>
       </section>
 
+      {/* Subtle accent glow under hero — no neural network image */}
       <div className="relative z-0 max-w-5xl mx-auto px-6 -mt-8">
-        <div className="rounded-2xl overflow-hidden glow">
-          <img src={heroBg} alt="AI analytics" width={1920} height={1080} className="w-full h-auto opacity-60" />
-        </div>
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
       </div>
 
       <section className="relative z-10 max-w-5xl mx-auto px-6 py-24">
