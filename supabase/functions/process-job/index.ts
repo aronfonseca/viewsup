@@ -391,6 +391,7 @@ ${posts || "(none)"}`;
       avgLikes: avg("likesCount"),
       avgComments: avg("commentsCount"),
       avgViews: avg("videoViewCount") ?? avg("videoPlayCount"),
+      profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null,
     };
   } catch (e) {
     clearTimeout(timeoutId);
