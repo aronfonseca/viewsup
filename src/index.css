@@ -6,45 +6,47 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
+    /* Viewsup minimalist premium palette */
+    --background: 0 0% 4%;              /* #0A0A0A */
+    --foreground: 0 0% 97%;             /* #F8F8F8 */
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 96%;
+    --card: 0 0% 10%;                   /* #1A1A1A */
+    --card-foreground: 0 0% 97%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 97%;
 
-    --primary: 199 89% 48%;
-    --primary-foreground: 222 47% 6%;
+    /* Primary = lime accent #E8FF47 */
+    --primary: 67 100% 64%;
+    --primary-foreground: 0 0% 4%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 40% 90%;
+    --secondary: 0 0% 16%;              /* #2A2A2A */
+    --secondary-foreground: 0 0% 97%;
 
-    --muted: 222 30% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 53%;       /* #888888 */
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 67 100% 64%;              /* same lime accent */
+    --accent-foreground: 0 0% 4%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 97%;
 
-    --border: 222 30% 16%;
-    --input: 222 30% 16%;
-    --ring: 199 89% 48%;
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 67 100% 64%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;                   /* 8px */
 
-    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(262 83% 58%));
-    --gradient-card: linear-gradient(135deg, hsl(222 47% 9%), hsl(222 47% 12%));
-    --gradient-glow: radial-gradient(ellipse at center, hsl(199 89% 48% / 0.15), transparent 70%);
-    --shadow-glow: 0 0 40px -10px hsl(199 89% 48% / 0.3);
-    --shadow-card: 0 4px 24px -4px hsl(222 47% 4% / 0.5);
+    --gradient-primary: linear-gradient(135deg, hsl(67 100% 64%), hsl(67 100% 70%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 12%));
+    --gradient-glow: radial-gradient(ellipse at center, hsl(67 100% 64% / 0.08), transparent 70%);
+    --shadow-glow: 0 0 40px -10px hsl(67 100% 64% / 0.25);
+    --shadow-card: 0 4px 24px -4px hsl(0 0% 0% / 0.5);
 
     --success: 152 69% 45%;
     --warning: 38 92% 50%;
-    --info: 199 89% 48%;
+    --info: 67 100% 64%;
   }
 }
 
