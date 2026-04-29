@@ -71,7 +71,7 @@ const VIDEO_ANALYSIS_SCHEMA = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 async function processJob(jobId: string): Promise<void> {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -93,7 +93,7 @@ async function processJob(jobId: string): Promise<void> {
   console.log(`[analyze-video] processing job ${jobId} for user ${claimed.user_id}`);
 
   try {
-    if (!LOVABLE_API_KEY) throw new Error("Missing LOVABLE_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("Missing ANTHROPIC_API_KEY");
 
     const { data: fileData, error: dlError } = await admin.storage
       .from("video-uploads")
@@ -140,17 +140,29 @@ LANGUAGE: ALL text MUST be in English.
 
 ${c} offers professional editing to optimize all these aspects.`;
 
-    const aiResponse = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 4096,
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: [
-              { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Video}` } },
+              {
+                type: "video",
+                source: {
+                  type: "base64",
+                  media_type: mimeType,
+                  data: base64Video,
+                },
+              },
               {
                 type: "text",
                 text: isPT
@@ -160,24 +172,30 @@ ${c} offers professional editing to optimize all these aspects.`;
             ],
           },
         ],
-        tools: [{ type: "function", function: VIDEO_ANALYSIS_SCHEMA }],
-        tool_choice: { type: "function", function: { name: "video_preflight_analysis" } },
+        tools: [{
+          name: VIDEO_ANALYSIS_SCHEMA.name,
+          description: VIDEO_ANALYSIS_SCHEMA.description,
+          input_schema: VIDEO_ANALYSIS_SCHEMA.parameters,
+        }],
+        tool_choice: { type: "tool", name: VIDEO_ANALYSIS_SCHEMA.name },
         temperature: 0.4,
       }),
     });
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
-      throw new Error(`AI Gateway ${aiResponse.status}: ${errText.slice(0, 300)}`);
+      throw new Error(`Anthropic API ${aiResponse.status}: ${errText.slice(0, 500)}`);
     }
 
     const aiData = await aiResponse.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall?.function?.arguments) {
+    const toolCall = aiData.content?.find((block: { type?: string; name?: string }) =>
+      block.type === "tool_use" && block.name === VIDEO_ANALYSIS_SCHEMA.name
+    );
+    if (!toolCall?.input) {
       throw new Error("AI did not return structured analysis");
     }
 
-    const analysis = JSON.parse(toolCall.function.arguments);
+    const analysis = toolCall.input;
 
     await admin.from("video_jobs").update({
       status: "completed",
