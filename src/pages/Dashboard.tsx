@@ -157,7 +157,7 @@ const Dashboard = () => {
                 <Card
                   key={r.id}
                   className="border-border bg-card hover:border-primary/30 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/results?url=${encodeURIComponent(r.profile_url)}`)}
+                  onClick={() => navigate(`/results?reportId=${encodeURIComponent(r.id)}`)}
                 >
                   <CardContent className="py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
