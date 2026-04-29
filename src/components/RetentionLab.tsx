@@ -430,6 +430,21 @@ const RetentionLab = () => {
     <div className="space-y-8">
       {!activeJob ? (
         <>
+          <div className="p-5 rounded-xl bg-card border border-border card-shadow space-y-3">
+            <label htmlFor="video-context" className="text-sm font-semibold text-foreground">
+              {t("retLabDescriptionLabel")}
+            </label>
+            <Textarea
+              id="video-context"
+              value={videoDescription}
+              onChange={(e) => setVideoDescription(e.target.value)}
+              placeholder={t("retLabDescriptionPlaceholder")}
+              className="min-h-24 resize-none"
+              maxLength={900}
+            />
+            <p className="text-xs text-muted-foreground">{t("retLabDescriptionHint")}</p>
+          </div>
+
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
