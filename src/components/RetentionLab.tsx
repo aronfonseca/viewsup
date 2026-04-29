@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { Component, type ReactNode, useState, useCallback, useRef, useEffect } from "react";
 import {
   Upload, CheckCircle2, AlertTriangle, Video, Volume2, Scissors,
   Eye, FileText, Sparkles, Loader2, Copy, Hash, Clock, RotateCcw,
@@ -29,6 +29,42 @@ interface VideoJob {
   result_data: VideoAnalysis | null;
   error_message: string | null;
   created_at: string;
+}
+
+class RetentionLabErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; message?: string }
+> {
+  state = { hasError: false, message: undefined };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, message: error.message };
+  }
+
+  componentDidCatch(error: Error, errorInfo: unknown) {
+    console.error("[RetentionLab] render error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 rounded-xl border-2 border-destructive/30 bg-destructive/10 text-center space-y-4">
+          <AlertTriangle className="h-10 w-10 text-destructive mx-auto" />
+          <div>
+            <h3 className="text-lg font-bold text-destructive mb-1">Laboratório indisponível</h3>
+            <p className="text-sm text-foreground">
+              Não foi possível carregar o Laboratório de Retenção agora. Recarregue a página ou tente novamente em instantes.
+            </p>
+            {this.state.message && (
+              <p className="mt-3 text-xs text-muted-foreground">Detalhe técnico: {this.state.message}</p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
 const ScoreCircle = ({ score, label }: { score: number; label: string }) => {
