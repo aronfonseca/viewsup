@@ -159,6 +159,9 @@ const translations = {
     retLabStatusFailed: "Falhou",
     retLabStatusProcessing: "Processando",
     retLabStatusPending: "Pendente",
+    retLabDescriptionLabel: "Descrição opcional do vídeo",
+    retLabDescriptionPlaceholder: "Ex.: começo falando para a câmera, aparece texto grande na tela, há música ao fundo e cortes rápidos mostrando antes/depois...",
+    retLabDescriptionHint: "Ajuda a IA a avaliar áudio e contexto quando só os frames e metadados estão disponíveis.",
     // Video Ideas
     videoIdeasTitle: "🎬 10 Vídeos Para Gravar Agora",
     videoIdeasDesc: "Ideias de conteúdo baseadas nos pilares identificados, com ganchos prontos e horários otimizados",
@@ -344,6 +347,9 @@ const translations = {
     retLabStatusFailed: "Failed",
     retLabStatusProcessing: "Processing",
     retLabStatusPending: "Pending",
+    retLabDescriptionLabel: "Optional video description",
+    retLabDescriptionPlaceholder: "E.g. starts with me speaking to camera, large on-screen text appears, background music plays, quick cuts show before/after...",
+    retLabDescriptionHint: "Helps AI assess audio and context when only frames and metadata are available.",
     // Video Ideas
     videoIdeasTitle: "🎬 10 Videos to Record Now",
     videoIdeasDesc: "Content ideas based on identified pillars, with ready-made hooks and optimised schedules",

@@ -4,6 +4,7 @@ import {
   Eye, FileText, Sparkles, Loader2, Copy, Hash, Clock, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +57,55 @@ const RetentionLab = () => {
   const [activeJob, setActiveJob] = useState<VideoJob | null>(null);
   const [history, setHistory] = useState<VideoJob[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [videoDescription, setVideoDescription] = useState("");
+
+  const extractVideoContext = async (file: File) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    video.src = url;
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        video.onloadedmetadata = () => resolve();
+        video.onerror = () => reject(new Error("Unable to read video metadata"));
+      });
+
+      const durationSeconds = Number.isFinite(video.duration) ? video.duration : undefined;
+      const frameTimes = durationSeconds
+        ? [0.2, durationSeconds * 0.25, durationSeconds * 0.5, durationSeconds * 0.75]
+        : [0.2];
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.min(video.videoWidth || 720, 720);
+      canvas.height = Math.round(canvas.width * ((video.videoHeight || 1280) / (video.videoWidth || 720)));
+      const ctx = canvas.getContext("2d");
+      const frameImages = [];
+
+      if (ctx && canvas.width && canvas.height) {
+        for (const time of frameTimes) {
+          video.currentTime = Math.max(0, Math.min(time, (durationSeconds || time) - 0.05));
+          await new Promise<void>((resolve) => {
+            video.onseeked = () => resolve();
+            setTimeout(resolve, 1200);
+          });
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          frameImages.push({
+            data: canvas.toDataURL("image/jpeg", 0.72).split(",")[1],
+            media_type: "image/jpeg" as const,
+            timestamp: Number(time.toFixed(2)),
+          });
+        }
+      }
+
+      return { durationSeconds, frameImages, contentDescription: videoDescription.trim() || undefined };
+    } catch {
+      return { contentDescription: videoDescription.trim() || undefined, frameImages: [] };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
 
   // Load existing jobs (history + resume any in-progress one)
   useEffect(() => {
@@ -124,6 +174,8 @@ const RetentionLab = () => {
         });
       if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
 
+      const videoContext = await extractVideoContext(file);
+
       const { data: jobData, error: jobErr } = await supabase
         .from("video_jobs")
         .insert({
@@ -146,7 +198,7 @@ const RetentionLab = () => {
       setHistory((prev) => [job, ...prev]);
 
       // Fire-and-forget kick to start processing immediately (cron is fallback)
-      supabase.functions.invoke("analyze-video", { body: { jobId: job.id } }).catch(() => {});
+      supabase.functions.invoke("analyze-video", { body: { jobId: job.id, ...videoContext } }).catch(() => {});
 
       toast({ title: t("retLabUploadedTitle"), description: t("retLabUploadedDesc") });
     } catch (err) {
@@ -155,7 +207,7 @@ const RetentionLab = () => {
     } finally {
       setUploading(false);
     }
-  }, [toast, t, lang, companyName]);
+  }, [toast, t, lang, companyName, videoDescription]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -378,6 +430,21 @@ const RetentionLab = () => {
     <div className="space-y-8">
       {!activeJob ? (
         <>
+          <div className="p-5 rounded-xl bg-card border border-border card-shadow space-y-3">
+            <label htmlFor="video-context" className="text-sm font-semibold text-foreground">
+              {t("retLabDescriptionLabel")}
+            </label>
+            <Textarea
+              id="video-context"
+              value={videoDescription}
+              onChange={(e) => setVideoDescription(e.target.value)}
+              placeholder={t("retLabDescriptionPlaceholder")}
+              className="min-h-24 resize-none"
+              maxLength={900}
+            />
+            <p className="text-xs text-muted-foreground">{t("retLabDescriptionHint")}</p>
+          </div>
+
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
