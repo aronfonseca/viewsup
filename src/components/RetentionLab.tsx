@@ -84,7 +84,7 @@ const ScoreCircle = ({ score, label }: { score: number; label: string }) => {
   );
 };
 
-const RetentionLab = () => {
+const RetentionLabContent = () => {
   const { t, lang, companyName } = useI18n();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -563,5 +563,11 @@ const RetentionLab = () => {
     </div>
   );
 };
+
+const RetentionLab = () => (
+  <RetentionLabErrorBoundary>
+    <RetentionLabContent />
+  </RetentionLabErrorBoundary>
+);
 
 export default RetentionLab;
