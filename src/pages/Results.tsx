@@ -189,24 +189,26 @@ const Results = () => {
     setJobStatus("pending");
 
     if (reportId) {
-      supabase
-        .from("reports")
-        .select("analysis_data")
-        .eq("id", reportId)
-        .single()
-        .then(({ data, error: reportError }) => {
+      void (async () => {
+        try {
+          const { data, error: reportError } = await supabase
+            .from("reports")
+            .select("analysis_data")
+            .eq("id", reportId)
+            .single();
+
           if (reportError || !data?.analysis_data) {
             throw new Error(reportError?.message || t("analysisFailed"));
           }
           setAnalysis(data.analysis_data as unknown as ProfileAnalysis);
           setLoading(false);
-        })
-        .catch((err) => {
+        } catch (err) {
           const msg = err instanceof Error ? err.message : t("analysisFailed");
           setError(msg);
           setLoading(false);
           toast({ title: t("errorTitle"), description: msg, variant: "destructive" });
-        });
+        }
+      })();
       return;
     }
 
