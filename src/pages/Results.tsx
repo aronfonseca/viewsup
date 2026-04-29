@@ -15,6 +15,7 @@ import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
 import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ── Rich Text (markdown links) ── */
 const RichText = ({ text }: { text: string }) => {
@@ -170,6 +171,7 @@ const Results = () => {
   const { t, lang, companyName, setCompanyName } = useI18n();
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
+  const reportId = searchParams.get("reportId") || "";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobStatus, setJobStatus] = useState<string>("pending");
@@ -181,10 +183,35 @@ const Results = () => {
   const [companyDraft, setCompanyDraft] = useState(companyName);
 
   useEffect(() => {
-    if (!url) { navigate("/"); return; }
+    if (!url && !reportId) { navigate("/"); return; }
     setLoading(true);
     setError(null);
     setJobStatus("pending");
+
+    if (reportId) {
+      void (async () => {
+        try {
+          const { data, error: reportError } = await supabase
+            .from("reports")
+            .select("analysis_data")
+            .eq("id", reportId)
+            .single();
+
+          if (reportError || !data?.analysis_data) {
+            throw new Error(reportError?.message || t("analysisFailed"));
+          }
+          setAnalysis(data.analysis_data as unknown as ProfileAnalysis);
+          setLoading(false);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : t("analysisFailed");
+          setError(msg);
+          setLoading(false);
+          toast({ title: t("errorTitle"), description: msg, variant: "destructive" });
+        }
+      })();
+      return;
+    }
+
     analyzeProfile(url, lang, companyName, (s) => setJobStatus(s))
       .then((data) => { setAnalysis(data); setLoading(false); })
       .catch((err) => {
@@ -193,7 +220,7 @@ const Results = () => {
         setLoading(false);
         toast({ title: t("errorTitle"), description: msg, variant: "destructive" });
       });
-  }, [url, navigate, lang]);
+  }, [url, reportId, navigate, lang, companyName, t, toast]);
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;
