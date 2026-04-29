@@ -26,7 +26,13 @@ const VIDEO_ANALYSIS_SCHEMA = {
           issues: { type: "array", items: { type: "string" } },
           insight: { type: "string" },
         },
-        required: ["score", "textAppearsIn05s", "inSafeZone", "issues", "insight"],
+        required: [
+          "score",
+          "textAppearsIn05s",
+          "inSafeZone",
+          "issues",
+          "insight",
+        ],
         additionalProperties: false,
       },
       pacing: {
@@ -38,7 +44,13 @@ const VIDEO_ANALYSIS_SCHEMA = {
           issues: { type: "array", items: { type: "string" } },
           insight: { type: "string" },
         },
-        required: ["score", "avgSecondsBetweenCuts", "hasSufficientVariety", "issues", "insight"],
+        required: [
+          "score",
+          "avgSecondsBetweenCuts",
+          "hasSufficientVariety",
+          "issues",
+          "insight",
+        ],
         additionalProperties: false,
       },
       audioQuality: {
@@ -50,10 +62,19 @@ const VIDEO_ANALYSIS_SCHEMA = {
           issues: { type: "array", items: { type: "string" } },
           insight: { type: "string" },
         },
-        required: ["score", "isClear", "hasCompetingNoise", "issues", "insight"],
+        required: [
+          "score",
+          "isClear",
+          "hasCompetingNoise",
+          "issues",
+          "insight",
+        ],
         additionalProperties: false,
       },
-      verdict: { type: "string", enum: ["PRONTO_PARA_POSTAR", "PRECISA_DE_AJUSTES"] },
+      verdict: {
+        type: "string",
+        enum: ["PRONTO_PARA_POSTAR", "PRECISA_DE_AJUSTES"],
+      },
       verdictReason: { type: "string" },
       adjustments: { type: "array", items: { type: "string" } },
       transcription: { type: "string" },
@@ -61,9 +82,15 @@ const VIDEO_ANALYSIS_SCHEMA = {
       captionHashtags: { type: "array", items: { type: "string" } },
     },
     required: [
-      "hookVisual", "pacing", "audioQuality",
-      "verdict", "verdictReason", "adjustments",
-      "transcription", "suggestedCaption", "captionHashtags",
+      "hookVisual",
+      "pacing",
+      "audioQuality",
+      "verdict",
+      "verdictReason",
+      "adjustments",
+      "transcription",
+      "suggestedCaption",
+      "captionHashtags",
     ],
     additionalProperties: false,
   },
@@ -71,7 +98,7 @@ const VIDEO_ANALYSIS_SCHEMA = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 async function processJob(jobId: string): Promise<void> {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -86,20 +113,27 @@ async function processJob(jobId: string): Promise<void> {
     .single();
 
   if (claimErr || !claimed) {
-    console.log(`[analyze-video] job ${jobId} not claimable`, claimErr?.message);
+    console.log(
+      `[analyze-video] job ${jobId} not claimable`,
+      claimErr?.message,
+    );
     return;
   }
 
-  console.log(`[analyze-video] processing job ${jobId} for user ${claimed.user_id}`);
+  console.log(
+    `[analyze-video] processing job ${jobId} for user ${claimed.user_id}`,
+  );
 
   try {
-    if (!LOVABLE_API_KEY) throw new Error("Missing LOVABLE_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("Missing ANTHROPIC_API_KEY");
 
     const { data: fileData, error: dlError } = await admin.storage
       .from("video-uploads")
       .download(claimed.storage_path);
 
-    if (dlError || !fileData) throw new Error(`Download failed: ${dlError?.message}`);
+    if (dlError || !fileData) {
+      throw new Error(`Download failed: ${dlError?.message}`);
+    }
 
     const sizeMB = fileData.size / (1024 * 1024);
     console.log(`[analyze-video] file size: ${sizeMB.toFixed(1)}MB`);
@@ -140,17 +174,29 @@ LANGUAGE: ALL text MUST be in English.
 
 ${c} offers professional editing to optimize all these aspects.`;
 
-    const aiResponse = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 4096,
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: [
-              { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Video}` } },
+              {
+                type: "video",
+                source: {
+                  type: "base64",
+                  media_type: mimeType,
+                  data: base64Video,
+                },
+              },
               {
                 type: "text",
                 text: isPT
@@ -160,24 +206,34 @@ ${c} offers professional editing to optimize all these aspects.`;
             ],
           },
         ],
-        tools: [{ type: "function", function: VIDEO_ANALYSIS_SCHEMA }],
-        tool_choice: { type: "function", function: { name: "video_preflight_analysis" } },
+        tools: [{
+          name: VIDEO_ANALYSIS_SCHEMA.name,
+          description: VIDEO_ANALYSIS_SCHEMA.description,
+          input_schema: VIDEO_ANALYSIS_SCHEMA.parameters,
+        }],
+        tool_choice: { type: "tool", name: VIDEO_ANALYSIS_SCHEMA.name },
         temperature: 0.4,
       }),
     });
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
-      throw new Error(`AI Gateway ${aiResponse.status}: ${errText.slice(0, 300)}`);
+      throw new Error(
+        `Anthropic API ${aiResponse.status}: ${errText.slice(0, 500)}`,
+      );
     }
 
     const aiData = await aiResponse.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall?.function?.arguments) {
+    const toolCall = aiData.content?.find((
+      block: { type?: string; name?: string },
+    ) =>
+      block.type === "tool_use" && block.name === VIDEO_ANALYSIS_SCHEMA.name
+    );
+    if (!toolCall?.input) {
       throw new Error("AI did not return structured analysis");
     }
 
-    const analysis = JSON.parse(toolCall.function.arguments);
+    const analysis = toolCall.input;
 
     await admin.from("video_jobs").update({
       status: "completed",
@@ -234,22 +290,29 @@ serve(async (req) => {
       // deno-lint-ignore no-explicit-any
       const rt = (globalThis as any).EdgeRuntime;
       const work = processJob(body.jobId);
-      if (rt?.waitUntil) rt.waitUntil(work); else work.catch(() => {});
-      return new Response(JSON.stringify({ accepted: true, jobId: body.jobId }), {
-        status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (rt?.waitUntil) rt.waitUntil(work);
+      else work.catch(() => {});
+      return new Response(
+        JSON.stringify({ accepted: true, jobId: body.jobId }),
+        {
+          status: 202,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Mode 2: cron worker — pick pending jobs
     const processed = await pickAndProcessPending(3);
     return new Response(JSON.stringify({ processed }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[analyze-video] fatal:", msg);
     return new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
