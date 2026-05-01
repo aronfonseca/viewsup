@@ -301,31 +301,56 @@ function buildPrompts(
     ? "OUTPUT LANGUAGE: ALL text MUST be in Português Brasileiro (PT-BR)."
     : "OUTPUT LANGUAGE: ALL text MUST be in British English (EN-GB).";
 
+  // Strict, data-grounded specificity rules — both languages share the same rules.
+  const rulesPT = `REGRAS OBRIGATÓRIAS DE ESPECIFICIDADE (a violação invalida a análise):
+1. SEMPRE cite números reais do perfil: quantidade exata de seguidores, média real de likes (avgLikes), média real de comentários (avgComments), e a taxa de engajamento calculada (engagementRate %). Use os números brutos exatos exibidos em "PROFILE METRICS" e "AGGREGATE METRICS".
+2. SEMPRE referencie posts específicos pelo SHORTCODE entre crases. Exemplo correto: "seu post \`C1aBcD2\` de 2026-04-12 teve 87 likes, 38% abaixo da sua média de 140".
+3. SEMPRE compare a métrica real do perfil com o benchmark do nicho (quando houver dados em "NICHE BENCHMARKS"). Exemplo: "sua taxa de engajamento é 1.2% enquanto a média do nicho ${'${'}nicho${'}'} é 3.5% — um gap de 2.3 p.p.".
+4. SEMPRE identifique explicitamente o melhor (⭐BEST) e o pior (🔻WORST) post pelo shortcode em pelo menos 1 burningProblem ou em "patterns", explicando POR QUE com base nos dados (formato, caption, hora, hashtags, comprimento do vídeo).
+5. videoIdeas (10 roteiros): cada ideia DEVE ser inspirada em um tema/formato/hook que JÁ funcionou no perfil — cite no campo "whyItWorks" ausente ou na hashtag o shortcode-fonte (ex.: "baseado no padrão do post \`C1aBcD2\` que teve 3x mais engajamento"). NUNCA proponha ideias genéricas desconectadas do histórico.
+6. PROIBIDO usar frases vagas como "considere melhorar seu hook", "tente engajar mais", "poste com mais frequência". Toda recomendação DEVE ser ancorada em um número real ou shortcode. Em vez de "melhore seu hook", escreva: "seu post \`X\` teve apenas 4 segundos de retenção implícita (likes/views = 0.8% vs nicho 3%) — substitua os primeiros 3s por um pattern interrupt visual".
+7. Se um campo numérico estiver "?" nos dados coletados, declare "dado indisponível" e prossiga — NÃO invente números.
+8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
+9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
+10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).`;
+
+  const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
+1. ALWAYS cite real profile numbers: exact follower count, real avgLikes, real avgComments, and the computed engagement rate (engagementRate %). Use the exact raw numbers shown in "PROFILE METRICS" and "AGGREGATE METRICS".
+2. ALWAYS reference specific posts by SHORTCODE in backticks. Correct example: "your post \`C1aBcD2\` from 2026-04-12 got 87 likes, 38% below your average of 140".
+3. ALWAYS compare the real profile metric against the niche benchmark (when "NICHE BENCHMARKS" has data). Example: "your engagement rate is 1.2% while the niche average is 3.5% — a 2.3pp gap".
+4. ALWAYS explicitly identify the best (⭐BEST) and worst (🔻WORST) post by shortcode in at least 1 burningProblem or in "patterns", explaining WHY based on the data (format, caption, time, hashtags, video length).
+5. videoIdeas (10 scripts): each idea MUST be inspired by a theme/format/hook that ALREADY worked on the profile — cite the source shortcode (e.g. "based on the pattern of post \`C1aBcD2\` which got 3× the engagement"). NEVER propose generic ideas disconnected from history.
+6. FORBIDDEN to use vague phrases like "consider improving your hook", "try to engage more". Every recommendation MUST be anchored on a real number or shortcode. Instead of "improve your hook", write: "your post \`X\` had only 4s implied retention (likes/views = 0.8% vs niche 3%) — replace the first 3s with a visual pattern interrupt".
+7. If a numeric field is "?" in scraped data, state "data unavailable" and proceed — NEVER fabricate numbers.
+8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
+9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
+10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).`;
+
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
 
 ${langLine}
 
-Given an Instagram profile and (when available) recent post data, deliver a lean but high-quality audit. Be specific, realistic, concise and constructive. Scores realistic (most profiles 35-70, rarely above 80).
+${isPT ? rulesPT : rulesEN}
+
+You are auditing a real Instagram profile using REAL scraped data. Be brutally specific, data-driven, realistic, and constructive. Realistic scores (most profiles 35-70, rarely above 80).
 
 ALWAYS classify the profile into one of the normalised niches in the "nicho" enum. Pick the closest match — use "Outros" only as a last resort.
 
-Return ONLY the fields defined in the tool schema, mentioning ${c} naturally in burningProblems solutions when relevant.
+Mention "${c}" naturally in 1-2 burningProblems solutions when relevant.
 
-Keep each text field tight so the full JSON stays compact.`;
+Return ONLY the fields defined in the tool schema. Keep each text field tight so the full JSON stays compact, but always include the exact numbers and shortcodes required by the rules above.`;
 
   const userPrompt = isPT
-    ? `Analise o perfil do Instagram @${username} (URL: ${url}).
+    ? `Faça a auditoria do perfil @${username} (URL: ${url}) com base nos dados REAIS abaixo.
 
-DADOS COLETADOS:
 ${scrapedSummary}${priorContext}${nicheContext}
 
-Retorne apenas a análise enxuta definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
-    : `Analyse the Instagram profile @${username} (URL: ${url}).
+LEMBRETE: cite números brutos (seguidores, avgLikes, avgComments, engagementRate%), referencie posts pelo shortcode entre crases, compare com benchmarks do nicho, e baseie os 10 videoIdeas nos posts que JÁ performaram bem neste perfil. Retorne apenas a estrutura definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
+    : `Audit the profile @${username} (URL: ${url}) based on the REAL data below.
 
-SCRAPED DATA:
 ${scrapedSummary}${priorContext}${nicheContext}
 
-Return only the lean analysis defined in the schema. ALL content must be in British English.`;
+REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
 
   return { systemPrompt, userPrompt };
 }
@@ -337,14 +362,23 @@ interface ScrapeResult {
   avgLikes: number | null;
   avgComments: number | null;
   avgViews: number | null;
+  engagementRate: number | null; // percent (likes+comments)/followers averaged
   profilePicUrl: string | null;
+}
+
+function fmtNum(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(Number(n))) return "?";
+  const v = Number(n);
+  if (v >= 1_000_000) return (v / 1_000_000).toFixed(1) + "M";
+  if (v >= 1_000) return (v / 1_000).toFixed(1) + "K";
+  return String(Math.round(v));
 }
 
 async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
   const empty: ScrapeResult = {
     summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
-    followers: null, avgLikes: null, avgComments: null, avgViews: null, profilePicUrl: null,
+    followers: null, avgLikes: null, avgComments: null, avgViews: null, engagementRate: null, profilePicUrl: null,
   };
   if (!APIFY_API_KEY) {
     console.log("[Apify] no key — skipping scrape");
@@ -371,26 +405,83 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     const items = (await res.json()) as any[];
     const profile = items?.[0];
     if (!profile) return empty;
-    const latest = (profile.latestPosts || []).slice(0, 8) as any[];
-    const posts = latest.map((p, i) =>
-      `Post ${i + 1}: ${p.type || "?"} | likes=${p.likesCount ?? "?"} comments=${p.commentsCount ?? "?"} views=${p.videoViewCount ?? p.videoPlayCount ?? "?"} | caption="${(p.caption || "").slice(0, 180)}"`
-    ).join("\n");
-    const avg = (key: string) => {
-      const vals = latest.map((p: any) => Number(p[key])).filter((n) => Number.isFinite(n) && n > 0);
-      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-    };
-    const summary = `Bio: ${profile.biography || "(empty)"}
-Followers: ${profile.followersCount ?? "?"} | Following: ${profile.followsCount ?? "?"} | Posts: ${profile.postsCount ?? "?"}
-Verified: ${!!profile.verified} | Business: ${!!profile.isBusinessAccount}
+
+    const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
+    const latest = (profile.latestPosts || []).slice(0, 12) as any[];
+
+    // Per-post enriched normalisation
+    const enriched = latest.map((p: any) => {
+      const likes = Number(p.likesCount) || 0;
+      const comments = Number(p.commentsCount) || 0;
+      const views = Number(p.videoViewCount ?? p.videoPlayCount) || 0;
+      const ts = p.timestamp || p.takenAtTimestamp || null;
+      const dateIso = ts ? new Date(typeof ts === "number" ? ts * (ts < 1e12 ? 1000 : 1) : ts).toISOString().slice(0, 10) : "?";
+      const engagement = likes + comments;
+      const erPostPct = followers ? +((engagement / followers) * 100).toFixed(2) : null;
+      return {
+        shortCode: p.shortCode || p.shortcode || "?",
+        url: p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : "?"),
+        type: p.type || p.productType || "?",
+        date: dateIso,
+        likes, comments, views,
+        engagement,
+        erPostPct,
+        caption: String(p.caption || "").replace(/\s+/g, " ").slice(0, 220),
+        hashtags: Array.isArray(p.hashtags) ? p.hashtags.slice(0, 6) : [],
+        videoDuration: Number(p.videoDuration) || null,
+      };
+    });
+
+    const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    const likesArr = enriched.map(p => p.likes).filter(n => n > 0);
+    const commentsArr = enriched.map(p => p.comments).filter(n => n > 0);
+    const viewsArr = enriched.map(p => p.views).filter(n => n > 0);
+    const avgLikes = avg(likesArr);
+    const avgComments = avg(commentsArr);
+    const avgViews = avg(viewsArr);
+    const engagementRate = followers && (avgLikes != null || avgComments != null)
+      ? +(((avgLikes ?? 0) + (avgComments ?? 0)) / followers * 100).toFixed(2)
+      : null;
+
+    // Identify best & worst by engagement (likes+comments)
+    const sorted = [...enriched].filter(p => p.likes + p.comments > 0).sort((a, b) => b.engagement - a.engagement);
+    const best = sorted[0];
+    const worst = sorted[sorted.length - 1];
+
+    const postLines = enriched.map((p, i) => {
+      const flag = best && p.shortCode === best.shortCode ? " ⭐BEST"
+        : worst && p.shortCode === worst.shortCode && enriched.length > 1 ? " 🔻WORST" : "";
+      const vs = avgLikes ? ` (${p.likes >= avgLikes ? "+" : ""}${Math.round((p.likes - avgLikes) / Math.max(avgLikes, 1) * 100)}% vs avg)` : "";
+      return `[${i + 1}] shortcode=${p.shortCode} | ${p.type} | ${p.date} | likes=${p.likes}${vs} comments=${p.comments} views=${p.views || "—"} | ER=${p.erPostPct ?? "?"}%${flag}
+    caption: "${p.caption || "(no caption)"}"${p.hashtags.length ? `\n    hashtags: ${p.hashtags.join(" ")}` : ""}`;
+    }).join("\n");
+
+    const summary = `=== PROFILE METRICS (REAL DATA — cite these exact numbers) ===
+Username: @${username}
+Bio: "${profile.biography || "(empty)"}"
+Followers: ${followers ?? "?"} (${fmtNum(followers)}) | Following: ${profile.followsCount ?? "?"} | Total posts: ${profile.postsCount ?? "?"}
+Verified: ${!!profile.verified} | Business account: ${!!profile.isBusinessAccount}
 External link: ${profile.externalUrl || "(none)"}
-Recent posts:
-${posts || "(none)"}`;
+Full name: ${profile.fullName || "?"} | Category: ${profile.businessCategoryName || profile.categoryName || "?"}
+
+=== AGGREGATE METRICS (computed from last ${enriched.length} posts) ===
+Avg likes per post: ${avgLikes ?? "?"}
+Avg comments per post: ${avgComments ?? "?"}
+Avg views per video: ${avgViews ?? "?"}
+Engagement rate (avg): ${engagementRate ?? "?"}%  ← formula: (avgLikes+avgComments)/followers*100
+Best performing post: ${best ? `shortcode=${best.shortCode} on ${best.date} with ${best.likes} likes / ${best.comments} comments (ER ${best.erPostPct}%) — caption: "${best.caption}"` : "n/a"}
+Worst performing post: ${worst && enriched.length > 1 ? `shortcode=${worst.shortCode} on ${worst.date} with ${worst.likes} likes / ${worst.comments} comments (ER ${worst.erPostPct}%) — caption: "${worst.caption}"` : "n/a"}
+
+=== POSTS DETAIL (use shortcodes when citing posts) ===
+${postLines || "(no posts)"}`;
+
     return {
       summary,
-      followers: Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null,
-      avgLikes: avg("likesCount"),
-      avgComments: avg("commentsCount"),
-      avgViews: avg("videoViewCount") ?? avg("videoPlayCount"),
+      followers,
+      avgLikes,
+      avgComments,
+      avgViews,
+      engagementRate,
       profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null,
     };
   } catch (e) {
@@ -559,7 +650,7 @@ async function processJob(jobId: string) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 6000,
+        max_tokens: 8000,
         temperature: 0.2,
         system: systemPrompt,
         tools: [{
