@@ -301,31 +301,56 @@ function buildPrompts(
     ? "OUTPUT LANGUAGE: ALL text MUST be in Português Brasileiro (PT-BR)."
     : "OUTPUT LANGUAGE: ALL text MUST be in British English (EN-GB).";
 
+  // Strict, data-grounded specificity rules — both languages share the same rules.
+  const rulesPT = `REGRAS OBRIGATÓRIAS DE ESPECIFICIDADE (a violação invalida a análise):
+1. SEMPRE cite números reais do perfil: quantidade exata de seguidores, média real de likes (avgLikes), média real de comentários (avgComments), e a taxa de engajamento calculada (engagementRate %). Use os números brutos exatos exibidos em "PROFILE METRICS" e "AGGREGATE METRICS".
+2. SEMPRE referencie posts específicos pelo SHORTCODE entre crases. Exemplo correto: "seu post \`C1aBcD2\` de 2026-04-12 teve 87 likes, 38% abaixo da sua média de 140".
+3. SEMPRE compare a métrica real do perfil com o benchmark do nicho (quando houver dados em "NICHE BENCHMARKS"). Exemplo: "sua taxa de engajamento é 1.2% enquanto a média do nicho ${'${'}nicho${'}'} é 3.5% — um gap de 2.3 p.p.".
+4. SEMPRE identifique explicitamente o melhor (⭐BEST) e o pior (🔻WORST) post pelo shortcode em pelo menos 1 burningProblem ou em "patterns", explicando POR QUE com base nos dados (formato, caption, hora, hashtags, comprimento do vídeo).
+5. videoIdeas (10 roteiros): cada ideia DEVE ser inspirada em um tema/formato/hook que JÁ funcionou no perfil — cite no campo "whyItWorks" ausente ou na hashtag o shortcode-fonte (ex.: "baseado no padrão do post \`C1aBcD2\` que teve 3x mais engajamento"). NUNCA proponha ideias genéricas desconectadas do histórico.
+6. PROIBIDO usar frases vagas como "considere melhorar seu hook", "tente engajar mais", "poste com mais frequência". Toda recomendação DEVE ser ancorada em um número real ou shortcode. Em vez de "melhore seu hook", escreva: "seu post \`X\` teve apenas 4 segundos de retenção implícita (likes/views = 0.8% vs nicho 3%) — substitua os primeiros 3s por um pattern interrupt visual".
+7. Se um campo numérico estiver "?" nos dados coletados, declare "dado indisponível" e prossiga — NÃO invente números.
+8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
+9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
+10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).`;
+
+  const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
+1. ALWAYS cite real profile numbers: exact follower count, real avgLikes, real avgComments, and the computed engagement rate (engagementRate %). Use the exact raw numbers shown in "PROFILE METRICS" and "AGGREGATE METRICS".
+2. ALWAYS reference specific posts by SHORTCODE in backticks. Correct example: "your post \`C1aBcD2\` from 2026-04-12 got 87 likes, 38% below your average of 140".
+3. ALWAYS compare the real profile metric against the niche benchmark (when "NICHE BENCHMARKS" has data). Example: "your engagement rate is 1.2% while the niche average is 3.5% — a 2.3pp gap".
+4. ALWAYS explicitly identify the best (⭐BEST) and worst (🔻WORST) post by shortcode in at least 1 burningProblem or in "patterns", explaining WHY based on the data (format, caption, time, hashtags, video length).
+5. videoIdeas (10 scripts): each idea MUST be inspired by a theme/format/hook that ALREADY worked on the profile — cite the source shortcode (e.g. "based on the pattern of post \`C1aBcD2\` which got 3× the engagement"). NEVER propose generic ideas disconnected from history.
+6. FORBIDDEN to use vague phrases like "consider improving your hook", "try to engage more". Every recommendation MUST be anchored on a real number or shortcode. Instead of "improve your hook", write: "your post \`X\` had only 4s implied retention (likes/views = 0.8% vs niche 3%) — replace the first 3s with a visual pattern interrupt".
+7. If a numeric field is "?" in scraped data, state "data unavailable" and proceed — NEVER fabricate numbers.
+8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
+9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
+10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).`;
+
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
 
 ${langLine}
 
-Given an Instagram profile and (when available) recent post data, deliver a lean but high-quality audit. Be specific, realistic, concise and constructive. Scores realistic (most profiles 35-70, rarely above 80).
+${isPT ? rulesPT : rulesEN}
+
+You are auditing a real Instagram profile using REAL scraped data. Be brutally specific, data-driven, realistic, and constructive. Realistic scores (most profiles 35-70, rarely above 80).
 
 ALWAYS classify the profile into one of the normalised niches in the "nicho" enum. Pick the closest match — use "Outros" only as a last resort.
 
-Return ONLY the fields defined in the tool schema, mentioning ${c} naturally in burningProblems solutions when relevant.
+Mention "${c}" naturally in 1-2 burningProblems solutions when relevant.
 
-Keep each text field tight so the full JSON stays compact.`;
+Return ONLY the fields defined in the tool schema. Keep each text field tight so the full JSON stays compact, but always include the exact numbers and shortcodes required by the rules above.`;
 
   const userPrompt = isPT
-    ? `Analise o perfil do Instagram @${username} (URL: ${url}).
+    ? `Faça a auditoria do perfil @${username} (URL: ${url}) com base nos dados REAIS abaixo.
 
-DADOS COLETADOS:
 ${scrapedSummary}${priorContext}${nicheContext}
 
-Retorne apenas a análise enxuta definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
-    : `Analyse the Instagram profile @${username} (URL: ${url}).
+LEMBRETE: cite números brutos (seguidores, avgLikes, avgComments, engagementRate%), referencie posts pelo shortcode entre crases, compare com benchmarks do nicho, e baseie os 10 videoIdeas nos posts que JÁ performaram bem neste perfil. Retorne apenas a estrutura definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
+    : `Audit the profile @${username} (URL: ${url}) based on the REAL data below.
 
-SCRAPED DATA:
 ${scrapedSummary}${priorContext}${nicheContext}
 
-Return only the lean analysis defined in the schema. ALL content must be in British English.`;
+REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
 
   return { systemPrompt, userPrompt };
 }
