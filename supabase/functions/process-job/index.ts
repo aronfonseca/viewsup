@@ -337,14 +337,23 @@ interface ScrapeResult {
   avgLikes: number | null;
   avgComments: number | null;
   avgViews: number | null;
+  engagementRate: number | null; // percent (likes+comments)/followers averaged
   profilePicUrl: string | null;
+}
+
+function fmtNum(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(Number(n))) return "?";
+  const v = Number(n);
+  if (v >= 1_000_000) return (v / 1_000_000).toFixed(1) + "M";
+  if (v >= 1_000) return (v / 1_000).toFixed(1) + "K";
+  return String(Math.round(v));
 }
 
 async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
   const empty: ScrapeResult = {
     summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
-    followers: null, avgLikes: null, avgComments: null, avgViews: null, profilePicUrl: null,
+    followers: null, avgLikes: null, avgComments: null, avgViews: null, engagementRate: null, profilePicUrl: null,
   };
   if (!APIFY_API_KEY) {
     console.log("[Apify] no key — skipping scrape");
@@ -371,26 +380,83 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     const items = (await res.json()) as any[];
     const profile = items?.[0];
     if (!profile) return empty;
-    const latest = (profile.latestPosts || []).slice(0, 8) as any[];
-    const posts = latest.map((p, i) =>
-      `Post ${i + 1}: ${p.type || "?"} | likes=${p.likesCount ?? "?"} comments=${p.commentsCount ?? "?"} views=${p.videoViewCount ?? p.videoPlayCount ?? "?"} | caption="${(p.caption || "").slice(0, 180)}"`
-    ).join("\n");
-    const avg = (key: string) => {
-      const vals = latest.map((p: any) => Number(p[key])).filter((n) => Number.isFinite(n) && n > 0);
-      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-    };
-    const summary = `Bio: ${profile.biography || "(empty)"}
-Followers: ${profile.followersCount ?? "?"} | Following: ${profile.followsCount ?? "?"} | Posts: ${profile.postsCount ?? "?"}
-Verified: ${!!profile.verified} | Business: ${!!profile.isBusinessAccount}
+
+    const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
+    const latest = (profile.latestPosts || []).slice(0, 12) as any[];
+
+    // Per-post enriched normalisation
+    const enriched = latest.map((p: any) => {
+      const likes = Number(p.likesCount) || 0;
+      const comments = Number(p.commentsCount) || 0;
+      const views = Number(p.videoViewCount ?? p.videoPlayCount) || 0;
+      const ts = p.timestamp || p.takenAtTimestamp || null;
+      const dateIso = ts ? new Date(typeof ts === "number" ? ts * (ts < 1e12 ? 1000 : 1) : ts).toISOString().slice(0, 10) : "?";
+      const engagement = likes + comments;
+      const erPostPct = followers ? +((engagement / followers) * 100).toFixed(2) : null;
+      return {
+        shortCode: p.shortCode || p.shortcode || "?",
+        url: p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : "?"),
+        type: p.type || p.productType || "?",
+        date: dateIso,
+        likes, comments, views,
+        engagement,
+        erPostPct,
+        caption: String(p.caption || "").replace(/\s+/g, " ").slice(0, 220),
+        hashtags: Array.isArray(p.hashtags) ? p.hashtags.slice(0, 6) : [],
+        videoDuration: Number(p.videoDuration) || null,
+      };
+    });
+
+    const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    const likesArr = enriched.map(p => p.likes).filter(n => n > 0);
+    const commentsArr = enriched.map(p => p.comments).filter(n => n > 0);
+    const viewsArr = enriched.map(p => p.views).filter(n => n > 0);
+    const avgLikes = avg(likesArr);
+    const avgComments = avg(commentsArr);
+    const avgViews = avg(viewsArr);
+    const engagementRate = followers && (avgLikes != null || avgComments != null)
+      ? +(((avgLikes ?? 0) + (avgComments ?? 0)) / followers * 100).toFixed(2)
+      : null;
+
+    // Identify best & worst by engagement (likes+comments)
+    const sorted = [...enriched].filter(p => p.likes + p.comments > 0).sort((a, b) => b.engagement - a.engagement);
+    const best = sorted[0];
+    const worst = sorted[sorted.length - 1];
+
+    const postLines = enriched.map((p, i) => {
+      const flag = best && p.shortCode === best.shortCode ? " ⭐BEST"
+        : worst && p.shortCode === worst.shortCode && enriched.length > 1 ? " 🔻WORST" : "";
+      const vs = avgLikes ? ` (${p.likes >= avgLikes ? "+" : ""}${Math.round((p.likes - avgLikes) / Math.max(avgLikes, 1) * 100)}% vs avg)` : "";
+      return `[${i + 1}] shortcode=${p.shortCode} | ${p.type} | ${p.date} | likes=${p.likes}${vs} comments=${p.comments} views=${p.views || "—"} | ER=${p.erPostPct ?? "?"}%${flag}
+    caption: "${p.caption || "(no caption)"}"${p.hashtags.length ? `\n    hashtags: ${p.hashtags.join(" ")}` : ""}`;
+    }).join("\n");
+
+    const summary = `=== PROFILE METRICS (REAL DATA — cite these exact numbers) ===
+Username: @${username}
+Bio: "${profile.biography || "(empty)"}"
+Followers: ${followers ?? "?"} (${fmtNum(followers)}) | Following: ${profile.followsCount ?? "?"} | Total posts: ${profile.postsCount ?? "?"}
+Verified: ${!!profile.verified} | Business account: ${!!profile.isBusinessAccount}
 External link: ${profile.externalUrl || "(none)"}
-Recent posts:
-${posts || "(none)"}`;
+Full name: ${profile.fullName || "?"} | Category: ${profile.businessCategoryName || profile.categoryName || "?"}
+
+=== AGGREGATE METRICS (computed from last ${enriched.length} posts) ===
+Avg likes per post: ${avgLikes ?? "?"}
+Avg comments per post: ${avgComments ?? "?"}
+Avg views per video: ${avgViews ?? "?"}
+Engagement rate (avg): ${engagementRate ?? "?"}%  ← formula: (avgLikes+avgComments)/followers*100
+Best performing post: ${best ? `shortcode=${best.shortCode} on ${best.date} with ${best.likes} likes / ${best.comments} comments (ER ${best.erPostPct}%) — caption: "${best.caption}"` : "n/a"}
+Worst performing post: ${worst && enriched.length > 1 ? `shortcode=${worst.shortCode} on ${worst.date} with ${worst.likes} likes / ${worst.comments} comments (ER ${worst.erPostPct}%) — caption: "${worst.caption}"` : "n/a"}
+
+=== POSTS DETAIL (use shortcodes when citing posts) ===
+${postLines || "(no posts)"}`;
+
     return {
       summary,
-      followers: Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null,
-      avgLikes: avg("likesCount"),
-      avgComments: avg("commentsCount"),
-      avgViews: avg("videoViewCount") ?? avg("videoPlayCount"),
+      followers,
+      avgLikes,
+      avgComments,
+      avgViews,
+      engagementRate,
       profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null,
     };
   } catch (e) {
