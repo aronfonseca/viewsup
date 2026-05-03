@@ -37,20 +37,40 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [url, setUrl] = useState("");
   const [reports, setReports] = useState<Report[]>([]);
   const [videoJobs, setVideoJobs] = useState<VideoJobRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
+  const [plan, setPlan] = useState<string>("free");
+  const [analysesRemaining, setAnalysesRemaining] = useState<number>(0);
+  const [analysesLimit, setAnalysesLimit] = useState<number>(0);
+
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      toast({
+        title: "🎉 Bem-vindo a bordo!",
+        description: "Sua assinatura está ativa. Aproveite suas análises!",
+      });
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, plan, analyses_remaining, analyses_limit")
         .eq("user_id", user!.id)
         .single();
-      if (profile) setDisplayName(profile.display_name || user!.email || "");
+      if (profile) {
+        setDisplayName(profile.display_name || user!.email || "");
+        setPlan((profile as any).plan || "free");
+        setAnalysesRemaining((profile as any).analyses_remaining ?? 0);
+        setAnalysesLimit((profile as any).analyses_limit ?? 0);
+      }
 
       const [reportsRes, videosRes] = await Promise.all([
         supabase
@@ -73,8 +93,14 @@ const Dashboard = () => {
     fetchData();
   }, [user]);
 
+  const limitReached = analysesRemaining <= 0;
+
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
+    if (limitReached) {
+      navigate("/pricing");
+      return;
+    }
     if (!url.trim()) return;
     navigate(`/results?url=${encodeURIComponent(url.trim())}`);
   };
