@@ -318,8 +318,14 @@ const Results = () => {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold text-foreground">{t("appName")}</span>
+          {branding.enabled && branding.agency_logo_url ? (
+            <img src={branding.agency_logo_url} alt={branding.agency_name || "Agency"} className="h-7 w-7 object-contain" />
+          ) : (
+            <Sparkles className="h-6 w-6 text-primary" />
+          )}
+          <span className="text-lg font-bold text-foreground">
+            {branding.enabled && branding.agency_name ? branding.agency_name : t("appName")}
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <LanguageSelector />
