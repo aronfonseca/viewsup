@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import LanguageSelector from "@/components/LanguageSelector";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { toast } from "@/hooks/use-toast";
 import {
   Sparkles, LogOut, Search, Clock, ExternalLink, User,
-  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown,
 } from "lucide-react";
 
 interface Report {
@@ -35,20 +37,40 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [url, setUrl] = useState("");
   const [reports, setReports] = useState<Report[]>([]);
   const [videoJobs, setVideoJobs] = useState<VideoJobRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
+  const [plan, setPlan] = useState<string>("free");
+  const [analysesRemaining, setAnalysesRemaining] = useState<number>(0);
+  const [analysesLimit, setAnalysesLimit] = useState<number>(0);
+
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      toast({
+        title: "🎉 Bem-vindo a bordo!",
+        description: "Sua assinatura está ativa. Aproveite suas análises!",
+      });
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, plan, analyses_remaining, analyses_limit")
         .eq("user_id", user!.id)
         .single();
-      if (profile) setDisplayName(profile.display_name || user!.email || "");
+      if (profile) {
+        setDisplayName(profile.display_name || user!.email || "");
+        setPlan((profile as any).plan || "free");
+        setAnalysesRemaining((profile as any).analyses_remaining ?? 0);
+        setAnalysesLimit((profile as any).analyses_limit ?? 0);
+      }
 
       const [reportsRes, videosRes] = await Promise.all([
         supabase
@@ -71,8 +93,14 @@ const Dashboard = () => {
     fetchData();
   }, [user]);
 
+  const limitReached = analysesRemaining <= 0;
+
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
+    if (limitReached) {
+      navigate("/pricing");
+      return;
+    }
     if (!url.trim()) return;
     navigate(`/results?url=${encodeURIComponent(url.trim())}`);
   };
@@ -84,6 +112,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PaymentTestModeBanner />
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -114,22 +143,75 @@ const Dashboard = () => {
           <p className="text-muted-foreground">{t("dashSubtitle")}</p>
         </div>
 
+        {/* Plan + analyses counter */}
+        <Card className={`border ${limitReached ? "border-destructive/40 bg-destructive/5" : "border-primary/20 bg-card"}`}>
+          <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
+                {plan === "agency" ? (
+                  <Crown className="h-5 w-5 text-primary-foreground" />
+                ) : (
+                  <Zap className="h-5 w-5 text-primary-foreground" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Plano atual</p>
+                <p className="font-semibold text-foreground capitalize">
+                  {plan === "free" ? "Grátis" : plan}
+                  {" · "}
+                  {plan === "agency"
+                    ? "Análises ilimitadas"
+                    : `${analysesRemaining} de ${analysesLimit} análises restantes`}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={limitReached ? "default" : "outline"}
+              size="sm"
+              className={limitReached ? "gradient-bg text-primary-foreground" : ""}
+              onClick={() => navigate("/pricing")}
+            >
+              {plan === "agency" ? "Gerenciar plano" : limitReached ? "Fazer upgrade" : "Ver planos"}
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="border-border bg-card">
           <CardContent className="pt-6">
-            <form onSubmit={handleAnalyze} className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder={t("placeholder")}
-                  className="pl-10"
-                />
+            {limitReached ? (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/30">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground">Limite do plano atingido</p>
+                    <p className="text-sm text-muted-foreground">
+                      Faça upgrade para continuar analisando perfis este mês.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="gradient-bg text-primary-foreground"
+                  onClick={() => navigate("/pricing")}
+                >
+                  Fazer upgrade
+                </Button>
               </div>
-              <Button type="submit" className="gradient-bg text-primary-foreground">
-                {t("analyzeBtn")}
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleAnalyze} className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder={t("placeholder")}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="submit" className="gradient-bg text-primary-foreground">
+                  {t("analyzeBtn")}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
 
