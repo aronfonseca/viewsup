@@ -54,6 +54,9 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <LanguageSelector />
+          <Button variant="ghost" size="sm" onClick={() => navigate("/pricing")}>
+            {pricingLabel}
+          </Button>
           {user ? (
             <Button size="sm" onClick={() => navigate("/dashboard")} className="gradient-bg text-primary-foreground">
               <LayoutDashboard className="h-4 w-4 mr-1" />
