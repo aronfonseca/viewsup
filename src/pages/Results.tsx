@@ -253,7 +253,10 @@ const Results = () => {
         heightLeft -= pdf.internal.pageSize.getHeight();
       }
 
-      pdf.save(`viewsup-${analysis?.username || "report"}.pdf`);
+      const brandSlug = branding.enabled && branding.agency_name
+        ? branding.agency_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+        : "viewsup";
+      pdf.save(`${brandSlug}-${analysis?.username || "report"}.pdf`);
       toast({ title: "PDF", description: lang === "pt-BR" ? "Relatório exportado com sucesso!" : "Report exported successfully!" });
     } catch {
       toast({ title: "Error", description: "Failed to export PDF", variant: "destructive" });
