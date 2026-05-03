@@ -16,6 +16,8 @@ import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
 import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
+import { useAgencyBranding } from "@/hooks/useAgencyBranding";
+import { hexToHslString } from "@/lib/colorUtils";
 
 /* ── Rich Text (markdown links) ── */
 const RichText = ({ text }: { text: string }) => {
@@ -169,6 +171,7 @@ const Results = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, lang, companyName, setCompanyName } = useI18n();
+  const { branding } = useAgencyBranding();
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
@@ -250,7 +253,10 @@ const Results = () => {
         heightLeft -= pdf.internal.pageSize.getHeight();
       }
 
-      pdf.save(`viewsup-${analysis?.username || "report"}.pdf`);
+      const brandSlug = branding.enabled && branding.agency_name
+        ? branding.agency_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+        : "viewsup";
+      pdf.save(`${brandSlug}-${analysis?.username || "report"}.pdf`);
       toast({ title: "PDF", description: lang === "pt-BR" ? "Relatório exportado com sucesso!" : "Report exported successfully!" });
     } catch {
       toast({ title: "Error", description: "Failed to export PDF", variant: "destructive" });
@@ -315,8 +321,14 @@ const Results = () => {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold text-foreground">{t("appName")}</span>
+          {branding.enabled && branding.agency_logo_url ? (
+            <img src={branding.agency_logo_url} alt={branding.agency_name || "Agency"} className="h-7 w-7 object-contain" />
+          ) : (
+            <Sparkles className="h-6 w-6 text-primary" />
+          )}
+          <span className="text-lg font-bold text-foreground">
+            {branding.enabled && branding.agency_name ? branding.agency_name : t("appName")}
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <LanguageSelector />
@@ -394,7 +406,34 @@ const Results = () => {
           </button>
         </div>
 
-        <div ref={reportRef}>
+        <div
+          ref={reportRef}
+          style={
+            branding.enabled && branding.agency_primary_color
+              ? ({ ["--primary" as any]: hexToHslString(branding.agency_primary_color) || undefined } as React.CSSProperties)
+              : undefined
+          }
+        >
+          {branding.enabled && (
+            <div
+              className="mb-6 rounded-xl px-5 py-3 flex items-center justify-between border"
+              style={{
+                borderColor: `${branding.agency_primary_color || "#7c3aed"}55`,
+                background: `linear-gradient(90deg, ${branding.agency_primary_color || "#7c3aed"}22, transparent)`,
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                {branding.agency_logo_url && (
+                  <img src={branding.agency_logo_url} alt={branding.agency_name || ""} className="h-8 w-8 object-contain" crossOrigin="anonymous" />
+                )}
+                <span className="text-base font-bold text-foreground">{branding.agency_name || ""}</span>
+              </div>
+              {branding.agency_website && (
+                <span className="text-xs text-muted-foreground">{branding.agency_website.replace(/^https?:\/\//, "")}</span>
+              )}
+            </div>
+          )}
+
           {activeTab === "analysis" && (
             <>
               {/* Score + Dimensions */}

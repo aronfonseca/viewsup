@@ -12,8 +12,10 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { toast } from "@/hooks/use-toast";
 import {
   Sparkles, LogOut, Search, Clock, ExternalLink, User,
-  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown, Palette,
 } from "lucide-react";
+import AgencyReportPreview from "@/components/AgencyReportPreview";
+import { useAgencyBranding } from "@/hooks/useAgencyBranding";
 
 interface Report {
   id: string;
@@ -46,6 +48,7 @@ const Dashboard = () => {
   const [plan, setPlan] = useState<string>("free");
   const [analysesRemaining, setAnalysesRemaining] = useState<number>(0);
   const [analysesLimit, setAnalysesLimit] = useState<number>(0);
+  const { branding } = useAgencyBranding();
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
@@ -175,6 +178,40 @@ const Dashboard = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Agency white-label preview (Agency plan only) */}
+        {plan === "agency" && (
+          <Card className="border-primary/20 bg-card">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
+                    <Palette className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">White-Label da Agência</p>
+                    <p className="text-sm text-muted-foreground">
+                      {branding.enabled
+                        ? "Seus relatórios PDF serão entregues com sua marca."
+                        : "Configure sua marca para entregar relatórios personalizados aos clientes."}
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate("/settings/agency")}>
+                  {branding.enabled ? "Editar marca" : "Configurar agora"}
+                </Button>
+              </div>
+              <div className="max-w-md">
+                <AgencyReportPreview
+                  agencyName={branding.agency_name || "Sua Agência"}
+                  agencyLogoUrl={branding.agency_logo_url}
+                  primaryColor={branding.agency_primary_color || "#7c3aed"}
+                  website={branding.agency_website || undefined}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="border-border bg-card">
           <CardContent className="pt-6">
