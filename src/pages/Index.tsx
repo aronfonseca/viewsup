@@ -35,6 +35,7 @@ const Index = () => {
   const loginLabel = isPt ? "Entrar" : "Sign In";
   const signupLabel = isPt ? "Criar conta" : "Sign Up";
   const dashboardLabel = isPt ? "Meu painel" : "Dashboard";
+  const pricingLabel = isPt ? "Planos" : "Pricing";
 
   const features = [
     { icon: Search, title: t("feat1Title"), desc: t("feat1Desc") },
@@ -53,6 +54,9 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <LanguageSelector />
+          <Button variant="ghost" size="sm" onClick={() => navigate("/pricing")}>
+            {pricingLabel}
+          </Button>
           {user ? (
             <Button size="sm" onClick={() => navigate("/dashboard")} className="gradient-bg text-primary-foreground">
               <LayoutDashboard className="h-4 w-4 mr-1" />
