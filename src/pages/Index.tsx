@@ -35,6 +35,7 @@ const Index = () => {
   const loginLabel = isPt ? "Entrar" : "Sign In";
   const signupLabel = isPt ? "Criar conta" : "Sign Up";
   const dashboardLabel = isPt ? "Meu painel" : "Dashboard";
+  const pricingLabel = isPt ? "Planos" : "Pricing";
 
   const features = [
     { icon: Search, title: t("feat1Title"), desc: t("feat1Desc") },
