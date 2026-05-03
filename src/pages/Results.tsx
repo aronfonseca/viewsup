@@ -171,6 +171,7 @@ const Results = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, lang, companyName, setCompanyName } = useI18n();
+  const { branding } = useAgencyBranding();
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
