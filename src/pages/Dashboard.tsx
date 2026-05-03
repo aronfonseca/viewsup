@@ -179,7 +179,40 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card">
+        {/* Agency white-label preview (Agency plan only) */}
+        {plan === "agency" && (
+          <Card className="border-primary/20 bg-card">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
+                    <Palette className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">White-Label da Agência</p>
+                    <p className="text-sm text-muted-foreground">
+                      {branding.enabled
+                        ? "Seus relatórios PDF serão entregues com sua marca."
+                        : "Configure sua marca para entregar relatórios personalizados aos clientes."}
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate("/settings/agency")}>
+                  {branding.enabled ? "Editar marca" : "Configurar agora"}
+                </Button>
+              </div>
+              <div className="max-w-md">
+                <AgencyReportPreview
+                  agencyName={branding.agency_name || "Sua Agência"}
+                  agencyLogoUrl={branding.agency_logo_url}
+                  primaryColor={branding.agency_primary_color || "#7c3aed"}
+                  website={branding.agency_website || undefined}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
           <CardContent className="pt-6">
             {limitReached ? (
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/30">
