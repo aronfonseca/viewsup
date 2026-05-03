@@ -143,22 +143,75 @@ const Dashboard = () => {
           <p className="text-muted-foreground">{t("dashSubtitle")}</p>
         </div>
 
+        {/* Plan + analyses counter */}
+        <Card className={`border ${limitReached ? "border-destructive/40 bg-destructive/5" : "border-primary/20 bg-card"}`}>
+          <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
+                {plan === "agency" ? (
+                  <Crown className="h-5 w-5 text-primary-foreground" />
+                ) : (
+                  <Zap className="h-5 w-5 text-primary-foreground" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Plano atual</p>
+                <p className="font-semibold text-foreground capitalize">
+                  {plan === "free" ? "Grátis" : plan}
+                  {" · "}
+                  {plan === "agency"
+                    ? "Análises ilimitadas"
+                    : `${analysesRemaining} de ${analysesLimit} análises restantes`}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={limitReached ? "default" : "outline"}
+              size="sm"
+              className={limitReached ? "gradient-bg text-primary-foreground" : ""}
+              onClick={() => navigate("/pricing")}
+            >
+              {plan === "agency" ? "Gerenciar plano" : limitReached ? "Fazer upgrade" : "Ver planos"}
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="border-border bg-card">
           <CardContent className="pt-6">
-            <form onSubmit={handleAnalyze} className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder={t("placeholder")}
-                  className="pl-10"
-                />
+            {limitReached ? (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/30">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground">Limite do plano atingido</p>
+                    <p className="text-sm text-muted-foreground">
+                      Faça upgrade para continuar analisando perfis este mês.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="gradient-bg text-primary-foreground"
+                  onClick={() => navigate("/pricing")}
+                >
+                  Fazer upgrade
+                </Button>
               </div>
-              <Button type="submit" className="gradient-bg text-primary-foreground">
-                {t("analyzeBtn")}
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleAnalyze} className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder={t("placeholder")}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="submit" className="gradient-bg text-primary-foreground">
+                  {t("analyzeBtn")}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
 
