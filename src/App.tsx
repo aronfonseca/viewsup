@@ -29,6 +29,15 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route
+                path="/settings/agency"
+                element={
+                  <ProtectedRoute>
+                    <AgencySettings />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/results"
                 element={
                   <ProtectedRoute>
