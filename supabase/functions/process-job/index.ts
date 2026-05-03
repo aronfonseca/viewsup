@@ -711,6 +711,23 @@ async function processJob(jobId: string) {
       console.warn("[Worker] reports mirror failed:", (e as Error).message);
     }
 
+    // Decrement analyses_remaining (skip for unlimited / agency plan)
+    try {
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("plan, analyses_remaining")
+        .eq("user_id", job.user_id)
+        .single();
+      if (prof && (prof as any).plan !== "agency" && (prof as any).analyses_remaining > 0) {
+        await admin.from("profiles")
+          .update({ analyses_remaining: (prof as any).analyses_remaining - 1 })
+          .eq("user_id", job.user_id);
+        console.log(`[Worker] analyses_remaining decremented for ${job.user_id}`);
+      }
+    } catch (e) {
+      console.warn("[Worker] decrement failed:", (e as Error).message);
+    }
+
     console.log("[Worker] job completed:", jobId);
   } catch (e) {
     const msg = (e as Error).message || "Unknown error";
