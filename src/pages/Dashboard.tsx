@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import LanguageSelector from "@/components/LanguageSelector";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { toast } from "@/hooks/use-toast";
 import {
   Sparkles, LogOut, Search, Clock, ExternalLink, User,
-  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown,
 } from "lucide-react";
 
 interface Report {
