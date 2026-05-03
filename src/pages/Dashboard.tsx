@@ -48,6 +48,7 @@ const Dashboard = () => {
   const [plan, setPlan] = useState<string>("free");
   const [analysesRemaining, setAnalysesRemaining] = useState<number>(0);
   const [analysesLimit, setAnalysesLimit] = useState<number>(0);
+  const { branding } = useAgencyBranding();
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
