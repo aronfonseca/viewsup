@@ -12,8 +12,10 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { toast } from "@/hooks/use-toast";
 import {
   Sparkles, LogOut, Search, Clock, ExternalLink, User,
-  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown, Palette,
 } from "lucide-react";
+import AgencyReportPreview from "@/components/AgencyReportPreview";
+import { useAgencyBranding } from "@/hooks/useAgencyBranding";
 
 interface Report {
   id: string;
