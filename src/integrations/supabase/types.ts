@@ -178,6 +178,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agency_logo_url: string | null
+          agency_name: string | null
+          agency_primary_color: string | null
+          agency_website: string | null
           analyses_limit: number
           analyses_remaining: number
           avatar_url: string | null
@@ -190,6 +194,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agency_logo_url?: string | null
+          agency_name?: string | null
+          agency_primary_color?: string | null
+          agency_website?: string | null
           analyses_limit?: number
           analyses_remaining?: number
           avatar_url?: string | null
@@ -202,6 +210,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agency_logo_url?: string | null
+          agency_name?: string | null
+          agency_primary_color?: string | null
+          agency_website?: string | null
           analyses_limit?: number
           analyses_remaining?: number
           avatar_url?: string | null
