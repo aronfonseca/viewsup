@@ -178,26 +178,38 @@ export type Database = {
       }
       profiles: {
         Row: {
+          analyses_limit: number
+          analyses_remaining: number
           avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
+          period_end: string | null
+          plan: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          analyses_limit?: number
+          analyses_remaining?: number
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          period_end?: string | null
+          plan?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          analyses_limit?: number
+          analyses_remaining?: number
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          period_end?: string | null
+          plan?: string
           updated_at?: string
           user_id?: string
         }
@@ -233,6 +245,54 @@ export type Database = {
           profile_url?: string
           user_id?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          paddle_customer_id?: string
+          paddle_subscription_id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -295,6 +355,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_active_subscription: {
+        Args: { check_env?: string; user_uuid: string }
+        Returns: boolean
+      }
       recompute_nicho_insights: {
         Args: { _nicho: Database["public"]["Enums"]["profile_niche"] }
         Returns: undefined
