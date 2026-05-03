@@ -213,6 +213,7 @@ const Dashboard = () => {
           </Card>
         )}
 
+        <Card className="border-border bg-card">
           <CardContent className="pt-6">
             {limitReached ? (
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/30">
