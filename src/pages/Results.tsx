@@ -403,7 +403,34 @@ const Results = () => {
           </button>
         </div>
 
-        <div ref={reportRef}>
+        <div
+          ref={reportRef}
+          style={
+            branding.enabled && branding.agency_primary_color
+              ? ({ ["--primary" as any]: hexToHslString(branding.agency_primary_color) || undefined } as React.CSSProperties)
+              : undefined
+          }
+        >
+          {branding.enabled && (
+            <div
+              className="mb-6 rounded-xl px-5 py-3 flex items-center justify-between border"
+              style={{
+                borderColor: `${branding.agency_primary_color || "#7c3aed"}55`,
+                background: `linear-gradient(90deg, ${branding.agency_primary_color || "#7c3aed"}22, transparent)`,
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                {branding.agency_logo_url && (
+                  <img src={branding.agency_logo_url} alt={branding.agency_name || ""} className="h-8 w-8 object-contain" crossOrigin="anonymous" />
+                )}
+                <span className="text-base font-bold text-foreground">{branding.agency_name || ""}</span>
+              </div>
+              {branding.agency_website && (
+                <span className="text-xs text-muted-foreground">{branding.agency_website.replace(/^https?:\/\//, "")}</span>
+              )}
+            </div>
+          )}
+
           {activeTab === "analysis" && (
             <>
               {/* Score + Dimensions */}
