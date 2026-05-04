@@ -158,13 +158,13 @@ const Dashboard = () => {
                 )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Plano atual</p>
+                <p className="text-sm text-muted-foreground">{t("dashCurrentPlan")}</p>
                 <p className="font-semibold text-foreground capitalize">
-                  {plan === "free" ? "Grátis" : plan}
+                  {plan === "free" ? t("dashPlanFree") : plan}
                   {" · "}
                   {plan === "agency"
-                    ? "Análises ilimitadas"
-                    : `${analysesRemaining} de ${analysesLimit} análises restantes`}
+                    ? t("dashUnlimitedAnalyses")
+                    : `${analysesRemaining}/${analysesLimit} ${t("dashAnalysesRemaining")}`}
                 </p>
               </div>
             </div>
@@ -174,7 +174,7 @@ const Dashboard = () => {
               className={limitReached ? "gradient-bg text-primary-foreground" : ""}
               onClick={() => navigate("/pricing")}
             >
-              {plan === "agency" ? "Gerenciar plano" : limitReached ? "Fazer upgrade" : "Ver planos"}
+              {plan === "agency" ? t("dashManagePlan") : limitReached ? t("dashUpgrade") : t("dashViewPlans")}
             </Button>
           </CardContent>
         </Card>
