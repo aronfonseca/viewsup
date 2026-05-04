@@ -191,6 +191,41 @@ const Dashboard = () => {
           <p className="text-muted-foreground">{t("dashSubtitle")}</p>
         </div>
 
+        {/* Past-due banner */}
+        {isPastDue && (
+          <Card className="border-destructive/40 bg-destructive/5">
+            <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {isPt ? "Pagamento pendente" : "Payment past due"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {isPt
+                      ? "O último pagamento da sua assinatura falhou. Atualize seu método de pagamento para manter o acesso."
+                      : "Your latest subscription payment failed. Update your payment method to keep access."}
+                  </p>
+                </div>
+              </div>
+              <Button onClick={handleManageSubscription} disabled={portalLoading} className="gradient-bg text-primary-foreground">
+                {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (isPt ? "Atualizar pagamento" : "Update payment")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Cancel-at-period-end notice */}
+        {cancelAtPeriodEnd && periodEnd && (
+          <Card className="border-warning/40 bg-warning/5">
+            <CardContent className="py-3 text-sm text-foreground">
+              {isPt
+                ? `Sua assinatura será cancelada em ${new Date(periodEnd).toLocaleDateString("pt-BR")}. Você mantém acesso até lá.`
+                : `Your subscription will end on ${new Date(periodEnd).toLocaleDateString("en-GB")}. You keep access until then.`}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Plan + analyses counter */}
         <Card className={`border ${limitReached ? "border-destructive/40 bg-destructive/5" : "border-primary/20 bg-card"}`}>
           <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -213,14 +248,21 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <Button
-              variant={limitReached ? "default" : "outline"}
-              size="sm"
-              className={limitReached ? "gradient-bg text-primary-foreground" : ""}
-              onClick={() => navigate("/pricing")}
-            >
-              {plan === "agency" ? t("dashManagePlan") : limitReached ? t("dashUpgrade") : t("dashViewPlans")}
-            </Button>
+            <div className="flex items-center gap-2">
+              {hasPaidPlan && (
+                <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+                  {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (isPt ? "Gerenciar assinatura" : "Manage subscription")}
+                </Button>
+              )}
+              <Button
+                variant={limitReached ? "default" : "outline"}
+                size="sm"
+                className={limitReached ? "gradient-bg text-primary-foreground" : ""}
+                onClick={() => navigate("/pricing")}
+              >
+                {plan === "agency" ? t("dashManagePlan") : limitReached ? t("dashUpgrade") : t("dashViewPlans")}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
