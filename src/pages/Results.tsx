@@ -445,11 +445,11 @@ const Results = () => {
               {/* Score + Dimensions */}
               <div className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
                 <div className="flex flex-col items-center justify-center p-8 rounded-xl bg-card border border-border card-shadow">
-                  <p className="text-xs text-muted-foreground mb-4 uppercase tracking-wider">{t("overallScore")}</p>
+                  <p className="text-xs text-muted-foreground mb-4 tracking-wide">{t("overallScore")}</p>
                   <ScoreRing score={analysis.overallScore} />
                 </div>
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("dimensions")}</h2>
+                  <h2 className="text-sm font-semibold text-muted-foreground tracking-wide">{t("dimensions")}</h2>
                   {analysis.dimensions.map((d) => <DimensionBar key={d.name} dim={d} />)}
                 </div>
               </div>
