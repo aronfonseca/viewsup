@@ -190,6 +190,14 @@ const Results = () => {
   const [activeHookStyle, setActiveHookStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
   const [editingCompany, setEditingCompany] = useState(false);
   const [companyDraft, setCompanyDraft] = useState(companyName);
+  const trendRadar = useMemo(() => {
+    const source = analysis as any;
+    const value = source?.trendRadar
+      ?? source?.analysis_data?.trendRadar
+      ?? source?.analysisData?.trendRadar
+      ?? source?.result_data?.trendRadar;
+    return Array.isArray(value) ? value : [];
+  }, [analysis]);
 
   useEffect(() => {
     if (!url && !reportId) { navigate("/"); return; }
