@@ -19,16 +19,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
 import { hexToHslString } from "@/lib/colorUtils";
 
-/* ── Rich Text (markdown links) ── */
+/* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
 const RichText = ({ text }: { text: string }) => {
   const parts = useMemo(() => {
-    const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    // Matches markdown links [label](url) OR backticked shortcodes `Abc123XyZ`
+    const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([A-Za-z0-9_-]{6,20})`/g;
     const result: (string | { label: string; url: string })[] = [];
     let lastIndex = 0;
     let match;
     while ((match = regex.exec(text)) !== null) {
       if (match.index > lastIndex) result.push(text.slice(lastIndex, match.index));
-      result.push({ label: match[1], url: match[2] });
+      if (match[2]) {
+        result.push({ label: match[1], url: match[2] });
+      } else if (match[3]) {
+        result.push({ label: "view post", url: `https://www.instagram.com/p/${match[3]}/` });
+      }
       lastIndex = match.index + match[0].length;
     }
     if (lastIndex < text.length) result.push(text.slice(lastIndex));
