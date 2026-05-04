@@ -190,6 +190,14 @@ const Results = () => {
   const [activeHookStyle, setActiveHookStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
   const [editingCompany, setEditingCompany] = useState(false);
   const [companyDraft, setCompanyDraft] = useState(companyName);
+  const trendRadar = useMemo(() => {
+    const source = analysis as any;
+    const value = source?.trendRadar
+      ?? source?.analysis_data?.trendRadar
+      ?? source?.analysisData?.trendRadar
+      ?? source?.result_data?.trendRadar;
+    return Array.isArray(value) ? value : [];
+  }, [analysis]);
 
   useEffect(() => {
     if (!url && !reportId) { navigate("/"); return; }
@@ -1009,9 +1017,9 @@ const Results = () => {
               <h2 className="text-lg font-bold text-foreground mb-2">{t("trendRadar")}</h2>
               <p className="text-sm text-muted-foreground mb-6">{t("trendRadarDesc")}</p>
 
-              {analysis.trendRadar && analysis.trendRadar.length > 0 ? (
+              {trendRadar.length > 0 ? (
                 <div className="space-y-6">
-                  {analysis.trendRadar.map((trend, i) => (
+                  {trendRadar.map((trend, i) => (
                     <div key={i} className="p-6 rounded-xl bg-card border border-border card-shadow">
                       <div className="flex items-start gap-3 mb-4">
                         <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
