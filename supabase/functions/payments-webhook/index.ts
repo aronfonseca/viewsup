@@ -18,19 +18,25 @@ function getSupabase() {
   return _supabase;
 }
 
-async function applyPlanToProfile(userId: string, productId: string, periodEnd: string | null | undefined) {
+async function applyPlanToProfile(
+  userId: string,
+  productId: string,
+  periodEnd: string | null | undefined,
+  resetCounter: boolean,
+) {
   const tier = PLAN_LIMITS[productId];
   if (!tier) {
     console.warn('Unknown product, skipping profile update:', productId);
     return;
   }
-  await getSupabase().from('profiles').update({
+  const update: Record<string, unknown> = {
     plan: tier.plan,
-    analyses_remaining: tier.limit,
     analyses_limit: tier.limit,
     period_end: periodEnd ?? null,
     updated_at: new Date().toISOString(),
-  }).eq('user_id', userId);
+  };
+  if (resetCounter) update.analyses_remaining = tier.limit;
+  await getSupabase().from('profiles').update(update).eq('user_id', userId);
 }
 
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
@@ -59,11 +65,20 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
     updated_at: new Date().toISOString(),
   }, { onConflict: 'paddle_subscription_id' });
 
-  await applyPlanToProfile(userId, productId, currentBillingPeriod?.endsAt);
+  // New subscription → reset counter to plan limit
+  await applyPlanToProfile(userId, productId, currentBillingPeriod?.endsAt, true);
 }
 
 async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
   const { id, status, items, currentBillingPeriod, scheduledChange, customData } = data;
+
+  // Find existing row to detect plan change vs renewal
+  const { data: existing } = await getSupabase()
+    .from('subscriptions')
+    .select('product_id, current_period_start')
+    .eq('paddle_subscription_id', id)
+    .eq('environment', env)
+    .maybeSingle();
 
   await getSupabase().from('subscriptions')
     .update({
@@ -76,18 +91,23 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
     .eq('paddle_subscription_id', id)
     .eq('environment', env);
 
-  // Handle plan change (upgrade/downgrade) — apply new plan immediately with pro-rata
   const item = items?.[0];
   const productId = item?.product?.importMeta?.externalId;
   const userId = customData?.userId;
-  if (userId && productId && status === 'active') {
-    await applyPlanToProfile(userId, productId, currentBillingPeriod?.endsAt);
-  }
+  if (!userId || !productId || status !== 'active') return;
+
+  // Reset counter ONLY when plan changed OR billing period rolled over (renewal).
+  // Skips trivial updates like payment-method changes that previously zeroed the quota mid-cycle.
+  const planChanged = existing && (existing as any).product_id !== productId;
+  const periodChanged = existing && (existing as any).current_period_start !== currentBillingPeriod?.startsAt;
+  const shouldReset = !existing || planChanged || periodChanged;
+
+  await applyPlanToProfile(userId, productId, currentBillingPeriod?.endsAt, !!shouldReset);
 }
 
 async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
-  // User keeps access until period end — only mark canceled. Profile is reset
-  // by a separate process or remains until period_end naturally expires.
+  // User keeps access until period end — only mark canceled.
+  // Downgrade to free is handled by the scheduled `downgrade-expired` function.
   await getSupabase().from('subscriptions')
     .update({ status: 'canceled', updated_at: new Date().toISOString() })
     .eq('paddle_subscription_id', data.id)

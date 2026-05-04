@@ -37,7 +37,7 @@ interface VideoJobRow {
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [url, setUrl] = useState("");
@@ -48,24 +48,34 @@ const Dashboard = () => {
   const [plan, setPlan] = useState<string>("free");
   const [analysesRemaining, setAnalysesRemaining] = useState<number>(0);
   const [analysesLimit, setAnalysesLimit] = useState<number>(0);
+  const [subStatus, setSubStatus] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
   const { branding } = useAgencyBranding();
+  const isPt = lang === "pt-BR";
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
       toast({
-        title: "🎉 Bem-vindo a bordo!",
-        description: "Sua assinatura está ativa. Aproveite suas análises!",
+        title: isPt ? "🎉 Bem-vindo a bordo!" : "🎉 Welcome aboard!",
+        description: isPt ? "Sua assinatura está ativa. Aproveite suas análises!" : "Your subscription is active. Enjoy your analyses!",
       });
       searchParams.delete("checkout");
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, isPt]);
 
   useEffect(() => {
     const fetchData = async () => {
+      // On-demand check: downgrade if grace period expired
+      try {
+        await supabase.functions.invoke("downgrade-expired", { body: { userId: user!.id } });
+      } catch { /* ignore */ }
+
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, plan, analyses_remaining, analyses_limit")
+        .select("display_name, plan, analyses_remaining, analyses_limit, period_end")
         .eq("user_id", user!.id)
         .single();
       if (profile) {
@@ -73,6 +83,20 @@ const Dashboard = () => {
         setPlan((profile as any).plan || "free");
         setAnalysesRemaining((profile as any).analyses_remaining ?? 0);
         setAnalysesLimit((profile as any).analyses_limit ?? 0);
+        setPeriodEnd((profile as any).period_end ?? null);
+      }
+
+      // Fetch latest subscription for status / portal access
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status, cancel_at_period_end, current_period_end")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (sub) {
+        setSubStatus((sub as any).status);
+        setCancelAtPeriodEnd(!!(sub as any).cancel_at_period_end);
       }
 
       const [reportsRes, videosRes] = await Promise.all([
@@ -97,6 +121,8 @@ const Dashboard = () => {
   }, [user]);
 
   const limitReached = analysesRemaining <= 0;
+  const hasPaidPlan = plan !== "free";
+  const isPastDue = subStatus === "past_due";
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +132,25 @@ const Dashboard = () => {
     }
     if (!url.trim()) return;
     navigate(`/results?url=${encodeURIComponent(url.trim())}`);
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        body: { environment: (import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string)?.startsWith("test_") ? "sandbox" : "live" },
+      });
+      if (error || !data?.url) throw new Error(error?.message || "Failed to open portal");
+      window.open(data.url, "_blank");
+    } catch (err: any) {
+      toast({
+        title: isPt ? "Erro" : "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -146,6 +191,41 @@ const Dashboard = () => {
           <p className="text-muted-foreground">{t("dashSubtitle")}</p>
         </div>
 
+        {/* Past-due banner */}
+        {isPastDue && (
+          <Card className="border-destructive/40 bg-destructive/5">
+            <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {isPt ? "Pagamento pendente" : "Payment past due"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {isPt
+                      ? "O último pagamento da sua assinatura falhou. Atualize seu método de pagamento para manter o acesso."
+                      : "Your latest subscription payment failed. Update your payment method to keep access."}
+                  </p>
+                </div>
+              </div>
+              <Button onClick={handleManageSubscription} disabled={portalLoading} className="gradient-bg text-primary-foreground">
+                {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (isPt ? "Atualizar pagamento" : "Update payment")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Cancel-at-period-end notice */}
+        {cancelAtPeriodEnd && periodEnd && (
+          <Card className="border-warning/40 bg-warning/5">
+            <CardContent className="py-3 text-sm text-foreground">
+              {isPt
+                ? `Sua assinatura será cancelada em ${new Date(periodEnd).toLocaleDateString("pt-BR")}. Você mantém acesso até lá.`
+                : `Your subscription will end on ${new Date(periodEnd).toLocaleDateString("en-GB")}. You keep access until then.`}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Plan + analyses counter */}
         <Card className={`border ${limitReached ? "border-destructive/40 bg-destructive/5" : "border-primary/20 bg-card"}`}>
           <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -168,14 +248,21 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <Button
-              variant={limitReached ? "default" : "outline"}
-              size="sm"
-              className={limitReached ? "gradient-bg text-primary-foreground" : ""}
-              onClick={() => navigate("/pricing")}
-            >
-              {plan === "agency" ? t("dashManagePlan") : limitReached ? t("dashUpgrade") : t("dashViewPlans")}
-            </Button>
+            <div className="flex items-center gap-2">
+              {hasPaidPlan && (
+                <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+                  {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (isPt ? "Gerenciar assinatura" : "Manage subscription")}
+                </Button>
+              )}
+              <Button
+                variant={limitReached ? "default" : "outline"}
+                size="sm"
+                className={limitReached ? "gradient-bg text-primary-foreground" : ""}
+                onClick={() => navigate("/pricing")}
+              >
+                {plan === "agency" ? t("dashManagePlan") : limitReached ? t("dashUpgrade") : t("dashViewPlans")}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
