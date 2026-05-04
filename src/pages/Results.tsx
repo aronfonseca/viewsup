@@ -499,7 +499,7 @@ const Results = () => {
                   </div>
                   <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
                     <p className="text-xs font-semibold text-primary uppercase mb-1">{t("viralVerdict")}</p>
-                    <p className="text-sm text-foreground italic">{analysis.viralScore.verdict}</p>
+                    <p className="text-sm text-foreground italic"><RichText text={analysis.viralScore.verdict} /></p>
                   </div>
                 </div>
               )}
@@ -974,7 +974,7 @@ const Results = () => {
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysis.improvedHooks.map((hook, i) => (
-                    <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm text-foreground">{hook}</div>
+                    <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm text-foreground"><RichText text={hook} /></div>
                   ))}
                 </div>
               </div>
