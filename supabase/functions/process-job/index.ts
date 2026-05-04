@@ -735,8 +735,10 @@ async function processJob(jobId: string) {
     if (!toolUse?.input) throw new Error("AI did not return structured analysis");
 
     const aiInput: any = toolUse.input;
+    console.log('trendRadar:', JSON.stringify(aiInput.trendRadar));
+    const trendRadar = normaliseTrendRadar(aiInput, isPT, aiInput.nicho || "Outros", username);
     console.log(
-      `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
+      `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | normalisedTrendRadar.length=${trendRadar.length} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
     );
 
     const result = {
@@ -744,6 +746,7 @@ async function processJob(jobId: string) {
       username,
       language: job.language,
       ...aiInput,
+      trendRadar,
     };
 
     await admin.from("analysis_jobs").update({
