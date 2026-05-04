@@ -189,21 +189,21 @@ const Dashboard = () => {
                     <Palette className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">White-Label da Agência</p>
+                    <p className="font-semibold text-foreground">{t("agencyWhiteLabel")}</p>
                     <p className="text-sm text-muted-foreground">
                       {branding.enabled
-                        ? "Seus relatórios PDF serão entregues com sua marca."
-                        : "Configure sua marca para entregar relatórios personalizados aos clientes."}
+                        ? t("agencyWhiteLabelEnabled")
+                        : t("agencyWhiteLabelDesc")}
                     </p>
                   </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => navigate("/settings/agency")}>
-                  {branding.enabled ? "Editar marca" : "Configurar agora"}
+                  {branding.enabled ? t("agencyEditBrand") : t("agencyConfigureNow")}
                 </Button>
               </div>
               <div className="max-w-md">
                 <AgencyReportPreview
-                  agencyName={branding.agency_name || "Sua Agência"}
+                  agencyName={branding.agency_name || t("agencyDefaultName")}
                   agencyLogoUrl={branding.agency_logo_url}
                   primaryColor={branding.agency_primary_color || "#7c3aed"}
                   website={branding.agency_website || undefined}
