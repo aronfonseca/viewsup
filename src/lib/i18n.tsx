@@ -408,7 +408,17 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
-  const [lang, setLang] = useState<Lang>("pt-BR");
+  const [lang, setLangState] = useState<Lang>(() => {
+    try {
+      const stored = localStorage.getItem("virallens_lang");
+      if (stored === "pt-BR" || stored === "en-GB") return stored;
+    } catch {}
+    return "pt-BR";
+  });
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l);
+    try { localStorage.setItem("virallens_lang", l); } catch {}
+  }, []);
   const [companyName, setCompanyNameState] = useState<string>(() => {
     try { return localStorage.getItem("virallens_company") || DEFAULT_COMPANY; } catch { return DEFAULT_COMPANY; }
   });

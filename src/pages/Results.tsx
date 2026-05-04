@@ -19,21 +19,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
 import { hexToHslString } from "@/lib/colorUtils";
 
-/* ── Rich Text (markdown links) ── */
+/* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
 const RichText = ({ text }: { text: string }) => {
+  const { lang } = useI18n();
+  const postLabel = lang === "pt-BR" ? "ver post" : "view post";
   const parts = useMemo(() => {
-    const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([A-Za-z0-9_-]{6,20})`/g;
     const result: (string | { label: string; url: string })[] = [];
     let lastIndex = 0;
     let match;
     while ((match = regex.exec(text)) !== null) {
       if (match.index > lastIndex) result.push(text.slice(lastIndex, match.index));
-      result.push({ label: match[1], url: match[2] });
+      if (match[2]) {
+        result.push({ label: match[1], url: match[2] });
+      } else if (match[3]) {
+        result.push({ label: postLabel, url: `https://www.instagram.com/p/${match[3]}/` });
+      }
       lastIndex = match.index + match[0].length;
     }
     if (lastIndex < text.length) result.push(text.slice(lastIndex));
     return result;
-  }, [text]);
+  }, [text, postLabel]);
 
   return (
     <span>
@@ -790,7 +796,7 @@ const Results = () => {
                             <Flame className="h-4 w-4 text-destructive" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-foreground">{bp.problem}</h3>
+                            <h3 className="font-semibold text-foreground"><RichText text={bp.problem} /></h3>
                             <p className="text-sm text-muted-foreground mt-1"><RichText text={bp.impact} /></p>
                           </div>
                         </div>
