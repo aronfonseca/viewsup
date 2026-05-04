@@ -312,7 +312,9 @@ function buildPrompts(
 7. Se um campo numérico estiver "?" nos dados coletados, declare "dado indisponível" e prossiga — NÃO invente números.
 8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
 9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
-10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).`;
+10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
+11. trendRadar é OBRIGATÓRIO: retorne EXATAMENTE 3 a 5 tendências atuais (formatos, sons, ganchos, estética) relevantes para o nicho detectado, com title/description/example/relevance preenchidos. NUNCA retorne array vazio.
+12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
 1. ALWAYS cite real profile numbers: exact follower count, real avgLikes, real avgComments, and the computed engagement rate (engagementRate %). Use the exact raw numbers shown in "PROFILE METRICS" and "AGGREGATE METRICS".
