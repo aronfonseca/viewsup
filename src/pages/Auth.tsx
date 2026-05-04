@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Sparkles, Mail, Lock, User } from "lucide-react";
 
 const Auth = () => {
