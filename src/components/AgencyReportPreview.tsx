@@ -1,4 +1,5 @@
 import { Sparkles, TrendingUp, Trophy } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   agencyName: string;
@@ -12,6 +13,7 @@ interface Props {
  * applied at PDF export time on the Results page.
  */
 const AgencyReportPreview = ({ agencyName, agencyLogoUrl, primaryColor, website }: Props) => {
+  const { t } = useI18n();
   const accent = primaryColor || "#7c3aed";
 
   return (
