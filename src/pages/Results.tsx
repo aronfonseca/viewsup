@@ -21,8 +21,9 @@ import { hexToHslString } from "@/lib/colorUtils";
 
 /* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
 const RichText = ({ text }: { text: string }) => {
+  const { lang } = useI18n();
+  const postLabel = lang === "pt-BR" ? "ver post" : "view post";
   const parts = useMemo(() => {
-    // Matches markdown links [label](url) OR backticked shortcodes `Abc123XyZ`
     const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|`([A-Za-z0-9_-]{6,20})`/g;
     const result: (string | { label: string; url: string })[] = [];
     let lastIndex = 0;
@@ -32,13 +33,13 @@ const RichText = ({ text }: { text: string }) => {
       if (match[2]) {
         result.push({ label: match[1], url: match[2] });
       } else if (match[3]) {
-        result.push({ label: "view post", url: `https://www.instagram.com/p/${match[3]}/` });
+        result.push({ label: postLabel, url: `https://www.instagram.com/p/${match[3]}/` });
       }
       lastIndex = match.index + match[0].length;
     }
     if (lastIndex < text.length) result.push(text.slice(lastIndex));
     return result;
-  }, [text]);
+  }, [text, postLabel]);
 
   return (
     <span>
