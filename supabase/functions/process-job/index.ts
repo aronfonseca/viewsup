@@ -675,11 +675,16 @@ async function processJob(jobId: string) {
     const toolUse = (data.content || []).find((b: any) => b.type === "tool_use");
     if (!toolUse?.input) throw new Error("AI did not return structured analysis");
 
+    const aiInput: any = toolUse.input;
+    console.log(
+      `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
+    );
+
     const result = {
       url: job.instagram_url,
       username,
       language: job.language,
-      ...toolUse.input,
+      ...aiInput,
     };
 
     await admin.from("analysis_jobs").update({
