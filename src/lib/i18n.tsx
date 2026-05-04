@@ -393,6 +393,15 @@ const translations = {
     dashVideoHistory: "Analysed Videos History",
     dashVideoHistoryEmpty: "No videos analysed yet. Use the Retention Lab inside any report.",
     dashViewVideo: "View analysis",
+    dashCurrentPlan: "Current plan",
+    dashAnalysesRemaining: "analyses remaining",
+    dashUnlimitedAnalyses: "Unlimited analyses",
+    dashViewPlans: "View plans",
+    dashUpgrade: "Upgrade",
+    dashManagePlan: "Manage plan",
+    dashPlanFree: "Free",
+    dashLimitReachedTitle: "Plan limit reached",
+    dashLimitReachedDesc: "Upgrade to continue analysing profiles this month.",
   },
 } as const;
 
