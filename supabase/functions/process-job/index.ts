@@ -760,6 +760,24 @@ serve(async (req) => {
     const { data: authData, error: authErr } = await authed.auth.getUser();
     if (authErr || !authData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Server-side entitlement check — block if no analyses left (skip for agency)
+    const adminEarly = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: entProf } = await adminEarly
+      .from("profiles")
+      .select("plan, analyses_remaining")
+      .eq("user_id", authData.user.id)
+      .single();
+    if (entProf && (entProf as any).plan !== "agency" && ((entProf as any).analyses_remaining ?? 0) <= 0) {
+      return new Response(JSON.stringify({ error: "No analyses remaining. Please upgrade your plan." }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (authErr || !authData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
