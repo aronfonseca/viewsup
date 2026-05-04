@@ -220,9 +220,9 @@ const Dashboard = () => {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-foreground">Limite do plano atingido</p>
+                    <p className="font-semibold text-foreground">{t("dashLimitReachedTitle")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Faça upgrade para continuar analisando perfis este mês.
+                      {t("dashLimitReachedDesc")}
                     </p>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ const Dashboard = () => {
                   className="gradient-bg text-primary-foreground"
                   onClick={() => navigate("/pricing")}
                 >
-                  Fazer upgrade
+                  {t("dashUpgrade")}
                 </Button>
               </div>
             ) : (
