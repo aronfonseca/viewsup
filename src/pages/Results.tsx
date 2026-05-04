@@ -796,7 +796,7 @@ const Results = () => {
                             <Flame className="h-4 w-4 text-destructive" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-foreground">{bp.problem}</h3>
+                            <h3 className="font-semibold text-foreground"><RichText text={bp.problem} /></h3>
                             <p className="text-sm text-muted-foreground mt-1"><RichText text={bp.impact} /></p>
                           </div>
                         </div>
