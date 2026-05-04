@@ -158,13 +158,13 @@ const Dashboard = () => {
                 )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Plano atual</p>
+                <p className="text-sm text-muted-foreground">{t("dashCurrentPlan")}</p>
                 <p className="font-semibold text-foreground capitalize">
-                  {plan === "free" ? "Grátis" : plan}
+                  {plan === "free" ? t("dashPlanFree") : plan}
                   {" · "}
                   {plan === "agency"
-                    ? "Análises ilimitadas"
-                    : `${analysesRemaining} de ${analysesLimit} análises restantes`}
+                    ? t("dashUnlimitedAnalyses")
+                    : `${analysesRemaining}/${analysesLimit} ${t("dashAnalysesRemaining")}`}
                 </p>
               </div>
             </div>
@@ -174,7 +174,7 @@ const Dashboard = () => {
               className={limitReached ? "gradient-bg text-primary-foreground" : ""}
               onClick={() => navigate("/pricing")}
             >
-              {plan === "agency" ? "Gerenciar plano" : limitReached ? "Fazer upgrade" : "Ver planos"}
+              {plan === "agency" ? t("dashManagePlan") : limitReached ? t("dashUpgrade") : t("dashViewPlans")}
             </Button>
           </CardContent>
         </Card>
@@ -220,9 +220,9 @@ const Dashboard = () => {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-foreground">Limite do plano atingido</p>
+                    <p className="font-semibold text-foreground">{t("dashLimitReachedTitle")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Faça upgrade para continuar analisando perfis este mês.
+                      {t("dashLimitReachedDesc")}
                     </p>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ const Dashboard = () => {
                   className="gradient-bg text-primary-foreground"
                   onClick={() => navigate("/pricing")}
                 >
-                  Fazer upgrade
+                  {t("dashUpgrade")}
                 </Button>
               </div>
             ) : (
