@@ -312,7 +312,9 @@ function buildPrompts(
 7. Se um campo numérico estiver "?" nos dados coletados, declare "dado indisponível" e prossiga — NÃO invente números.
 8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
 9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
-10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).`;
+10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
+11. trendRadar é OBRIGATÓRIO: retorne EXATAMENTE 3 a 5 tendências atuais (formatos, sons, ganchos, estética) relevantes para o nicho detectado, com title/description/example/relevance preenchidos. NUNCA retorne array vazio.
+12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
 1. ALWAYS cite real profile numbers: exact follower count, real avgLikes, real avgComments, and the computed engagement rate (engagementRate %). Use the exact raw numbers shown in "PROFILE METRICS" and "AGGREGATE METRICS".
@@ -324,7 +326,9 @@ function buildPrompts(
 7. If a numeric field is "?" in scraped data, state "data unavailable" and proceed — NEVER fabricate numbers.
 8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
 9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
-10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).`;
+10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
+11. trendRadar is REQUIRED: return EXACTLY 3 to 5 current trends (formats, sounds, hooks, aesthetics) relevant to the detected niche, with title/description/example/relevance all filled. NEVER return an empty array.
+12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
 
@@ -675,11 +679,16 @@ async function processJob(jobId: string) {
     const toolUse = (data.content || []).find((b: any) => b.type === "tool_use");
     if (!toolUse?.input) throw new Error("AI did not return structured analysis");
 
+    const aiInput: any = toolUse.input;
+    console.log(
+      `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
+    );
+
     const result = {
       url: job.instagram_url,
       username,
       language: job.language,
-      ...toolUse.input,
+      ...aiInput,
     };
 
     await admin.from("analysis_jobs").update({

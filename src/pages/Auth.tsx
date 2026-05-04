@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Sparkles, Mail, Lock, User } from "lucide-react";
 
 const Auth = () => {
@@ -55,15 +54,20 @@ const Auth = () => {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + redirectTo,
+      // Direct Supabase OAuth — works on any host (including Vercel deployments).
+      // The /auth/callback route picks up the session and redirects onward.
+      const next = encodeURIComponent(redirectTo);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${next}`,
+        },
       });
-      if (result.error) {
-        toast({ title: t("authError"), description: (result.error as Error).message, variant: "destructive" });
+      if (error) {
+        toast({ title: t("authError"), description: error.message, variant: "destructive" });
         setLoading(false);
-        return;
       }
-      if (!result.redirected) navigate(redirectTo, { replace: true });
+      // On success the browser navigates to Google — no further work here.
     } catch (err: any) {
       toast({ title: t("authError"), description: err.message, variant: "destructive" });
       setLoading(false);
