@@ -17,7 +17,7 @@ const ALLOWED_EMAILS = new Set([
 const TABLES = ["reports", "analysis_jobs", "profile_history", "nicho_insights"] as const;
 
 // Page through every row (Supabase caps at 1000 per request).
-async function dumpTable(admin: ReturnType<typeof createClient>, table: string) {
+async function dumpTable(admin: any, table: string) {
   const PAGE = 1000;
   const rows: any[] = [];
   let from = 0;
