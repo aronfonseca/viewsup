@@ -37,7 +37,7 @@ interface VideoJobRow {
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [url, setUrl] = useState("");
@@ -48,24 +48,34 @@ const Dashboard = () => {
   const [plan, setPlan] = useState<string>("free");
   const [analysesRemaining, setAnalysesRemaining] = useState<number>(0);
   const [analysesLimit, setAnalysesLimit] = useState<number>(0);
+  const [subStatus, setSubStatus] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
   const { branding } = useAgencyBranding();
+  const isPt = lang === "pt-BR";
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
       toast({
-        title: "🎉 Bem-vindo a bordo!",
-        description: "Sua assinatura está ativa. Aproveite suas análises!",
+        title: isPt ? "🎉 Bem-vindo a bordo!" : "🎉 Welcome aboard!",
+        description: isPt ? "Sua assinatura está ativa. Aproveite suas análises!" : "Your subscription is active. Enjoy your analyses!",
       });
       searchParams.delete("checkout");
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, isPt]);
 
   useEffect(() => {
     const fetchData = async () => {
+      // On-demand check: downgrade if grace period expired
+      try {
+        await supabase.functions.invoke("downgrade-expired", { body: { userId: user!.id } });
+      } catch { /* ignore */ }
+
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, plan, analyses_remaining, analyses_limit")
+        .select("display_name, plan, analyses_remaining, analyses_limit, period_end")
         .eq("user_id", user!.id)
         .single();
       if (profile) {
@@ -73,6 +83,20 @@ const Dashboard = () => {
         setPlan((profile as any).plan || "free");
         setAnalysesRemaining((profile as any).analyses_remaining ?? 0);
         setAnalysesLimit((profile as any).analyses_limit ?? 0);
+        setPeriodEnd((profile as any).period_end ?? null);
+      }
+
+      // Fetch latest subscription for status / portal access
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status, cancel_at_period_end, current_period_end")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (sub) {
+        setSubStatus((sub as any).status);
+        setCancelAtPeriodEnd(!!(sub as any).cancel_at_period_end);
       }
 
       const [reportsRes, videosRes] = await Promise.all([
@@ -97,6 +121,8 @@ const Dashboard = () => {
   }, [user]);
 
   const limitReached = analysesRemaining <= 0;
+  const hasPaidPlan = plan !== "free";
+  const isPastDue = subStatus === "past_due";
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +132,25 @@ const Dashboard = () => {
     }
     if (!url.trim()) return;
     navigate(`/results?url=${encodeURIComponent(url.trim())}`);
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        body: { environment: (import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string)?.startsWith("test_") ? "sandbox" : "live" },
+      });
+      if (error || !data?.url) throw new Error(error?.message || "Failed to open portal");
+      window.open(data.url, "_blank");
+    } catch (err: any) {
+      toast({
+        title: isPt ? "Erro" : "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   const handleLogout = async () => {
