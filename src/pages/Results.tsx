@@ -1017,9 +1017,9 @@ const Results = () => {
               <h2 className="text-lg font-bold text-foreground mb-2">{t("trendRadar")}</h2>
               <p className="text-sm text-muted-foreground mb-6">{t("trendRadarDesc")}</p>
 
-              {analysis.trendRadar && analysis.trendRadar.length > 0 ? (
+              {trendRadar.length > 0 ? (
                 <div className="space-y-6">
-                  {analysis.trendRadar.map((trend, i) => (
+                  {trendRadar.map((trend, i) => (
                     <div key={i} className="p-6 rounded-xl bg-card border border-border card-shadow">
                       <div className="flex items-start gap-3 mb-4">
                         <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
