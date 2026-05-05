@@ -173,6 +173,8 @@ const ANALYSIS_SCHEMA = {
       },
       trendRadar: {
         type: "array",
+        minItems: 8,
+        maxItems: 8,
         items: {
           type: "object",
           properties: {
@@ -313,7 +315,7 @@ function buildPrompts(
 8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
 9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
 10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
-11. trendRadar é OBRIGATÓRIO: retorne EXATAMENTE 3 a 5 tendências atuais (formatos, sons, ganchos, estética) relevantes para o nicho detectado, com title/description/example/relevance preenchidos. NUNCA retorne array vazio.
+11. trendRadar DEVE conter EXATAMENTE 8 tendências EMERGENTES ÚNICAS e 100% específicas do NICHO/SETOR detectado (ex.: B2B técnico, indústria, fintech, saúde estética, etc.). PROIBIDO dicas genéricas de Instagram/social media (ex.: "use Reels", "poste mais", "use trending audio", "carrossel funciona"). Cada item: title = nome da tendência REAL do setor; description = como ela se manifesta nesse setor; example = caso real de uso aplicado ao nicho de @${username}; relevance = por que essa audiência específica do setor é atraída. Nunca menos de 8.
 12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
@@ -327,7 +329,7 @@ function buildPrompts(
 8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
 9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
 10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
-11. trendRadar is REQUIRED: return EXACTLY 3 to 5 current trends (formats, sounds, hooks, aesthetics) relevant to the detected niche, with title/description/example/relevance all filled. NEVER return an empty array.
+11. trendRadar MUST contain EXACTLY 8 unique emerging trends 100% specific to the detected NICHE/INDUSTRY (e.g. technical B2B, industrial, fintech, aesthetic healthcare, etc.). FORBIDDEN: generic Instagram/social-media tips ("use Reels", "post more", "use trending audio", "carousels work"). Each item: title = real trend name from the sector; description = how it manifests in that sector; example = real use case applied to @${username}'s niche; relevance = why this specific industry audience is drawn to it. Never fewer than 8.
 12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
@@ -544,8 +546,8 @@ function isValidTrendRadarItem(item: any): boolean {
 function normaliseTrendRadar(raw: any, isPT: boolean, nicho: string, username: string) {
   const candidates = [raw?.trendRadar, raw?.analysis_data?.trendRadar, raw?.analysisData?.trendRadar];
   const trendRadar = candidates.find((value) => Array.isArray(value)) || [];
-  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 5);
-  if (cleaned.length >= 3) return cleaned;
+  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 8);
+  if (cleaned.length >= 1) return cleaned;
 
   return isPT ? [
     {
@@ -711,7 +713,7 @@ async function processJob(jobId: string) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 8000,
+        max_tokens: 16000,
         temperature: 0.1,
         system: systemPrompt,
         tools: [{
