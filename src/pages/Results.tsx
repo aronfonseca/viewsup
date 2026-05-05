@@ -238,7 +238,7 @@ const Results = () => {
         setLoading(false);
         toast({ title: t("errorTitle"), description: msg, variant: "destructive" });
       });
-  }, [url, reportId, navigate, lang, companyName, t, toast]);
+  }, [url, reportId, force, navigate, lang, companyName, t, toast]);
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;
