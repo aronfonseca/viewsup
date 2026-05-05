@@ -305,13 +305,24 @@ export async function waitForAnalysisJob(
   throw new Error("Analysis timed out");
 }
 
-/** Convenience wrapper: enqueue + poll. */
+/** Convenience wrapper: enqueue + poll. Honours 24h per-profile cache unless `force` is true. */
 export async function analyzeProfile(
   url: string,
   language: "pt-BR" | "en-GB" = "pt-BR",
   companyName?: string,
   onStatus?: (status: string) => void,
+  force = false,
 ): Promise<ProfileAnalysis> {
-  const jobId = await startAnalysisJob(url, language, companyName);
-  return waitForAnalysisJob(jobId, { onTick: onStatus });
+  const { jobId, cachedReportId } = await startAnalysisJob(url, language, companyName, force);
+  if (cachedReportId) {
+    onStatus?.("completed");
+    const { data, error } = await supabase
+      .from("reports")
+      .select("analysis_data")
+      .eq("id", cachedReportId)
+      .single();
+    if (error || !data?.analysis_data) throw new Error(error?.message || "Cached report not found");
+    return data.analysis_data as unknown as ProfileAnalysis;
+  }
+  return waitForAnalysisJob(jobId!, { onTick: onStatus });
 }
