@@ -329,7 +329,7 @@ function buildPrompts(
 8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
 9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
 10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
-11. trendRadar is REQUIRED: return EXACTLY 3 to 5 current trends (formats, sounds, hooks, aesthetics) relevant to the detected niche, with title/description/example/relevance all filled. NEVER return an empty array.
+11. trendRadar MUST contain EXACTLY 8 unique emerging trends 100% specific to the detected NICHE/INDUSTRY (e.g. technical B2B, industrial, fintech, aesthetic healthcare, etc.). FORBIDDEN: generic Instagram/social-media tips ("use Reels", "post more", "use trending audio", "carousels work"). Each item: title = real trend name from the sector; description = how it manifests in that sector; example = real use case applied to @${'${'}username${'}'}'s niche; relevance = why this specific industry audience is drawn to it. Never fewer than 8.
 12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
