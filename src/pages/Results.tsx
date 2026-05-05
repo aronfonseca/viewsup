@@ -230,7 +230,7 @@ const Results = () => {
       return;
     }
 
-    analyzeProfile(url, lang, companyName, (s) => setJobStatus(s))
+    analyzeProfile(url, lang, companyName, (s) => setJobStatus(s), force)
       .then((data) => { setAnalysis(data); setLoading(false); })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : t("analysisFailed");
