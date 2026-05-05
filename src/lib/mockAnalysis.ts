@@ -218,16 +218,34 @@ export interface ProfileAnalysis {
 /**
  * Enqueue an async analysis job and start the background worker.
  * Returns the jobId immediately — the caller polls analysis_jobs for status.
+ *
+ * If a recent report (<24h) for the same username exists for this user,
+ * returns { cachedReportId } instead, unless `force` is true.
  */
 export async function startAnalysisJob(
   url: string,
   language: "pt-BR" | "en-GB" = "pt-BR",
   companyName?: string,
-): Promise<string> {
+  force = false,
+): Promise<{ jobId?: string; cachedReportId?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
   const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
+
+  if (!force) {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: cached } = await supabase
+      .from("reports")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("username", username)
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cached?.id) return { cachedReportId: cached.id };
+  }
 
   const { data: job, error: insertErr } = await supabase
     .from("analysis_jobs")
@@ -249,7 +267,7 @@ export async function startAnalysisJob(
     console.warn("process-job invoke failed:", e);
   });
 
-  return job.id;
+  return { jobId: job.id };
 }
 
 /**
