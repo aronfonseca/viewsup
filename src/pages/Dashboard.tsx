@@ -12,7 +12,7 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { toast } from "@/hooks/use-toast";
 import {
   Sparkles, LogOut, Search, Clock, ExternalLink, User,
-  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown, Palette,
+  Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown, Palette, RefreshCw,
 } from "lucide-react";
 import AgencyReportPreview from "@/components/AgencyReportPreview";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
@@ -387,7 +387,22 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title={isPt ? "Forçar nova análise" : "Force new analysis"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (limitReached) { navigate("/pricing"); return; }
+                          navigate(`/results?url=${encodeURIComponent(r.profile_url)}&force=1`);
+                        }}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        {isPt ? "Nova análise" : "New analysis"}
+                      </Button>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
                   </CardContent>
                 </Card>
               ))}

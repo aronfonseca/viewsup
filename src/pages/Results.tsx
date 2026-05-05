@@ -181,6 +181,7 @@ const Results = () => {
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
+  const force = searchParams.get("force") === "1";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobStatus, setJobStatus] = useState<string>("pending");
@@ -229,7 +230,7 @@ const Results = () => {
       return;
     }
 
-    analyzeProfile(url, lang, companyName, (s) => setJobStatus(s))
+    analyzeProfile(url, lang, companyName, (s) => setJobStatus(s), force)
       .then((data) => { setAnalysis(data); setLoading(false); })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : t("analysisFailed");
@@ -237,7 +238,7 @@ const Results = () => {
         setLoading(false);
         toast({ title: t("errorTitle"), description: msg, variant: "destructive" });
       });
-  }, [url, reportId, navigate, lang, companyName, t, toast]);
+  }, [url, reportId, force, navigate, lang, companyName, t, toast]);
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;

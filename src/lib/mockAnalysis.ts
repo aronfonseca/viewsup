@@ -218,16 +218,34 @@ export interface ProfileAnalysis {
 /**
  * Enqueue an async analysis job and start the background worker.
  * Returns the jobId immediately — the caller polls analysis_jobs for status.
+ *
+ * If a recent report (<24h) for the same username exists for this user,
+ * returns { cachedReportId } instead, unless `force` is true.
  */
 export async function startAnalysisJob(
   url: string,
   language: "pt-BR" | "en-GB" = "pt-BR",
   companyName?: string,
-): Promise<string> {
+  force = false,
+): Promise<{ jobId?: string; cachedReportId?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
   const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
+
+  if (!force) {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: cached } = await supabase
+      .from("reports")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("username", username)
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cached?.id) return { cachedReportId: cached.id };
+  }
 
   const { data: job, error: insertErr } = await supabase
     .from("analysis_jobs")
@@ -249,7 +267,7 @@ export async function startAnalysisJob(
     console.warn("process-job invoke failed:", e);
   });
 
-  return job.id;
+  return { jobId: job.id };
 }
 
 /**
@@ -287,13 +305,24 @@ export async function waitForAnalysisJob(
   throw new Error("Analysis timed out");
 }
 
-/** Convenience wrapper: enqueue + poll. */
+/** Convenience wrapper: enqueue + poll. Honours 24h per-profile cache unless `force` is true. */
 export async function analyzeProfile(
   url: string,
   language: "pt-BR" | "en-GB" = "pt-BR",
   companyName?: string,
   onStatus?: (status: string) => void,
+  force = false,
 ): Promise<ProfileAnalysis> {
-  const jobId = await startAnalysisJob(url, language, companyName);
-  return waitForAnalysisJob(jobId, { onTick: onStatus });
+  const { jobId, cachedReportId } = await startAnalysisJob(url, language, companyName, force);
+  if (cachedReportId) {
+    onStatus?.("completed");
+    const { data, error } = await supabase
+      .from("reports")
+      .select("analysis_data")
+      .eq("id", cachedReportId)
+      .single();
+    if (error || !data?.analysis_data) throw new Error(error?.message || "Cached report not found");
+    return data.analysis_data as unknown as ProfileAnalysis;
+  }
+  return waitForAnalysisJob(jobId!, { onTick: onStatus });
 }

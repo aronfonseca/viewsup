@@ -336,6 +336,8 @@ ${langLine}
 
 ${isPT ? rulesPT : rulesEN}
 
+You must be completely deterministic in your scoring. Given the same data, always produce the same scores. Base scores strictly on the mathematical data provided (followers, avgLikes, avgComments, engagementRate, post counts), never on subjective interpretation. Use fixed thresholds and rounded integers for every score.
+
 You are auditing a real Instagram profile using REAL scraped data. Be brutally specific, data-driven, realistic, and constructive. Realistic scores (most profiles 35-70, rarely above 80).
 
 ALWAYS classify the profile into one of the normalised niches in the "nicho" enum. Pick the closest match — use "Outros" only as a last resort.
@@ -710,7 +712,7 @@ async function processJob(jobId: string) {
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
         max_tokens: 8000,
-        temperature: 0.2,
+        temperature: 0.1,
         system: systemPrompt,
         tools: [{
           name: ANALYSIS_SCHEMA.name,
