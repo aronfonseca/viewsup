@@ -181,6 +181,7 @@ const Results = () => {
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
+  const force = searchParams.get("force") === "1";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobStatus, setJobStatus] = useState<string>("pending");
