@@ -173,8 +173,8 @@ const ANALYSIS_SCHEMA = {
       },
       trendRadar: {
         type: "array",
-        minItems: 8,
-        maxItems: 8,
+        minItems: 5,
+        maxItems: 5,
         items: {
           type: "object",
           properties: {
