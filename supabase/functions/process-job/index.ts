@@ -757,6 +757,11 @@ async function processJob(jobId: string) {
       `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | normalisedTrendRadar.length=${trendRadar.length} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
     );
 
+    // Normalise arrays so the frontend never crashes on missing fields
+    for (const k of ["dimensions", "issues", "patterns", "improvedHooks", "rewrittenCaptions", "burningProblems", "contentPillars", "videoIdeas", "scriptSuggestions", "hookStyles", "recentPosts"]) {
+      if (!Array.isArray(aiInput[k])) aiInput[k] = [];
+    }
+
     const result = {
       url: job.instagram_url,
       username,
