@@ -546,7 +546,7 @@ function isValidTrendRadarItem(item: any): boolean {
 function normaliseTrendRadar(raw: any, isPT: boolean, nicho: string, username: string) {
   const candidates = [raw?.trendRadar, raw?.analysis_data?.trendRadar, raw?.analysisData?.trendRadar];
   const trendRadar = candidates.find((value) => Array.isArray(value)) || [];
-  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 8);
+  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 5);
   if (cleaned.length >= 1) return cleaned;
 
   return isPT ? [
