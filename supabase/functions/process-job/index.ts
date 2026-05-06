@@ -820,6 +820,9 @@ async function processJob(jobId: string) {
       error_message: msg.slice(0, 500),
       completed_at: new Date().toISOString(),
     }).eq("id", jobId);
+    // Credit protection: decrement only happens on the success path, so a failure
+    // here means the user was NOT charged. Log explicitly for auditability.
+    console.log(`[Worker] no credit charged for failed job ${jobId} (analyses_remaining untouched)`);
   }
 }
 
