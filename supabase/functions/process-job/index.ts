@@ -173,8 +173,8 @@ const ANALYSIS_SCHEMA = {
       },
       trendRadar: {
         type: "array",
-        minItems: 8,
-        maxItems: 8,
+        minItems: 5,
+        maxItems: 5,
         items: {
           type: "object",
           properties: {
@@ -315,7 +315,7 @@ function buildPrompts(
 8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
 9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
 10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
-11. trendRadar DEVE conter EXATAMENTE 8 tendências EMERGENTES ÚNICAS e 100% específicas do NICHO/SETOR detectado (ex.: B2B técnico, indústria, fintech, saúde estética, etc.). PROIBIDO dicas genéricas de Instagram/social media (ex.: "use Reels", "poste mais", "use trending audio", "carrossel funciona"). Cada item: title = nome da tendência REAL do setor; description = como ela se manifesta nesse setor; example = caso real de uso aplicado ao nicho de @${username}; relevance = por que essa audiência específica do setor é atraída. Nunca menos de 8.
+11. trendRadar DEVE conter EXATAMENTE 5 tendências EMERGENTES ÚNICAS e 100% específicas do NICHO/SETOR detectado (ex.: B2B técnico, indústria, fintech, saúde estética, etc.). PROIBIDO dicas genéricas de Instagram/social media (ex.: "use Reels", "poste mais", "use trending audio", "carrossel funciona"). Cada item: title = nome da tendência REAL do setor; description = como ela se manifesta nesse setor; example = caso real de uso aplicado ao nicho de @${username}; relevance = por que essa audiência específica do setor é atraída. Nunca menos de 5.
 12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
@@ -329,7 +329,7 @@ function buildPrompts(
 8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
 9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
 10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
-11. trendRadar MUST contain EXACTLY 8 unique emerging trends 100% specific to the detected NICHE/INDUSTRY (e.g. technical B2B, industrial, fintech, aesthetic healthcare, etc.). FORBIDDEN: generic Instagram/social-media tips ("use Reels", "post more", "use trending audio", "carousels work"). Each item: title = real trend name from the sector; description = how it manifests in that sector; example = real use case applied to @${username}'s niche; relevance = why this specific industry audience is drawn to it. Never fewer than 8.
+11. trendRadar MUST contain EXACTLY 5 unique emerging trends 100% specific to the detected NICHE/INDUSTRY (e.g. technical B2B, industrial, fintech, aesthetic healthcare, etc.). FORBIDDEN: generic Instagram/social-media tips ("use Reels", "post more", "use trending audio", "carousels work"). Each item: title = real trend name from the sector; description = how it manifests in that sector; example = real use case applied to @${username}'s niche; relevance = why this specific industry audience is drawn to it. Never fewer than 5.
 12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
@@ -546,7 +546,7 @@ function isValidTrendRadarItem(item: any): boolean {
 function normaliseTrendRadar(raw: any, isPT: boolean, nicho: string, username: string) {
   const candidates = [raw?.trendRadar, raw?.analysis_data?.trendRadar, raw?.analysisData?.trendRadar];
   const trendRadar = candidates.find((value) => Array.isArray(value)) || [];
-  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 8);
+  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 5);
   if (cleaned.length >= 1) return cleaned;
 
   return isPT ? [
@@ -666,6 +666,17 @@ async function processJob(jobId: string) {
       fetchPriorAnalysis(admin, job.user_id, username),
     ]);
 
+    // Validate scraped data BEFORE calling Claude — avoid burning tokens with no input
+    const hasValidScrape =
+      scrape.followers != null &&
+      scrape.followers > 0 &&
+      (scrape.avgLikes != null || scrape.avgComments != null || scrape.avgViews != null);
+    if (!hasValidScrape) {
+      const reason = "Apify did not return valid profile data (private profile, invalid username, or scrape failed). Skipping AI call to avoid wasted tokens.";
+      console.warn("[Worker] aborting before Claude:", reason);
+      throw new Error(reason);
+    }
+
     // Niche insight requires the niche, which we don't know yet → do a 2-pass:
     // pass 1 (cheap) we can skip; instead we ask Claude to pick the niche, then
     // re-prompt with niche context. To avoid 2x AI cost, we send the FULL niche
@@ -713,7 +724,7 @@ async function processJob(jobId: string) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 16000,
+        max_tokens: 8000,
         temperature: 0.1,
         system: systemPrompt,
         tools: [{
@@ -809,6 +820,9 @@ async function processJob(jobId: string) {
       error_message: msg.slice(0, 500),
       completed_at: new Date().toISOString(),
     }).eq("id", jobId);
+    // Credit protection: decrement only happens on the success path, so a failure
+    // here means the user was NOT charged. Log explicitly for auditability.
+    console.log(`[Worker] no credit charged for failed job ${jobId} (analyses_remaining untouched)`);
   }
 }
 
