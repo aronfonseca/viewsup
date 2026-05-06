@@ -756,40 +756,46 @@ const Results = () => {
               </div>
 
               {/* Benchmarking */}
-              {analysis.benchmarkComparison && (
+              {analysis.benchmarkComparison && (analysis.benchmarkComparison.hormoziGap || analysis.benchmarkComparison.stevenGap) && (
                 <>
                   <h2 className="text-lg font-bold text-foreground mb-4">{t("benchmarkTitle")}</h2>
                   <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <AdvancedCard icon={Trophy} title={t("vsHormozi")}
-                      stats={[
-                        { label: t("editGap"), value: `${analysis.benchmarkComparison.hormoziGap.editDensityGap}%` },
-                        { label: t("hookGap"), value: `${analysis.benchmarkComparison.hormoziGap.hookAggressivenessGap}%` },
-                        { label: t("cutGap"), value: `${analysis.benchmarkComparison.hormoziGap.cutFrequencyGap}%` },
-                      ]}
-                      issues={analysis.benchmarkComparison.hormoziGap.issues}
-                      insight={analysis.benchmarkComparison.hormoziGap.insight}
-                      iconColor="text-warning" />
-                    <AdvancedCard icon={Trophy} title={t("vsSteven")}
-                      stats={[
-                        { label: t("storytellingGap"), value: `${analysis.benchmarkComparison.stevenGap.storytellingGap}%` },
-                        { label: t("productionGap"), value: `${analysis.benchmarkComparison.stevenGap.productionQualityGap}%` },
-                        { label: t("emotionGap"), value: `${analysis.benchmarkComparison.stevenGap.emotionalDepthGap}%` },
-                      ]}
-                      issues={analysis.benchmarkComparison.stevenGap.issues}
-                      insight={analysis.benchmarkComparison.stevenGap.insight}
-                      iconColor="text-primary" />
+                    {analysis.benchmarkComparison.hormoziGap && (
+                      <AdvancedCard icon={Trophy} title={t("vsHormozi")}
+                        stats={[
+                          { label: t("editGap"), value: `${analysis.benchmarkComparison.hormoziGap.editDensityGap ?? 0}%` },
+                          { label: t("hookGap"), value: `${analysis.benchmarkComparison.hormoziGap.hookAggressivenessGap ?? 0}%` },
+                          { label: t("cutGap"), value: `${analysis.benchmarkComparison.hormoziGap.cutFrequencyGap ?? 0}%` },
+                        ]}
+                        issues={analysis.benchmarkComparison.hormoziGap.issues ?? []}
+                        insight={analysis.benchmarkComparison.hormoziGap.insight ?? ""}
+                        iconColor="text-warning" />
+                    )}
+                    {analysis.benchmarkComparison.stevenGap && (
+                      <AdvancedCard icon={Trophy} title={t("vsSteven")}
+                        stats={[
+                          { label: t("storytellingGap"), value: `${analysis.benchmarkComparison.stevenGap.storytellingGap ?? 0}%` },
+                          { label: t("productionGap"), value: `${analysis.benchmarkComparison.stevenGap.productionQualityGap ?? 0}%` },
+                          { label: t("emotionGap"), value: `${analysis.benchmarkComparison.stevenGap.emotionalDepthGap ?? 0}%` },
+                        ]}
+                        issues={analysis.benchmarkComparison.stevenGap.issues ?? []}
+                        insight={analysis.benchmarkComparison.stevenGap.insight ?? ""}
+                        iconColor="text-primary" />
+                    )}
                   </div>
-                  <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("missingElements")}</h3>
-                    <div className="grid sm:grid-cols-3 gap-3">
-                      {analysis.benchmarkComparison.top3MissingElements.map((el, i) => (
-                        <div key={i} className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-foreground">
-                          <span className="font-bold text-destructive mr-2">#{i + 1}</span>
-                          <RichText text={el} />
-                        </div>
-                      ))}
+                  {Array.isArray(analysis.benchmarkComparison.top3MissingElements) && analysis.benchmarkComparison.top3MissingElements.length > 0 && (
+                    <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("missingElements")}</h3>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {analysis.benchmarkComparison.top3MissingElements.map((el, i) => (
+                          <div key={i} className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-foreground">
+                            <span className="font-bold text-destructive mr-2">#{i + 1}</span>
+                            <RichText text={el} />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </>
               )}
 
