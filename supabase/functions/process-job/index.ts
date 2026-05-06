@@ -666,6 +666,17 @@ async function processJob(jobId: string) {
       fetchPriorAnalysis(admin, job.user_id, username),
     ]);
 
+    // Validate scraped data BEFORE calling Claude — avoid burning tokens with no input
+    const hasValidScrape =
+      scrape.followers != null &&
+      scrape.followers > 0 &&
+      (scrape.avgLikes != null || scrape.avgComments != null || scrape.avgViews != null);
+    if (!hasValidScrape) {
+      const reason = "Apify did not return valid profile data (private profile, invalid username, or scrape failed). Skipping AI call to avoid wasted tokens.";
+      console.warn("[Worker] aborting before Claude:", reason);
+      throw new Error(reason);
+    }
+
     // Niche insight requires the niche, which we don't know yet → do a 2-pass:
     // pass 1 (cheap) we can skip; instead we ask Claude to pick the niche, then
     // re-prompt with niche context. To avoid 2x AI cost, we send the FULL niche
