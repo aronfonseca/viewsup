@@ -459,7 +459,7 @@ const Results = () => {
                 </div>
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
                   <h2 className="text-sm font-semibold text-muted-foreground tracking-wide">{t("dimensions")}</h2>
-                  {analysis.dimensions.map((d) => <DimensionBar key={d.name} dim={d} />)}
+                  {(analysis.dimensions ?? []).map((d) => <DimensionBar key={d.name} dim={d} />)}
                 </div>
               </div>
 
@@ -514,7 +514,7 @@ const Results = () => {
               )}
 
               {/* ══ MENTAL HEATMAP ══ */}
-              {analysis.mentalHeatmap && analysis.mentalHeatmap.triggers.length > 0 && (
+              {analysis.mentalHeatmap && Array.isArray(analysis.mentalHeatmap.triggers) && analysis.mentalHeatmap.triggers.length > 0 && analysis.mentalHeatmap.totalDurationSeconds > 0 && (
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
                   <div className="flex items-center gap-2 mb-2">
                     <Brain className="h-5 w-5 text-warning" />
@@ -618,7 +618,7 @@ const Results = () => {
                       <p className="text-lg font-bold text-foreground">{analysis.soundscapeArchitect.retentionSpeed}</p>
                     </div>
                   </div>
-                  {analysis.soundscapeArchitect.trackSuggestions.length > 0 && (
+                  {Array.isArray(analysis.soundscapeArchitect.trackSuggestions) && analysis.soundscapeArchitect.trackSuggestions.length > 0 && (
                     <>
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("trackSuggestions")}</h3>
                       <div className="grid sm:grid-cols-3 gap-3 mb-4">
@@ -692,7 +692,7 @@ const Results = () => {
                         </div>
                       </div>
                       <ul className="space-y-2 mb-4">
-                        {analysis.profileHealth.engagementRatio.issues.map((issue, i) => (
+                        {(analysis.profileHealth.engagementRatio.issues ?? []).map((issue, i) => (
                           <li key={i} className="flex gap-3 text-sm text-foreground">
                             <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
                             <RichText text={issue} />
