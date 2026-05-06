@@ -957,7 +957,7 @@ const Results = () => {
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("detectedIssues")}</h2>
                   </div>
                   <ul className="space-y-3">
-                    {analysis.issues.map((issue, i) => (
+                    {(analysis.issues ?? []).map((issue, i) => (
                       <li key={i} className="flex gap-3 text-sm text-foreground">
                         <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
                         <RichText text={issue} />
@@ -971,7 +971,7 @@ const Results = () => {
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("positivePatterns")}</h2>
                   </div>
                   <ul className="space-y-3">
-                    {analysis.patterns.map((p, i) => (
+                    {(analysis.patterns ?? []).map((p, i) => (
                       <li key={i} className="flex gap-3 text-sm text-foreground">
                         <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
                         <RichText text={p} />
@@ -988,7 +988,7 @@ const Results = () => {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("aiHooks")}</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {analysis.improvedHooks.map((hook, i) => (
+                  {(analysis.improvedHooks ?? []).map((hook, i) => (
                     <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm text-foreground"><RichText text={hook} /></div>
                   ))}
                 </div>
@@ -1001,7 +1001,7 @@ const Results = () => {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("rewrittenCaptions")}</h2>
                 </div>
                 <div className="space-y-6">
-                  {analysis.rewrittenCaptions.map((c, i) => (
+                  {(analysis.rewrittenCaptions ?? []).map((c, i) => (
                     <div key={i} className="grid md:grid-cols-2 gap-4">
                       <div className="p-4 rounded-lg bg-secondary/50 border border-border">
                         <p className="text-xs text-destructive font-medium mb-2 uppercase">{t("original")}</p>
