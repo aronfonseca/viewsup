@@ -713,7 +713,7 @@ async function processJob(jobId: string) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 16000,
+        max_tokens: 8000,
         temperature: 0.1,
         system: systemPrompt,
         tools: [{
