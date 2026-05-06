@@ -459,7 +459,7 @@ const Results = () => {
                 </div>
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
                   <h2 className="text-sm font-semibold text-muted-foreground tracking-wide">{t("dimensions")}</h2>
-                  {analysis.dimensions.map((d) => <DimensionBar key={d.name} dim={d} />)}
+                  {(analysis.dimensions ?? []).map((d) => <DimensionBar key={d.name} dim={d} />)}
                 </div>
               </div>
 
@@ -514,7 +514,7 @@ const Results = () => {
               )}
 
               {/* ══ MENTAL HEATMAP ══ */}
-              {analysis.mentalHeatmap && analysis.mentalHeatmap.triggers.length > 0 && (
+              {analysis.mentalHeatmap && Array.isArray(analysis.mentalHeatmap.triggers) && analysis.mentalHeatmap.triggers.length > 0 && analysis.mentalHeatmap.totalDurationSeconds > 0 && (
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
                   <div className="flex items-center gap-2 mb-2">
                     <Brain className="h-5 w-5 text-warning" />
@@ -618,7 +618,7 @@ const Results = () => {
                       <p className="text-lg font-bold text-foreground">{analysis.soundscapeArchitect.retentionSpeed}</p>
                     </div>
                   </div>
-                  {analysis.soundscapeArchitect.trackSuggestions.length > 0 && (
+                  {Array.isArray(analysis.soundscapeArchitect.trackSuggestions) && analysis.soundscapeArchitect.trackSuggestions.length > 0 && (
                     <>
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("trackSuggestions")}</h3>
                       <div className="grid sm:grid-cols-3 gap-3 mb-4">
@@ -692,7 +692,7 @@ const Results = () => {
                         </div>
                       </div>
                       <ul className="space-y-2 mb-4">
-                        {analysis.profileHealth.engagementRatio.issues.map((issue, i) => (
+                        {(analysis.profileHealth.engagementRatio.issues ?? []).map((issue, i) => (
                           <li key={i} className="flex gap-3 text-sm text-foreground">
                             <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
                             <RichText text={issue} />
@@ -756,40 +756,46 @@ const Results = () => {
               </div>
 
               {/* Benchmarking */}
-              {analysis.benchmarkComparison && (
+              {analysis.benchmarkComparison && (analysis.benchmarkComparison.hormoziGap || analysis.benchmarkComparison.stevenGap) && (
                 <>
                   <h2 className="text-lg font-bold text-foreground mb-4">{t("benchmarkTitle")}</h2>
                   <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <AdvancedCard icon={Trophy} title={t("vsHormozi")}
-                      stats={[
-                        { label: t("editGap"), value: `${analysis.benchmarkComparison.hormoziGap.editDensityGap}%` },
-                        { label: t("hookGap"), value: `${analysis.benchmarkComparison.hormoziGap.hookAggressivenessGap}%` },
-                        { label: t("cutGap"), value: `${analysis.benchmarkComparison.hormoziGap.cutFrequencyGap}%` },
-                      ]}
-                      issues={analysis.benchmarkComparison.hormoziGap.issues}
-                      insight={analysis.benchmarkComparison.hormoziGap.insight}
-                      iconColor="text-warning" />
-                    <AdvancedCard icon={Trophy} title={t("vsSteven")}
-                      stats={[
-                        { label: t("storytellingGap"), value: `${analysis.benchmarkComparison.stevenGap.storytellingGap}%` },
-                        { label: t("productionGap"), value: `${analysis.benchmarkComparison.stevenGap.productionQualityGap}%` },
-                        { label: t("emotionGap"), value: `${analysis.benchmarkComparison.stevenGap.emotionalDepthGap}%` },
-                      ]}
-                      issues={analysis.benchmarkComparison.stevenGap.issues}
-                      insight={analysis.benchmarkComparison.stevenGap.insight}
-                      iconColor="text-primary" />
+                    {analysis.benchmarkComparison.hormoziGap && (
+                      <AdvancedCard icon={Trophy} title={t("vsHormozi")}
+                        stats={[
+                          { label: t("editGap"), value: `${analysis.benchmarkComparison.hormoziGap.editDensityGap ?? 0}%` },
+                          { label: t("hookGap"), value: `${analysis.benchmarkComparison.hormoziGap.hookAggressivenessGap ?? 0}%` },
+                          { label: t("cutGap"), value: `${analysis.benchmarkComparison.hormoziGap.cutFrequencyGap ?? 0}%` },
+                        ]}
+                        issues={analysis.benchmarkComparison.hormoziGap.issues ?? []}
+                        insight={analysis.benchmarkComparison.hormoziGap.insight ?? ""}
+                        iconColor="text-warning" />
+                    )}
+                    {analysis.benchmarkComparison.stevenGap && (
+                      <AdvancedCard icon={Trophy} title={t("vsSteven")}
+                        stats={[
+                          { label: t("storytellingGap"), value: `${analysis.benchmarkComparison.stevenGap.storytellingGap ?? 0}%` },
+                          { label: t("productionGap"), value: `${analysis.benchmarkComparison.stevenGap.productionQualityGap ?? 0}%` },
+                          { label: t("emotionGap"), value: `${analysis.benchmarkComparison.stevenGap.emotionalDepthGap ?? 0}%` },
+                        ]}
+                        issues={analysis.benchmarkComparison.stevenGap.issues ?? []}
+                        insight={analysis.benchmarkComparison.stevenGap.insight ?? ""}
+                        iconColor="text-primary" />
+                    )}
                   </div>
-                  <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("missingElements")}</h3>
-                    <div className="grid sm:grid-cols-3 gap-3">
-                      {analysis.benchmarkComparison.top3MissingElements.map((el, i) => (
-                        <div key={i} className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-foreground">
-                          <span className="font-bold text-destructive mr-2">#{i + 1}</span>
-                          <RichText text={el} />
-                        </div>
-                      ))}
+                  {Array.isArray(analysis.benchmarkComparison.top3MissingElements) && analysis.benchmarkComparison.top3MissingElements.length > 0 && (
+                    <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("missingElements")}</h3>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {analysis.benchmarkComparison.top3MissingElements.map((el, i) => (
+                          <div key={i} className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-foreground">
+                            <span className="font-bold text-destructive mr-2">#{i + 1}</span>
+                            <RichText text={el} />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </>
               )}
 
@@ -951,7 +957,7 @@ const Results = () => {
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("detectedIssues")}</h2>
                   </div>
                   <ul className="space-y-3">
-                    {analysis.issues.map((issue, i) => (
+                    {(analysis.issues ?? []).map((issue, i) => (
                       <li key={i} className="flex gap-3 text-sm text-foreground">
                         <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
                         <RichText text={issue} />
@@ -965,7 +971,7 @@ const Results = () => {
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("positivePatterns")}</h2>
                   </div>
                   <ul className="space-y-3">
-                    {analysis.patterns.map((p, i) => (
+                    {(analysis.patterns ?? []).map((p, i) => (
                       <li key={i} className="flex gap-3 text-sm text-foreground">
                         <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-success shrink-0" />
                         <RichText text={p} />
@@ -982,7 +988,7 @@ const Results = () => {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("aiHooks")}</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {analysis.improvedHooks.map((hook, i) => (
+                  {(analysis.improvedHooks ?? []).map((hook, i) => (
                     <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm text-foreground"><RichText text={hook} /></div>
                   ))}
                 </div>
@@ -995,7 +1001,7 @@ const Results = () => {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("rewrittenCaptions")}</h2>
                 </div>
                 <div className="space-y-6">
-                  {analysis.rewrittenCaptions.map((c, i) => (
+                  {(analysis.rewrittenCaptions ?? []).map((c, i) => (
                     <div key={i} className="grid md:grid-cols-2 gap-4">
                       <div className="p-4 rounded-lg bg-secondary/50 border border-border">
                         <p className="text-xs text-destructive font-medium mb-2 uppercase">{t("original")}</p>
