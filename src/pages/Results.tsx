@@ -245,7 +245,7 @@ const Results = () => {
     }
 
     analyzeProfile(url, lang, companyName, (s) => setJobStatus(s), force)
-      .then((data) => { setAnalysis(data); setLoading(false); })
+      .then((data) => { setAnalysis(sanitizeAnalysis(data as any)); setLoading(false); })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : t("analysisFailed");
         setError(msg);
