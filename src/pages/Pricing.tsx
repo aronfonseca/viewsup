@@ -215,6 +215,13 @@ const Pricing = () => {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-12">{tx.footer}</p>
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          <a href="/terms" className="hover:text-foreground underline-offset-4 hover:underline">{isPt ? "Termos de Uso" : "Terms of Service"}</a>
+          {" · "}
+          <a href="/privacy" className="hover:text-foreground underline-offset-4 hover:underline">{isPt ? "Política de Privacidade" : "Privacy Policy"}</a>
+          {" · "}
+          <a href="/refund" className="hover:text-foreground underline-offset-4 hover:underline">{isPt ? "Política de Reembolso (30 dias)" : "Refund Policy (30 days)"}</a>
+        </p>
       </main>
     </div>
   );

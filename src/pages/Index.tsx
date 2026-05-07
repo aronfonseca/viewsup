@@ -127,8 +127,14 @@ const Index = () => {
         </div>
       </section>
 
-      <footer className="relative z-10 text-center py-8 text-xs text-muted-foreground border-t border-border">
-        {t("footer")}
+      <footer className="relative z-10 text-center py-8 text-xs text-muted-foreground border-t border-border space-y-2">
+        <div className="flex items-center justify-center gap-4">
+          <a href="/terms" className="hover:text-foreground">{isPt ? "Termos de Uso" : "Terms of Service"}</a>
+          <a href="/privacy" className="hover:text-foreground">{isPt ? "Privacidade" : "Privacy"}</a>
+          <a href="/refund" className="hover:text-foreground">{isPt ? "Reembolso" : "Refund"}</a>
+          <a href="/pricing" className="hover:text-foreground">{pricingLabel}</a>
+        </div>
+        <div>{t("footer")}</div>
       </footer>
     </div>
   );

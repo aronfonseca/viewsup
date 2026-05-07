@@ -16,6 +16,9 @@ import Pricing from "./pages/Pricing.tsx";
 import AgencySettings from "./pages/AgencySettings.tsx";
 import Admin from "./pages/Admin.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import Terms from "./pages/Terms.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import Refund from "./pages/Refund.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -35,6 +38,9 @@ const App = () => (
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/refund" element={<Refund />} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route
                 path="/settings/agency"
