@@ -715,18 +715,24 @@ async function processJob(jobId: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 8000,
-        temperature: 0.1,
-        system: systemPrompt,
-        tools: [{
-          name: ANALYSIS_SCHEMA.name,
-          description: ANALYSIS_SCHEMA.description,
-          input_schema: ANALYSIS_SCHEMA.parameters,
-        }],
-        tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
-        messages: [{ role: "user", content: userPrompt }],
-      }),
+  model: "claude-sonnet-4-5-20250929",
+  max_tokens: 8000,
+  temperature: 0.1,
+  system: systemPrompt,
+  tools: [
+    {
+      type: "web_search_20250305",
+      name: "web_search",
+    },
+    {
+      name: ANALYSIS_SCHEMA.name,
+      description: ANALYSIS_SCHEMA.description,
+      input_schema: ANALYSIS_SCHEMA.parameters,
+    }
+  ],
+  tool_choice: { type: "auto" },
+  messages: [{ role: "user", content: userPrompt }],
+}),
       signal: ac.signal,
     });
     clearTimeout(timeoutId);
