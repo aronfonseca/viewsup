@@ -172,6 +172,20 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
   );
 };
 
+const toArray = (val: any): any[] => Array.isArray(val) ? val : val ? [val] : [];
+
+const sanitizeAnalysis = (raw: any): ProfileAnalysis => {
+  if (!raw || typeof raw !== "object") return raw;
+  const fields = [
+    "rewrittenCaptions", "videoIdeas", "trendRadar", "scriptSuggestions",
+    "hookStyles", "issues", "patterns", "improvedHooks", "contentPillars",
+    "burningProblems", "dimensions", "recentPosts",
+  ];
+  const out: any = { ...raw };
+  for (const f of fields) out[f] = toArray(out[f]);
+  return out as ProfileAnalysis;
+};
+
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -218,7 +232,7 @@ const Results = () => {
           if (reportError || !data?.analysis_data) {
             throw new Error(reportError?.message || t("analysisFailed"));
           }
-          setAnalysis(data.analysis_data as unknown as ProfileAnalysis);
+          setAnalysis(sanitizeAnalysis(data.analysis_data as any));
           setLoading(false);
         } catch (err) {
           const msg = err instanceof Error ? err.message : t("analysisFailed");
@@ -231,7 +245,7 @@ const Results = () => {
     }
 
     analyzeProfile(url, lang, companyName, (s) => setJobStatus(s), force)
-      .then((data) => { setAnalysis(data); setLoading(false); })
+      .then((data) => { setAnalysis(sanitizeAnalysis(data as any)); setLoading(false); })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : t("analysisFailed");
         setError(msg);
