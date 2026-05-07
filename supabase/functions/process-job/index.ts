@@ -543,51 +543,11 @@ function isValidTrendRadarItem(item: any): boolean {
     && typeof item.relevance === "string" && item.relevance.trim().length > 0;
 }
 
-function normaliseTrendRadar(raw: any, isPT: boolean, nicho: string, username: string) {
+function normaliseTrendRadar(raw: any, _isPT: boolean, _nicho: string, _username: string) {
   const candidates = [raw?.trendRadar, raw?.analysis_data?.trendRadar, raw?.analysisData?.trendRadar];
   const trendRadar = candidates.find((value) => Array.isArray(value)) || [];
-  const cleaned = trendRadar.filter(isValidTrendRadarItem).slice(0, 5);
-  if (cleaned.length >= 1) return cleaned;
-
-  return isPT ? [
-    {
-      title: "Gancho de contradição",
-      description: `Abrir o vídeo contrariando uma crença comum no nicho ${nicho || "do perfil"}.`,
-      example: `Para @${username}, comece com “O erro que quase todo mundo comete antes de tentar crescer no Instagram”.`,
-      relevance: "Cria tensão imediata e força o público a assistir até a explicação.",
-    },
-    {
-      title: "Prova visual nos 3 primeiros segundos",
-      description: "Mostrar o resultado, bastidor ou comparação antes de explicar o processo.",
-      example: "Use uma tela antes/depois, print de métrica ou transformação real como primeiro frame.",
-      relevance: "Reduz abandono inicial porque entrega contexto visual antes da fala.",
-    },
-    {
-      title: "Série curta com promessa específica",
-      description: "Transformar um problema recorrente em uma sequência de episódios numerados.",
-      example: "Publique “Parte 1: o ajuste simples que muda sua retenção nos Reels”.",
-      relevance: "Aumenta recorrência, salvamentos e expectativa para o próximo conteúdo.",
-    },
-  ] : [
-    {
-      title: "Contrarian hook",
-      description: `Open by challenging a common belief in the ${nicho || "profile"} niche.`,
-      example: `For @${username}, start with “The mistake almost everyone makes before trying to grow on Instagram”.`,
-      relevance: "Creates instant tension and gives viewers a reason to wait for the explanation.",
-    },
-    {
-      title: "Visual proof in the first 3 seconds",
-      description: "Show the result, behind-the-scenes moment, or comparison before explaining the process.",
-      example: "Use a before/after frame, metric screenshot, or real transformation as the opening shot.",
-      relevance: "Reduces early drop-off by giving visual context before the voiceover.",
-    },
-    {
-      title: "Short series with a specific promise",
-      description: "Turn a repeated audience problem into a numbered sequence of episodes.",
-      example: "Post “Part 1: the simple tweak that changes your Reels retention”.",
-      relevance: "Builds repeat viewing, saves, and anticipation for the next post.",
-    },
-  ];
+  // No hardcoded fallback — trendRadar must come 100% from Claude based on the real niche.
+  return trendRadar.filter(isValidTrendRadarItem).slice(0, 5);
 }
 
 async function recordHistory(
