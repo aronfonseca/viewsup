@@ -172,6 +172,20 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
   );
 };
 
+const toArray = (val: any): any[] => Array.isArray(val) ? val : val ? [val] : [];
+
+const sanitizeAnalysis = (raw: any): ProfileAnalysis => {
+  if (!raw || typeof raw !== "object") return raw;
+  const fields = [
+    "rewrittenCaptions", "videoIdeas", "trendRadar", "scriptSuggestions",
+    "hookStyles", "issues", "patterns", "improvedHooks", "contentPillars",
+    "burningProblems", "dimensions", "recentPosts",
+  ];
+  const out: any = { ...raw };
+  for (const f of fields) out[f] = toArray(out[f]);
+  return out as ProfileAnalysis;
+};
+
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
