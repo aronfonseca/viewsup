@@ -348,20 +348,33 @@ Mention "${c}" naturally in 1-2 burningProblems solutions when relevant.
 
 Return ONLY the fields defined in the tool schema. Keep each text field tight so the full JSON stays compact, but always include the exact numbers and shortcodes required by the rules above.`;
 
-  const userPrompt = isPT
+ const userPrompt = isPT
     ? `Faça a auditoria do perfil @${username} (URL: ${url}) com base nos dados REAIS abaixo.
 
 ${scrapedSummary}${priorContext}${nicheContext}
+
+TENDÊNCIAS ESPECÍFICAS DO NICHO PARA trendRadar (use como inspiração):
+- Imobiliaria: "Tour de imóvel de alto padrão em 60 segundos", "Comparativo de preços por bairro", "Quanto custa morar em [cidade]", "Erros que compradores de primeiro imóvel cometem", "Bastidores de uma negociação imobiliária"
+- Fitness: "Treino em 15 minutos para iniciantes", "Antes e depois em 90 dias", "Review honesto de suplemento", "O que eu comeria se começasse do zero", "Erro que impede seu ganho de massa"
+- Marketing: "Case de cliente com resultado real em 30 dias", "Ferramentas de IA para marketing em 2026", "Campanha que fracassou e o que aprendi", "Como consegui X seguidores sem pagar anúncio", "Tendência de conteúdo que vai dominar esse mês"
+- Advocacia: "Seus direitos que você não sabia que tinha", "O que fazer quando seu chefe faz isso", "Mito vs verdade jurídico", "Como contestar uma multa de trânsito", "Direitos do consumidor ignorados"
+- Tecnologia: "Review honesto de [produto]", "IA que vai substituir essa profissão", "Setup de home office por menos de R$X", "App que mudou minha produtividade", "Comparativo de [produto A] vs [produto B]"
+INSTRUÇÃO: Gere 5 trends EXCLUSIVAMENTE para o nicho detectado deste perfil. PROIBIDO usar títulos genéricos de Instagram.
 
 LEMBRETE: cite números brutos (seguidores, avgLikes, avgComments, engagementRate%), referencie posts pelo shortcode entre crases, compare com benchmarks do nicho, e baseie os 10 videoIdeas nos posts que JÁ performaram bem neste perfil. Retorne apenas a estrutura definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
     : `Audit the profile @${username} (URL: ${url}) based on the REAL data below.
 
 ${scrapedSummary}${priorContext}${nicheContext}
 
-REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
+NICHE-SPECIFIC TREND EXAMPLES FOR trendRadar (use as inspiration):
+- Imobiliaria/Real Estate: "60-second luxury property tour", "Neighbourhood price comparison", "How much does it cost to live in [city]", "First-time buyer mistakes", "Behind the scenes of a property negotiation"
+- Fitness: "15-minute beginner workout", "90-day transformation", "Honest supplement review", "What I'd eat starting from scratch", "The mistake stopping your muscle gain"
+- Marketing: "Real client result in 30 days", "AI tools for marketing in 2026", "Campaign that failed and what I learned", "How I got X followers without paid ads", "Content trend dominating this month"
+- Legal/Advocacy: "Rights you didn't know you had", "What to do when your boss does this", "Legal myth vs truth", "How to contest a fine", "Consumer rights being ignored"
+- Technology: "Honest [product] review", "AI replacing this profession", "Home office setup under £X", "App that changed my productivity", "[Product A] vs [Product B] comparison"
+INSTRUCTION: Generate 5 trends EXCLUSIVELY for this profile's detected niche. FORBIDDEN to use generic Instagram titles.
 
-  return { systemPrompt, userPrompt };
-}
+REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
 
 // --- Apify Instagram scraping (best-effort; failure is non-fatal) ---
 interface ScrapeResult {
@@ -543,11 +556,30 @@ function isValidTrendRadarItem(item: any): boolean {
     && typeof item.relevance === "string" && item.relevance.trim().length > 0;
 }
 
-function normaliseTrendRadar(raw: any, _isPT: boolean, _nicho: string, _username: string) {
+const GENERIC_TREND_TITLES = [
+  "gancho de contradição", "contradiction hook",
+  "prova visual", "visual proof",
+  "série curta", "short series",
+  "hook", "gancho",
+];
+
+function normaliseTrendRadar(raw: any, isPT: boolean, nicho: string, username: string) {
   const candidates = [raw?.trendRadar, raw?.analysis_data?.trendRadar, raw?.analysisData?.trendRadar];
   const trendRadar = candidates.find((value) => Array.isArray(value)) || [];
-  // No hardcoded fallback — trendRadar must come 100% from Claude based on the real niche.
-  return trendRadar.filter(isValidTrendRadarItem).slice(0, 5);
+
+  const valid = trendRadar.filter((item: any) => {
+    if (!isValidTrendRadarItem(item)) return false;
+    const titleLower = item.title.toLowerCase();
+    const isGeneric = GENERIC_TREND_TITLES.some(g => titleLower.includes(g));
+    if (isGeneric) {
+      console.warn(`[trendRadar] rejected generic trend: "${item.title}"`);
+      return false;
+    }
+    return true;
+  }).slice(0, 5);
+
+  console.log(`[trendRadar] valid=${valid.length} nicho=${nicho} username=${username}`);
+  return valid;
 }
 
 async function recordHistory(
