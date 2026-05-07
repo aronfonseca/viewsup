@@ -16,6 +16,9 @@ import Pricing from "./pages/Pricing.tsx";
 import AgencySettings from "./pages/AgencySettings.tsx";
 import Admin from "./pages/Admin.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import Terms from "./pages/Terms.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import Refund from "./pages/Refund.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
