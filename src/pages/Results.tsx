@@ -232,7 +232,7 @@ const Results = () => {
           if (reportError || !data?.analysis_data) {
             throw new Error(reportError?.message || t("analysisFailed"));
           }
-          setAnalysis(data.analysis_data as unknown as ProfileAnalysis);
+          setAnalysis(sanitizeAnalysis(data.analysis_data as any));
           setLoading(false);
         } catch (err) {
           const msg = err instanceof Error ? err.message : t("analysisFailed");
