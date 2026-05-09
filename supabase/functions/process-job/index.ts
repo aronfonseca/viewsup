@@ -376,6 +376,9 @@ INSTRUCTION: Generate 5 trends EXCLUSIVELY for this profile's detected niche. FO
 
 REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
 
+  return { systemPrompt, userPrompt };
+}
+
 // --- Apify Instagram scraping (best-effort; failure is non-fatal) ---
 interface ScrapeResult {
   summary: string;
