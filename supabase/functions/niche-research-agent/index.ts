@@ -93,6 +93,8 @@ Deno.serve(async (req) => {
       const results = await googleSearch(query, GOOGLE_API_KEY);
       console.log(`[niche-research] ${niche}: ${results.length} results`);
 
+      console.log(`[niche-research] ${niche} GOOGLE RESULTS:`, JSON.stringify(results, null, 2));
+
       if (results.length === 0) {
         summary.push({ niche, status: "no_results" });
         continue;
@@ -101,6 +103,7 @@ Deno.serve(async (req) => {
       const extracted = await extractPatterns(niche, results, ANTHROPIC_API_KEY);
       const patterns = extracted.patterns || [];
       const insightText = extracted.summary || "";
+      console.log(`[niche-research] ${niche} CLAUDE EXTRACTED:`, JSON.stringify(extracted, null, 2));
 
       const { error } = await supabase
         .from("nicho_insights")
@@ -117,9 +120,8 @@ Deno.serve(async (req) => {
 
       processed++;
       console.log(`[niche-research] ✓ ${niche}: ${patterns.length} patterns saved`);
-      summary.push({ niche, patterns: patterns.map((p: any) => p.pattern) });
+      summary.push({ niche, summary: insightText, patterns });
 
-      // Small delay to respect rate limits
       await new Promise((r) => setTimeout(r, 1000));
     } catch (err: any) {
       console.error(`[niche-research] ✗ ${niche}:`, err.message);
