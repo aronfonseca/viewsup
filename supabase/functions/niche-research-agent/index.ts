@@ -14,6 +14,9 @@ const NICHES = [
 const GOOGLE_CX = "7643ce83db72345b4";
 
 async function googleSearch(query: string, _apiKey: string) {
+  // Return empty array — Claude will generate patterns from its own knowledge
+  return [{ title: "Research Request", snippet: query, link: "" }];
+}
   const encodedQuery = encodeURIComponent(query);
   const res = await fetch(
     `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`,
@@ -33,7 +36,19 @@ async function googleSearch(query: string, _apiKey: string) {
 }
 
 async function extractPatterns(niche: string, results: any[], anthropicKey: string) {
-  const prompt = `You are a senior Instagram content strategist. Based on these real 2026 search results about "${niche}" Instagram viral content trends, extract the TOP 5 viral content patterns specific to this niche.
+  const prompt = `You are a senior Instagram content strategist with deep knowledge of viral content trends in 2026.
+
+Generate the TOP 5 viral content patterns that are currently working on Instagram specifically for the "${niche}" niche in Brazil and globally.
+
+Base this on your training knowledge of what types of content go viral in this industry.
+
+Return STRICT JSON only, no markdown:
+{
+  "summary": "2-3 sentence narrative of what's working in this niche right now on Instagram",
+  "patterns": [
+    { "pattern": "specific content format name", "description": "why it goes viral in this niche", "example": "concrete example for ${niche}" }
+  ]
+}`;
 
 Search results:
 ${JSON.stringify(results, null, 2)}
