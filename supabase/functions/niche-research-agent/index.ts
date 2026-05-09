@@ -73,10 +73,20 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+  let requested: string[] | null = null;
+  try {
+    const body = await req.json();
+    if (Array.isArray(body?.niches) && body.niches.length > 0) {
+      requested = body.niches.filter((n: any) => NICHES.includes(n));
+    }
+  } catch (_) { /* no body */ }
+  const target = requested && requested.length > 0 ? requested : NICHES;
+  console.log(`[niche-research] Processing ${target.length} niches: ${target.join(", ")}`);
+
   const summary: any[] = [];
   let processed = 0;
 
-  for (const niche of NICHES) {
+  for (const niche of target) {
     try {
       const query = `${niche} tendências conteúdo Instagram 2026 viral`;
       console.log(`[niche-research] Searching: ${query}`);
