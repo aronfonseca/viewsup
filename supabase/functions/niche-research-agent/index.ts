@@ -73,15 +73,27 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+  let requested: string[] | null = null;
+  try {
+    const body = await req.json();
+    if (Array.isArray(body?.niches) && body.niches.length > 0) {
+      requested = body.niches.filter((n: any) => NICHES.includes(n));
+    }
+  } catch (_) { /* no body */ }
+  const target = requested && requested.length > 0 ? requested : NICHES;
+  console.log(`[niche-research] Processing ${target.length} niches: ${target.join(", ")}`);
+
   const summary: any[] = [];
   let processed = 0;
 
-  for (const niche of NICHES) {
+  for (const niche of target) {
     try {
       const query = `${niche} tendências conteúdo Instagram 2026 viral`;
       console.log(`[niche-research] Searching: ${query}`);
       const results = await googleSearch(query, GOOGLE_API_KEY);
       console.log(`[niche-research] ${niche}: ${results.length} results`);
+
+      console.log(`[niche-research] ${niche} GOOGLE RESULTS:`, JSON.stringify(results, null, 2));
 
       if (results.length === 0) {
         summary.push({ niche, status: "no_results" });
@@ -91,6 +103,7 @@ Deno.serve(async (req) => {
       const extracted = await extractPatterns(niche, results, ANTHROPIC_API_KEY);
       const patterns = extracted.patterns || [];
       const insightText = extracted.summary || "";
+      console.log(`[niche-research] ${niche} CLAUDE EXTRACTED:`, JSON.stringify(extracted, null, 2));
 
       const { error } = await supabase
         .from("nicho_insights")
@@ -107,9 +120,8 @@ Deno.serve(async (req) => {
 
       processed++;
       console.log(`[niche-research] ✓ ${niche}: ${patterns.length} patterns saved`);
-      summary.push({ niche, patterns: patterns.map((p: any) => p.pattern) });
+      summary.push({ niche, summary: insightText, patterns });
 
-      // Small delay to respect rate limits
       await new Promise((r) => setTimeout(r, 1000));
     } catch (err: any) {
       console.error(`[niche-research] ✗ ${niche}:`, err.message);
