@@ -11,31 +11,11 @@ const NICHES = [
   "Entretenimento","Servicos","B2B","Lifestyle","Arte","Outros",
 ];
 
-const GOOGLE_CX = "7643ce83db72345b4";
-
-async function googleSearch(query: string, _apiKey: string) {
-  // Return empty array — Claude will generate patterns from its own knowledge
+async function searchTrends(query: string) {
   return [{ title: "Research Request", snippet: query, link: "" }];
 }
-  const encodedQuery = encodeURIComponent(query);
-  const res = await fetch(
-    `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`,
-    { headers: { "User-Agent": "ViewsupAgent/1.0" } }
-  );
-  if (!res.ok) throw new Error(`DuckDuckGo search failed [${res.status}]`);
-  const data = await res.json();
-  const results = [
-    data.AbstractText ? { title: "Overview", snippet: data.AbstractText, link: data.AbstractURL } : null,
-    ...(data.RelatedTopics || []).slice(0, 9).map((t: any) => ({
-      title: t.Text?.split(" - ")?.[0] || "Related",
-      snippet: t.Text || "",
-      link: t.FirstURL || "",
-    })),
-  ].filter(Boolean);
-  return results;
-}
 
-async function extractPatterns(niche: string, results: any[], anthropicKey: string) {
+async function extractPatterns(niche: string, _results: any[], anthropicKey: string) {
   const prompt = `You are a senior Instagram content strategist with deep knowledge of viral content trends in 2026.
 
 Generate the TOP 5 viral content patterns that are currently working on Instagram specifically for the "${niche}" niche in Brazil and globally.
@@ -47,17 +27,6 @@ Return STRICT JSON only, no markdown:
   "summary": "2-3 sentence narrative of what's working in this niche right now on Instagram",
   "patterns": [
     { "pattern": "specific content format name", "description": "why it goes viral in this niche", "example": "concrete example for ${niche}" }
-  ]
-}`;
-
-Search results:
-${JSON.stringify(results, null, 2)}
-
-Return STRICT JSON only, no markdown, with this shape:
-{
-  "summary": "2-3 sentence narrative of what's working in this niche right now",
-  "patterns": [
-    { "pattern": "short name", "description": "why it works in this niche", "example": "concrete example" }
   ]
 }`;
 
@@ -85,12 +54,10 @@ Return STRICT JSON only, no markdown, with this shape:
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  if (!ANTHROPIC_API_KEY) return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY missing" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   if (!ANTHROPIC_API_KEY) return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY missing" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -112,15 +79,8 @@ Deno.serve(async (req) => {
     try {
       const query = `${niche} tendências conteúdo Instagram 2026 viral`;
       console.log(`[niche-research] Searching: ${query}`);
-      const results = await googleSearch(query, GOOGLE_API_KEY);
+      const results = await searchTrends(query);
       console.log(`[niche-research] ${niche}: ${results.length} results`);
-
-      console.log(`[niche-research] ${niche} GOOGLE RESULTS:`, JSON.stringify(results, null, 2));
-
-      if (results.length === 0) {
-        summary.push({ niche, status: "no_results" });
-        continue;
-      }
 
       const extracted = await extractPatterns(niche, results, ANTHROPIC_API_KEY);
       const patterns = extracted.patterns || [];
@@ -152,7 +112,6 @@ Deno.serve(async (req) => {
   }
 
   console.log(`[niche-research] Done. ${processed}/${NICHES.length} niches processed.`);
-  console.log(`[niche-research] Summary:`, JSON.stringify(summary, null, 2));
 
   return new Response(JSON.stringify({ processed, total: NICHES.length, summary }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
