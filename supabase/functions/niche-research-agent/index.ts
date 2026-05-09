@@ -13,16 +13,23 @@ const NICHES = [
 
 const GOOGLE_CX = "7643ce83db72345b4";
 
-async function googleSearch(query: string, apiKey: string) {
-  const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${GOOGLE_CX}&q=${encodeURIComponent(query)}&num=10`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Google search failed [${res.status}]: ${await res.text()}`);
+async function googleSearch(query: string, _apiKey: string) {
+  const encodedQuery = encodeURIComponent(query);
+  const res = await fetch(
+    `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`,
+    { headers: { "User-Agent": "ViewsupAgent/1.0" } }
+  );
+  if (!res.ok) throw new Error(`DuckDuckGo search failed [${res.status}]`);
   const data = await res.json();
-  return (data.items || []).map((it: any) => ({
-    title: it.title,
-    snippet: it.snippet,
-    link: it.link,
-  }));
+  const results = [
+    data.AbstractText ? { title: "Overview", snippet: data.AbstractText, link: data.AbstractURL } : null,
+    ...(data.RelatedTopics || []).slice(0, 9).map((t: any) => ({
+      title: t.Text?.split(" - ")?.[0] || "Related",
+      snippet: t.Text || "",
+      link: t.FirstURL || "",
+    })),
+  ].filter(Boolean);
+  return results;
 }
 
 async function extractPatterns(niche: string, results: any[], anthropicKey: string) {
@@ -68,7 +75,7 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  if (!GOOGLE_API_KEY) return new Response(JSON.stringify({ error: "GOOGLE_API_KEY missing" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!ANTHROPIC_API_KEY) return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY missing" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   if (!ANTHROPIC_API_KEY) return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY missing" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
