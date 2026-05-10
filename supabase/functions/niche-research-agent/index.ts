@@ -87,16 +87,15 @@ Deno.serve(async (req) => {
       const insightText = extracted.summary || "";
       console.log(`[niche-research] ${niche} CLAUDE EXTRACTED:`, JSON.stringify(extracted, null, 2));
 
-      const { error } = await supabase
-        .from("nicho_insights")
-        .upsert({
-          nicho: niche,
-          insight_text: insightText,
-          top_problemas: patterns,
-          insight_generated_at: new Date().toISOString(),
-          insight_generated_at_count: 1,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "nicho" });
+         const { error } = await supabase
+      .from("nicho_insights")
+      .upsert({
+        nicho: niche,
+        insight_text: insightText,
+        viral_patterns: patterns,
+        insight_generated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "nicho" });
 
       if (error) throw error;
 
