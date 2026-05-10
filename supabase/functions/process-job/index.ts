@@ -690,12 +690,32 @@ async function processJob(jobId: string) {
       return `${row.nicho}: ${row.total_analises} análises, score médio ${Number(row.avg_score_geral ?? 0).toFixed(1)}, top problemas: ${tops || "—"}`;
     }).join("\n");
 
+    // Fetch full insight_text + top_problemas (raw patterns from niche-research-agent)
+    // for every niche that has data, so Claude can ground trendRadar in REAL niche patterns
+    // matching the niche it classifies the profile into.
+    const { data: nicheResearchRows } = await admin
+      .from("nicho_insights")
+      .select("nicho, insight_text, top_problemas")
+      .not("insight_text", "is", null);
+
+    const nicheResearchBlock = (nicheResearchRows ?? [])
+      .filter((r: any) => r.insight_text || (Array.isArray(r.top_problemas) && r.top_problemas.length > 0))
+      .map((r: any) => {
+        const patterns = JSON.stringify(r.top_problemas ?? []);
+        return `[${r.nicho}]\nREAL DATA FROM YOUR NICHE: ${r.insight_text ?? ""}\nTOP PATTERNS WORKING IN THIS NICHE: ${patterns}`;
+      })
+      .join("\n\n");
+
+    const trendRadarRealData = nicheResearchBlock
+      ? `\n\n=== REAL NICHE RESEARCH (use the entry matching the nicho you classify this profile into) ===\n${nicheResearchBlock}\n\nUse these real patterns as the basis for the 8 trendRadar items — adapt them specifically for this profile's content style and audience.`
+      : "";
+
     const priorContext = buildPriorContext(prior, isPT);
-    const nicheContext = nicheTableSummary
+    const nicheContext = (nicheTableSummary
       ? (isPT
         ? `\n\nDADOS DE NICHOS (referência cruzada):\n${nicheTableSummary}\n\nApós escolher o "nicho" do perfil, use os top problemas/soluções desse nicho específico para enriquecer sua análise.`
         : `\n\nNICHE BENCHMARKS (cross-reference):\n${nicheTableSummary}\n\nAfter picking the profile's "nicho", use that niche's top problems/solutions to enrich your analysis.`)
-      : "";
+      : "") + trendRadarRealData;
 
     const { systemPrompt, userPrompt } = buildPrompts(
       username,
