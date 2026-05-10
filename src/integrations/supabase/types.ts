@@ -74,6 +74,7 @@ export type Database = {
           top_solucoes: Json
           total_analises: number
           updated_at: string
+          viral_patterns: Json | null
         }
         Insert: {
           avg_engagement?: number | null
@@ -89,6 +90,7 @@ export type Database = {
           top_solucoes?: Json
           total_analises?: number
           updated_at?: string
+          viral_patterns?: Json | null
         }
         Update: {
           avg_engagement?: number | null
@@ -104,6 +106,7 @@ export type Database = {
           top_solucoes?: Json
           total_analises?: number
           updated_at?: string
+          viral_patterns?: Json | null
         }
         Relationships: []
       }
