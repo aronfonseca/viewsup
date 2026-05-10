@@ -690,18 +690,18 @@ async function processJob(jobId: string) {
       return `${row.nicho}: ${row.total_analises} análises, score médio ${Number(row.avg_score_geral ?? 0).toFixed(1)}, top problemas: ${tops || "—"}`;
     }).join("\n");
 
-    // Fetch full insight_text + top_problemas (raw patterns from niche-research-agent)
+    // Fetch full insight_text + viral_patterns (raw patterns from niche-research-agent)
     // for every niche that has data, so Claude can ground trendRadar in REAL niche patterns
     // matching the niche it classifies the profile into.
     const { data: nicheResearchRows } = await admin
       .from("nicho_insights")
-      .select("nicho, insight_text, top_problemas")
+      .select("nicho, insight_text, viral_patterns")
       .not("insight_text", "is", null);
 
     const nicheResearchBlock = (nicheResearchRows ?? [])
-      .filter((r: any) => r.insight_text || (Array.isArray(r.top_problemas) && r.top_problemas.length > 0))
+      .filter((r: any) => r.insight_text || (Array.isArray(r.viral_patterns) && r.viral_patterns.length > 0))
       .map((r: any) => {
-        const patterns = JSON.stringify(r.top_problemas ?? []);
+        const patterns = JSON.stringify(r.viral_patterns ?? []);
         return `[${r.nicho}]\nREAL DATA FROM YOUR NICHE: ${r.insight_text ?? ""}\nTOP PATTERNS WORKING IN THIS NICHE: ${patterns}`;
       })
       .join("\n\n");
