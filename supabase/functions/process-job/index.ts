@@ -173,8 +173,8 @@ const ANALYSIS_SCHEMA = {
       },
       trendRadar: {
         type: "array",
-        minItems: 10,
-        maxItems: 10,
+        minItems: 8,
+        maxItems: 8,
         items: {
           type: "object",
           properties: {
@@ -315,7 +315,7 @@ function buildPrompts(
 8. burningProblems[].impact DEVE quantificar perda em números reais (ex.: "perda estimada de ~${'~'}450 visualizações por post = ~13.500/mês").
 9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
 10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
-11. trendRadar CRITICAL — MANDATORY 5 ITEMS: You MUST return exactly 5 trendRadar items. Returning fewer than 5 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
+11. trendRadar CRITICAL — MANDATORY 8 ITEMS: You MUST return exactly 8 trendRadar items. Returning fewer than 8 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
 12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
@@ -329,7 +329,7 @@ function buildPrompts(
 8. burningProblems[].impact MUST quantify loss in real numbers (e.g. "~450 lost views/post ≈ 13,500/month").
 9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
 10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
-11. trendRadar CRITICAL — MANDATORY 5 ITEMS: You MUST return exactly 5 trendRadar items. Returning fewer than 5 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
+11. trendRadar CRITICAL — MANDATORY 8 ITEMS: You MUST return exactly 8 trendRadar items. Returning fewer than 8 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
 12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
@@ -346,7 +346,9 @@ ALWAYS classify the profile into one of the normalised niches in the "nicho" enu
 
 Mention "${c}" naturally in 1-2 burningProblems solutions when relevant.
 
-Return ONLY the fields defined in the tool schema. Keep each text field tight so the full JSON stays compact, but always include the exact numbers and shortcodes required by the rules above.`;
+Return ONLY the fields defined in the tool schema. Keep each text field tight so the full JSON stays compact, but always include the exact numbers and shortcodes required by the rules above.
+
+trendRadar MUST contain EXACTLY 8 items. Returning fewer than 8 items or an empty array will FAIL the analysis. Each item must use the viral_patterns from the REAL NICHE RESEARCH block above as inspiration.`;
 
  const userPrompt = isPT
     ? `Faça a auditoria do perfil @${username} (URL: ${url}) com base nos dados REAIS abaixo.
@@ -359,7 +361,7 @@ TENDÊNCIAS ESPECÍFICAS DO NICHO PARA trendRadar (use como inspiração):
 - Marketing: "Case de cliente com resultado real em 30 dias", "Ferramentas de IA para marketing em 2026", "Campanha que fracassou e o que aprendi", "Como consegui X seguidores sem pagar anúncio", "Tendência de conteúdo que vai dominar esse mês"
 - Advocacia: "Seus direitos que você não sabia que tinha", "O que fazer quando seu chefe faz isso", "Mito vs verdade jurídico", "Como contestar uma multa de trânsito", "Direitos do consumidor ignorados"
 - Tecnologia: "Review honesto de [produto]", "IA que vai substituir essa profissão", "Setup de home office por menos de R$X", "App que mudou minha produtividade", "Comparativo de [produto A] vs [produto B]"
-INSTRUÇÃO: Gere 5 trends EXCLUSIVAMENTE para o nicho detectado deste perfil. PROIBIDO usar títulos genéricos de Instagram.
+INSTRUÇÃO: Gere EXATAMENTE 8 trends EXCLUSIVAMENTE para o nicho detectado deste perfil. PROIBIDO usar títulos genéricos de Instagram.
 
 LEMBRETE: cite números brutos (seguidores, avgLikes, avgComments, engagementRate%), referencie posts pelo shortcode entre crases, compare com benchmarks do nicho, e baseie os 10 videoIdeas nos posts que JÁ performaram bem neste perfil. Retorne apenas a estrutura definida no schema. Todo o conteúdo DEVE ser em Português Brasileiro.`
     : `Audit the profile @${username} (URL: ${url}) based on the REAL data below.
@@ -372,7 +374,7 @@ NICHE-SPECIFIC TREND EXAMPLES FOR trendRadar (use as inspiration):
 - Marketing: "Real client result in 30 days", "AI tools for marketing in 2026", "Campaign that failed and what I learned", "How I got X followers without paid ads", "Content trend dominating this month"
 - Legal/Advocacy: "Rights you didn't know you had", "What to do when your boss does this", "Legal myth vs truth", "How to contest a fine", "Consumer rights being ignored"
 - Technology: "Honest [product] review", "AI replacing this profession", "Home office setup under £X", "App that changed my productivity", "[Product A] vs [Product B] comparison"
-INSTRUCTION: Generate 5 trends EXCLUSIVELY for this profile's detected niche. FORBIDDEN to use generic Instagram titles.
+INSTRUCTION: Generate EXACTLY 8 trends EXCLUSIVELY for this profile's detected niche. FORBIDDEN to use generic Instagram titles.
 
 REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
 
