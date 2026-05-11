@@ -695,8 +695,7 @@ async function processJob(jobId: string) {
     // matching the niche it classifies the profile into.
     const { data: nicheResearchRows } = await admin
       .from("nicho_insights")
-      .select("nicho, insight_text, viral_patterns")
-      .not("insight_text", "is", null);
+      .select("nicho, insight_text, viral_patterns");
 
     const nicheResearchBlock = (nicheResearchRows ?? [])
       .filter((r: any) => r.insight_text || (Array.isArray(r.viral_patterns) && r.viral_patterns.length > 0))
@@ -709,6 +708,8 @@ async function processJob(jobId: string) {
     const trendRadarRealData = nicheResearchBlock
       ? `\n\n=== REAL NICHE RESEARCH (use the entry matching the nicho you classify this profile into) ===\n${nicheResearchBlock}\n\nUse these real patterns as the basis for the 8 trendRadar items — adapt them specifically for this profile's content style and audience.`
       : "";
+
+    console.log("[trendRadar prompt injection]", trendRadarRealData || "NO REAL NICHE RESEARCH INJECTED");
 
     const priorContext = buildPriorContext(prior, isPT);
     const nicheContext = (nicheTableSummary
@@ -772,7 +773,7 @@ async function processJob(jobId: string) {
 
     const aiInput: any = toolUse.input;
     const analysis = aiInput;
-    console.log('trendRadar:', JSON.stringify(analysis.trendRadar));
+    console.log('trendRadar raw:', JSON.stringify(aiInput.trendRadar));
     const trendRadar = normaliseTrendRadar(analysis, isPT, analysis.nicho || "Outros", username);
     console.log(
       `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | normalisedTrendRadar.length=${trendRadar.length} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
