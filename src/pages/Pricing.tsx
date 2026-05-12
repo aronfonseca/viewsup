@@ -127,7 +127,14 @@ const Pricing = () => {
   }, [isPt]);
 
   const handleSubscribe = async (plan: Plan) => {
-    if (!user) { navigate("/auth"); return; }
+    if (!user) {
+      toast({
+        title: isPt ? "Faça login para continuar" : "Sign in to continue",
+        description: isPt ? "Você precisa estar logado para assinar." : "You must be signed in to subscribe.",
+      });
+      navigate(`/auth?redirect=/pricing`);
+      return;
+    }
     setSelectedPlan(plan.id);
     try {
       await openCheckout({
