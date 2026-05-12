@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Sparkles, BarChart3, Lightbulb, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
+import { ViewsupLogo } from "@/components/ViewsupLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
@@ -49,7 +50,7 @@ const Index = () => {
 
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
+          <ViewsupLogo size={32} />
           <span className="text-lg font-bold text-foreground">{t("appName")}</span>
         </div>
         <div className="flex items-center gap-2">
