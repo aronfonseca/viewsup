@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Sparkles, BarChart3, Lightbulb, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
+import { ViewsupLogo } from "@/components/ViewsupLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
