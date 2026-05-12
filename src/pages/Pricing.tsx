@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { toast } from "@/hooks/use-toast";
 
 interface Plan {
   id: "starter" | "pro" | "agency";
