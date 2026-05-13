@@ -571,7 +571,7 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     return raw.replace(/Fonseca Films/g, companyName);
   }, [lang, companyName]);
   return (
-    <I18nContext.Provider value={{ lang, setLang, t, companyName, setCompanyName }}>
+    <I18nContext.Provider value={{ lang, setLang, t, companyName, setCompanyName, locale }}>
       {children}
     </I18nContext.Provider>
   );
