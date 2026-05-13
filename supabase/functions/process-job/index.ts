@@ -581,7 +581,7 @@ function normaliseTrendRadar(raw: any, isPT: boolean, nicho: string, username: s
       return false;
     }
     return true;
-  }).slice(0, 5);
+  }).slice(0, 8);
 
   console.log(`[trendRadar] valid=${valid.length} nicho=${nicho} username=${username}`);
   return valid;
