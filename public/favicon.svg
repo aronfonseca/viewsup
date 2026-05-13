@@ -1,29 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <style>
-    .icon-stroke { stroke: #1A1A1A; }
-    .icon-fill { fill: #1A1A1A; }
-    @media (prefers-color-scheme: dark) {
-      .icon-stroke { stroke: #E8FF47; }
-      .icon-fill { fill: #E8FF47; }
-    }
-  </style>
-  <rect
-    x="60"
-    y="60"
-    width="80"
-    height="80"
-    rx="14"
-    fill="none"
-    class="icon-stroke"
-    stroke-width="3.5"
-  />
-  <polyline
-    points="76,108 88,92 100,104 114,84"
-    fill="none"
-    class="icon-stroke"
-    stroke-width="4.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <circle cx="114" cy="84" r="5.5" class="icon-fill" />
+  <rect width="200" height="200" rx="40" fill="#0A0A0A"/>
+  <rect x="60" y="60" width="80" height="80" rx="14" fill="none" stroke="#E8FF47" stroke-width="6"/>
+  <polyline points="76,108 88,92 100,104 114,84" fill="none" stroke="#E8FF47" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="114" cy="84" r="7" fill="#E8FF47"/>
 </svg>
