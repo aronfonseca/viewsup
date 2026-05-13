@@ -231,7 +231,10 @@ export async function startAnalysisJob(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const username = url.replace(/\/$/, "").split("/").pop() || "unknown";
+  const username = extractInstagramUsername(url);
+  if (!username) throw new Error("URL inválida. Cole um link de perfil do Instagram (ex: https://instagram.com/usuario).");
+  // Normalize URL to canonical profile form so the worker always receives a clean link
+  url = `https://www.instagram.com/${username}/`;
 
   if (!force) {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
