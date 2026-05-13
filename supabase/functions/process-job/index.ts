@@ -780,6 +780,80 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
       if (!Array.isArray(aiInput[k])) aiInput[k] = [];
     }
 
+    // ============================================================
+    // DETERMINISTIC ENGAGEMENT OVERRIDE
+    // The AI sometimes hallucinates engagementRatio.ratio (e.g. 0.001%).
+    // We recompute it from the real scrape (last ≤12 posts) and apply
+    // dynamic benchmarks per follower tier so the label matches reality.
+    // Formula: ((avgLikes + avgComments) / followers) * 100
+    // ============================================================
+    const followers = scrape.followers ?? 0;
+    const avgLikes = scrape.avgLikes ?? 0;
+    const avgComments = scrape.avgComments ?? 0;
+    let engagementRatio: number | null = null;
+    let healthLabel: "Healthy" | "Average" | "Low" | "Critical" = "Average";
+    if (followers > 0) {
+      engagementRatio = +(((avgLikes + avgComments) / followers) * 100).toFixed(3);
+      // Dynamic benchmarks by follower tier
+      if (followers > 1_000_000) {
+        // GIGANTE
+        if (engagementRatio >= 0.8) healthLabel = "Healthy";
+        else if (engagementRatio >= 0.4) healthLabel = "Average";
+        else if (engagementRatio >= 0.3) healthLabel = "Low";
+        else healthLabel = "Critical";
+      } else if (followers >= 100_000) {
+        // MÉDIA
+        if (engagementRatio >= 2) healthLabel = "Healthy";
+        else if (engagementRatio >= 1) healthLabel = "Average";
+        else if (engagementRatio >= 0.5) healthLabel = "Low";
+        else healthLabel = "Critical";
+      } else {
+        // PEQUENA
+        if (engagementRatio >= 5) healthLabel = "Healthy";
+        else if (engagementRatio >= 2) healthLabel = "Average";
+        else if (engagementRatio >= 1) healthLabel = "Low";
+        else healthLabel = "Critical";
+      }
+    }
+
+    // Patch profileHealth.engagementRatio with deterministic values
+    aiInput.profileHealth = aiInput.profileHealth || {};
+    aiInput.profileHealth.engagementRatio = {
+      ...(aiInput.profileHealth.engagementRatio || {}),
+      ratio: engagementRatio ?? 0,
+      avgLikes,
+      avgComments,
+      healthLabel,
+      issues: aiInput.profileHealth.engagementRatio?.issues ?? [],
+      insight: aiInput.profileHealth.engagementRatio?.insight ?? "",
+    };
+
+    // Patch the engagement dimension score (0-100) based on healthLabel
+    const engagementScore = healthLabel === "Healthy" ? 90
+      : healthLabel === "Average" ? 70
+      : healthLabel === "Low" ? 45
+      : 20;
+    if (Array.isArray(aiInput.dimensions)) {
+      const eng = aiInput.dimensions.find((d: any) => /engaj|engage/i.test(String(d?.name || "")));
+      if (eng) eng.score = engagementScore;
+    }
+
+    // ============================================================
+    // OVERALL SCORE BOOST for high-performance profiles
+    // High-performing accounts (Healthy engagement on big tier, or any
+    // top-tier metric set) should land above 85/100 deterministically.
+    // ============================================================
+    if (Number.isFinite(aiInput.overallScore)) {
+      const elite =
+        (followers > 1_000_000 && (engagementRatio ?? 0) >= 0.8) ||
+        (followers >= 100_000 && (engagementRatio ?? 0) >= 2) ||
+        (followers < 100_000 && (engagementRatio ?? 0) >= 5);
+      if (elite && aiInput.overallScore < 85) {
+        console.log(`[score-boost] elite profile @${username} — raising overallScore from ${aiInput.overallScore} to 88`);
+        aiInput.overallScore = 88;
+      }
+    }
+
     const result = {
       url: job.instagram_url,
       username,
