@@ -1,5 +1,34 @@
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Extract a clean Instagram username from any pasted profile URL.
+ * Handles links from the IG mobile/desktop app which include query strings
+ * (e.g. ?igsh=..., ?utm_source=ig_web_copy_link), trailing paths
+ * (/reels, /tagged), and bare usernames.
+ */
+export function extractInstagramUsername(input: string): string | null {
+  if (!input) return null;
+  let raw = input.trim();
+  // Allow bare usernames like "@user" or "user"
+  if (!/^https?:\/\//i.test(raw)) {
+    raw = raw.replace(/^@/, "").split(/[\/?#]/)[0];
+    return /^[A-Za-z0-9._]{1,30}$/.test(raw) ? raw.toLowerCase() : null;
+  }
+  try {
+    const u = new URL(raw);
+    if (!/(^|\.)instagram\.com$/i.test(u.hostname)) return null;
+    const seg = u.pathname.split("/").filter(Boolean)[0] || "";
+    // Skip non-profile paths
+    if (!seg || ["p", "reel", "reels", "tv", "explore", "stories", "accounts", "direct"].includes(seg.toLowerCase())) {
+      return null;
+    }
+    return /^[A-Za-z0-9._]{1,30}$/.test(seg) ? seg.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
+
+
 export interface Dimension {
   name: string;
   score: number;
