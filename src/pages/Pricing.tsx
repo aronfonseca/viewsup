@@ -204,7 +204,7 @@ const Pricing = () => {
         <div className="grid md:grid-cols-3 gap-6">
           {PLANS.map((plan) => {
             const isLoading = loading && selectedPlan === plan.id;
-            const price = isPt ? plan.pricePt : plan.priceEn;
+            const price = formatPrice(plan);
             const description = isPt ? plan.descriptionPt : plan.descriptionEn;
             const features = isPt ? plan.featuresPt : plan.featuresEn;
             return (
