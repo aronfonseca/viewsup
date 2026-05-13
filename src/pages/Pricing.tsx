@@ -22,6 +22,8 @@ interface Plan {
   highlight?: boolean;
 }
 
+// Base USD prices (cents) — used for "rest of world" display.
+// PT-BR shows R$, GB shows £. Other countries show approx local currency via Intl.NumberFormat.
 const PLANS: Plan[] = [
   {
     id: "starter",
@@ -101,13 +103,21 @@ const PLANS: Plan[] = [
   },
 ];
 
+// Approx USD price for "rest of world" fallback display
+const PLAN_USD: Record<string, number> = {
+  starter: 9,
+  pro: 39,
+  agency: 99,
+};
+
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { lang } = useI18n();
+  const { lang, locale } = useI18n();
   const { openCheckout, loading } = usePaddleCheckout();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const isPt = lang === "pt-BR";
+  const isGb = locale.countryCode === "GB";
 
   const tx = {
     title: isPt ? "Escolha seu plano" : "Choose your plan",
@@ -127,6 +137,22 @@ const Pricing = () => {
     document.title = isPt ? "Planos | ViralLens AI" : "Pricing | ViralLens AI";
   }, [isPt]);
 
+  // Format display price using detected currency for "rest of world"
+  const formatPrice = (plan: Plan): string => {
+    if (isPt) return plan.pricePt;
+    if (isGb) return plan.priceEn;
+    const amount = PLAN_USD[plan.id] ?? 9;
+    try {
+      return new Intl.NumberFormat(locale.paddleLocale || "en", {
+        style: "currency",
+        currency: locale.currency,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    } catch {
+      return `$${amount}`;
+    }
+  };
+
   const handleSubscribe = async (plan: Plan) => {
     if (!user) {
       toast({
@@ -142,6 +168,8 @@ const Pricing = () => {
         priceId: plan.priceId,
         customerEmail: user.email,
         userId: user.id,
+        locale: locale.paddleLocale,
+        countryCode: locale.countryCode,
       });
     } finally {
       setSelectedPlan(null);
@@ -176,7 +204,7 @@ const Pricing = () => {
         <div className="grid md:grid-cols-3 gap-6">
           {PLANS.map((plan) => {
             const isLoading = loading && selectedPlan === plan.id;
-            const price = isPt ? plan.pricePt : plan.priceEn;
+            const price = formatPrice(plan);
             const description = isPt ? plan.descriptionPt : plan.descriptionEn;
             const features = isPt ? plan.featuresPt : plan.featuresEn;
             return (

@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { detectCountryFromBrowser, detectCountryFromIP, langFromTag, buildLocale, type LocaleInfo } from "@/lib/locale";
 
 export type Lang = "pt-BR" | "en-GB";
 
@@ -441,9 +443,11 @@ interface I18nContextType {
   t: (key: TranslationKey) => string;
   companyName: string;
   setCompanyName: (name: string) => void;
+  locale: LocaleInfo;
 }
 
 const DEFAULT_COMPANY = "Viewsup Insights";
+const DEFAULT_LOCALE: LocaleInfo = buildLocale("BR", "pt-BR");
 
 const I18nContext = createContext<I18nContextType>({
   lang: "pt-BR",
@@ -451,20 +455,109 @@ const I18nContext = createContext<I18nContextType>({
   t: (key) => key,
   companyName: DEFAULT_COMPANY,
   setCompanyName: () => {},
+  locale: DEFAULT_LOCALE,
 });
 
 export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
+  // Initial: localStorage > browser navigator (sync)
   const [lang, setLangState] = useState<Lang>(() => {
     try {
       const stored = localStorage.getItem("virallens_lang");
       if (stored === "pt-BR" || stored === "en-GB") return stored;
     } catch {}
-    return "pt-BR";
+    const fromTag = langFromTag(typeof navigator !== "undefined" ? navigator.language : null);
+    return fromTag ?? "en-GB";
   });
+  const [country, setCountry] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem("virallens_country");
+      if (stored) return stored;
+    } catch {}
+    return detectCountryFromBrowser() ?? "US";
+  });
+
+  // Persist lang preference to Supabase profile when authenticated
+  const persistLang = useCallback(async (l: Lang) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({ language_pref: l })
+          .eq("user_id", user.id);
+      }
+    } catch {}
+  }, []);
+
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     try { localStorage.setItem("virallens_lang", l); } catch {}
+    persistLang(l);
+  }, [persistLang]);
+
+  // On mount: refine country via Geo-IP, then sync from logged-in profile / Google metadata
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      // Geo-IP refinement (only if no stored country)
+      try {
+        const stored = localStorage.getItem("virallens_country");
+        if (!stored) {
+          const ipCountry = await detectCountryFromIP();
+          if (!cancelled && ipCountry) {
+            setCountry(ipCountry);
+            try { localStorage.setItem("virallens_country", ipCountry); } catch {}
+          }
+        }
+      } catch {}
+
+      // Logged-in user: profile preference wins; else use Google metadata locale
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("language_pref, country_code")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (cancelled) return;
+        const profileLang = (profile as any)?.language_pref as Lang | null;
+        const profileCountry = (profile as any)?.country_code as string | null;
+
+        if (profileLang === "pt-BR" || profileLang === "en-GB") {
+          setLangState(profileLang);
+          try { localStorage.setItem("virallens_lang", profileLang); } catch {}
+        } else {
+          // Try Google identity locale from user metadata
+          const meta: any = user.user_metadata || {};
+          const googleLocale: string | undefined = meta.locale || meta.language;
+          const fromGoogle = langFromTag(googleLocale);
+          if (fromGoogle) {
+            setLangState(fromGoogle);
+            try { localStorage.setItem("virallens_lang", fromGoogle); } catch {}
+            // Persist back so next session is consistent
+            await supabase.from("profiles").update({ language_pref: fromGoogle }).eq("user_id", user.id);
+          }
+        }
+
+        if (profileCountry) {
+          setCountry(profileCountry);
+          try { localStorage.setItem("virallens_country", profileCountry); } catch {}
+        } else {
+          // Persist detected country to profile for future logins
+          const cc = country;
+          if (cc) {
+            await supabase.from("profiles").update({ country_code: cc }).eq("user_id", user.id);
+          }
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const locale = buildLocale(country, lang);
   const [companyName, setCompanyNameState] = useState<string>(() => {
     try { return localStorage.getItem("virallens_company") || DEFAULT_COMPANY; } catch { return DEFAULT_COMPANY; }
   });
@@ -478,7 +571,7 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     return raw.replace(/Fonseca Films/g, companyName);
   }, [lang, companyName]);
   return (
-    <I18nContext.Provider value={{ lang, setLang, t, companyName, setCompanyName }}>
+    <I18nContext.Provider value={{ lang, setLang, t, companyName, setCompanyName, locale }}>
       {children}
     </I18nContext.Provider>
   );

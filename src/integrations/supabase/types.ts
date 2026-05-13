@@ -188,9 +188,11 @@ export type Database = {
           analyses_limit: number
           analyses_remaining: number
           avatar_url: string | null
+          country_code: string | null
           created_at: string
           display_name: string | null
           id: string
+          language_pref: string | null
           period_end: string | null
           plan: string
           updated_at: string
@@ -204,9 +206,11 @@ export type Database = {
           analyses_limit?: number
           analyses_remaining?: number
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          language_pref?: string | null
           period_end?: string | null
           plan?: string
           updated_at?: string
@@ -220,9 +224,11 @@ export type Database = {
           analyses_limit?: number
           analyses_remaining?: number
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          language_pref?: string | null
           period_end?: string | null
           plan?: string
           updated_at?: string
