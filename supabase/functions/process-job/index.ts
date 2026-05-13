@@ -745,18 +745,12 @@ async function processJob(jobId: string) {
   max_tokens: 8000,
   temperature: 0.1,
   system: systemPrompt,
-  tools: [
-    {
-      type: "web_search_20250305",
-      name: "web_search",
-    },
-    {
-      name: ANALYSIS_SCHEMA.name,
-      description: ANALYSIS_SCHEMA.description,
-      input_schema: ANALYSIS_SCHEMA.parameters,
-    }
-  ],
-  tool_choice: { type: "auto" },
+  tools: [{
+  name: ANALYSIS_SCHEMA.name,
+  description: ANALYSIS_SCHEMA.description,
+  input_schema: ANALYSIS_SCHEMA.parameters,
+}],
+tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
   messages: [{ role: "user", content: userPrompt }],
 }),
       signal: ac.signal,
