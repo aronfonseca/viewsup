@@ -22,6 +22,8 @@ interface Plan {
   highlight?: boolean;
 }
 
+// Base USD prices (cents) — used for "rest of world" display.
+// PT-BR shows R$, GB shows £. Other countries show approx local currency via Intl.NumberFormat.
 const PLANS: Plan[] = [
   {
     id: "starter",
@@ -100,6 +102,13 @@ const PLANS: Plan[] = [
     ],
   },
 ];
+
+// Approx USD price for "rest of world" fallback display
+const PLAN_USD: Record<string, number> = {
+  starter: 9,
+  pro: 39,
+  agency: 99,
+};
 
 const Pricing = () => {
   const { user } = useAuth();
