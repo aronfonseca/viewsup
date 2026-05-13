@@ -82,6 +82,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
+      <PageHelmet title="Admin | Viewsup AI" path="/admin" />
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Admin · Usuários</h1>

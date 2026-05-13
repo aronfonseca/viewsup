@@ -8,12 +8,13 @@ const Refund = () => {
   const { lang } = useI18n();
   const isPt = lang === "pt-BR";
 
-  useEffect(() => {
-    document.title = isPt ? "Política de Reembolso | Viewsup AI" : "Refund Policy | Viewsup AI";
-  }, [isPt]);
-
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <PageHelmet
+        title={isPt ? "Política de Reembolso | Viewsup AI" : "Refund Policy | Viewsup AI"}
+        description={isPt ? "O Viewsup AI oferece garantia de reembolso de 30 dias em todos os planos pagos. Saiba como solicitar." : "Viewsup AI offers a 30-day money-back guarantee on all paid plans. Learn how to request a refund."}
+        path="/refund"
+      />
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">

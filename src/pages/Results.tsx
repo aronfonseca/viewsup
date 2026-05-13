@@ -346,6 +346,11 @@ const Results = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageHelmet
+        title={isPt ? "Resultados da Análise | Viewsup AI" : "Analysis Results | Viewsup AI"}
+        description={isPt ? "Veja os resultados da auditoria do seu perfil Instagram, pontuações e insights acionáveis gerados por IA." : "View your AI-generated Instagram profile audit results, scores, and actionable insights."}
+        path="/results"
+      />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-20 pointer-events-none" style={{ background: "var(--gradient-glow)" }} />
 
       {/* Nav */}
