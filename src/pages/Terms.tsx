@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Terms = () => {
   const { lang } = useI18n();

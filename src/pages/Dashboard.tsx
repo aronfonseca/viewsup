@@ -16,6 +16,7 @@ import {
   Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown, Palette, RefreshCw,
 } from "lucide-react";
 import AgencyReportPreview from "@/components/AgencyReportPreview";
+import { PageHelmet } from "@/components/PageHelmet";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
 
 interface Report {

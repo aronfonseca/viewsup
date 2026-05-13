@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Lock } from "lucide-react";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const ResetPassword = () => {
   const navigate = useNavigate();

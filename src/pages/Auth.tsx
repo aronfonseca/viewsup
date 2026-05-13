@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Mail, Lock, User } from "lucide-react";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();

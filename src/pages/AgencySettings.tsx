@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import LanguageSelector from "@/components/LanguageSelector";
 import { toast } from "@/hooks/use-toast";
 import AgencyReportPreview from "@/components/AgencyReportPreview";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const DEFAULT_COLOR = "#7c3aed";
 

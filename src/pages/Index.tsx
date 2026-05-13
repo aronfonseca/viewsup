@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Index = () => {
   const [url, setUrl] = useState("");
