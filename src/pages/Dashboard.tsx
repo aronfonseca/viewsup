@@ -16,6 +16,7 @@ import {
   Video, CheckCircle2, AlertTriangle, Loader2, FlaskConical, Zap, Crown, Palette, RefreshCw,
 } from "lucide-react";
 import AgencyReportPreview from "@/components/AgencyReportPreview";
+import { PageHelmet } from "@/components/PageHelmet";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
 
 interface Report {
@@ -161,6 +162,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageHelmet
+        title={isPt ? "Painel | Viewsup AI" : "Dashboard | Viewsup AI"}
+        description={isPt ? "Seu painel Viewsup AI. Execute auditorias de perfil Instagram, visualize relatórios e gerencie sua assinatura." : "Your Viewsup AI dashboard. Run Instagram profile audits, view reports, and manage your subscription."}
+        path="/dashboard"
+      />
       <PaymentTestModeBanner />
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">

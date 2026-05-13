@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import LanguageSelector from "@/components/LanguageSelector";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Index = () => {
   const [url, setUrl] = useState("");
@@ -46,6 +47,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <PageHelmet
+        title={isPt ? "Viewsup AI — Analisador de Perfil Instagram com IA" : "Viewsup AI — AI-Driven Instagram Profile Analyzer"}
+        description={isPt ? "Auditorias de perfil Instagram com IA. Análise profunda, detecção de padrões, pontuações e legendas reescritas para alta conversão." : "AI-powered Instagram profile audits. Get deep analysis, pattern detection, scores, and high-converting caption rewrites. Elevate your strategy in minutes."}
+        path="/"
+      />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-30 pointer-events-none" style={{ background: "var(--gradient-glow)" }} />
 
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">

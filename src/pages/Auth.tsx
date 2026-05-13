@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Mail, Lock, User } from "lucide-react";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -98,6 +99,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      <PageHelmet
+        title={isPt ? "Entrar | Viewsup AI" : "Sign In | Viewsup AI"}
+        description={isPt ? "Entre ou crie uma conta no Viewsup AI para começar a auditar perfis Instagram com IA." : "Sign in or create an account on Viewsup AI to start auditing Instagram profiles with AI."}
+        path="/auth"
+      />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-30 pointer-events-none" style={{ background: "var(--gradient-glow)" }} />
 
       <Card className="w-full max-w-md border-border bg-card/80 backdrop-blur-sm relative z-10">

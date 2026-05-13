@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const ADMIN_EMAIL = "aronfonseca2020@gmail.com";
 
@@ -81,6 +82,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
+      <PageHelmet title="Admin | Viewsup AI" path="/admin" />
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Admin · Usuários</h1>

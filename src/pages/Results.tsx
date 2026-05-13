@@ -17,6 +17,7 @@ import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
+import { PageHelmet } from "@/components/PageHelmet";
 import { hexToHslString } from "@/lib/colorUtils";
 
 /* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
@@ -345,6 +346,11 @@ const Results = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageHelmet
+        title={lang === "pt-BR" ? "Resultados da Análise | Viewsup AI" : "Analysis Results | Viewsup AI"}
+        description={lang === "pt-BR" ? "Veja os resultados da auditoria do seu perfil Instagram, pontuações e insights acionáveis gerados por IA." : "View your AI-generated Instagram profile audit results, scores, and actionable insights."}
+        path="/results"
+      />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-20 pointer-events-none" style={{ background: "var(--gradient-glow)" }} />
 
       {/* Nav */}

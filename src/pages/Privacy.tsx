@@ -2,17 +2,19 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Privacy = () => {
   const { lang } = useI18n();
   const isPt = lang === "pt-BR";
 
-  useEffect(() => {
-    document.title = isPt ? "Política de Privacidade | Viewsup AI" : "Privacy Policy | Viewsup AI";
-  }, [isPt]);
-
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <PageHelmet
+        title={isPt ? "Política de Privacidade | Viewsup AI" : "Privacy Policy | Viewsup AI"}
+        description={isPt ? "Saiba como o Viewsup AI coleta, usa e protege seus dados pessoais e conteúdo do Instagram." : "Learn how Viewsup AI collects, uses, and protects your personal data and Instagram content."}
+        path="/privacy"
+      />
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">

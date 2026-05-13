@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Lock } from "lucide-react";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -74,6 +75,10 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <PageHelmet
+        title={isPt ? "Redefinir Senha | Viewsup AI" : "Reset Password | Viewsup AI"}
+        path="/reset-password"
+      />
       <Card className="w-full max-w-md border-border bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-2">

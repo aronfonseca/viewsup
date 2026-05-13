@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Check, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { toast } from "@/hooks/use-toast";
+import { PageHelmet } from "@/components/PageHelmet";
 
 interface Plan {
   id: "starter" | "pro" | "agency";
@@ -133,9 +134,6 @@ const Pricing = () => {
       : "Payments processed securely. Cancel anytime from your dashboard.",
   };
 
-  useEffect(() => {
-    document.title = isPt ? "Planos | ViralLens AI" : "Pricing | ViralLens AI";
-  }, [isPt]);
 
   // Format display price using detected currency for "rest of world"
   const formatPrice = (plan: Plan): string => {
@@ -178,6 +176,11 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageHelmet
+        title={isPt ? "Planos | Viewsup AI" : "Pricing | Viewsup AI"}
+        description={isPt ? "Escolha seu plano de auditoria Instagram. Do Starter ao Agency, análise de perfil com IA e preços mensais flexíveis." : "Choose your Instagram audit plan. From Starter to Agency, get AI-powered profile analysis with flexible monthly pricing."}
+        path="/pricing"
+      />
       <PaymentTestModeBanner />
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

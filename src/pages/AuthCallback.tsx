@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHelmet } from "@/components/PageHelmet";
 
 /**
  * OAuth callback handler.
@@ -60,6 +61,7 @@ const AuthCallback = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
+      <PageHelmet title="Authenticating... | Viewsup AI" path="/auth/callback" />
       <div className="flex flex-col items-center gap-4">
         <div className="h-10 w-10 rounded-full gradient-bg animate-spin opacity-40" />
         <p className="text-sm text-muted-foreground">Signing you in…</p>

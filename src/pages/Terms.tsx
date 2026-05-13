@@ -2,17 +2,19 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { PageHelmet } from "@/components/PageHelmet";
 
 const Terms = () => {
   const { lang } = useI18n();
   const isPt = lang === "pt-BR";
 
-  useEffect(() => {
-    document.title = isPt ? "Termos de Uso | Viewsup AI" : "Terms of Service | Viewsup AI";
-  }, [isPt]);
-
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <PageHelmet
+        title={isPt ? "Termos de Uso | Viewsup AI" : "Terms of Service | Viewsup AI"}
+        description={isPt ? "Leia os Termos de Uso do Viewsup AI. Saiba sobre uso aceitável, assinaturas e seus direitos." : "Read the Terms of Service for Viewsup AI. Learn about acceptable use, subscriptions, and your rights."}
+        path="/terms"
+      />
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
