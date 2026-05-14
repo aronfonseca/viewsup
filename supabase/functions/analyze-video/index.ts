@@ -302,10 +302,45 @@ serve(async (req) => {
   }
 
   try {
+    const SERVICE_KEY = SUPABASE_SERVICE_ROLE_KEY;
+    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const isServiceCall = bearer === SERVICE_KEY;
+
     const body = await req.json().catch(() => ({}));
 
     // Mode 1: explicit jobId (called right after enqueue from frontend)
     if (body?.jobId) {
+      // Require an authenticated user that owns the job (or service call)
+      if (!isServiceCall) {
+        if (!authHeader) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data: u, error: uErr } = await userClient.auth.getUser();
+        if (uErr || !u?.user) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+        const { data: jobRow } = await admin
+          .from("video_jobs")
+          .select("id, user_id")
+          .eq("id", body.jobId)
+          .maybeSingle();
+        if (!jobRow || (jobRow as any).user_id !== u.user.id) {
+          return new Response(JSON.stringify({ error: "Not found" }), {
+            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       // Run in background so HTTP response is immediate
       // Deno's EdgeRuntime supports waitUntil for background tasks
       // deno-lint-ignore no-explicit-any
@@ -322,7 +357,12 @@ serve(async (req) => {
       );
     }
 
-    // Mode 2: cron worker — pick pending jobs
+    // Mode 2: cron worker — pick pending jobs (service-role only)
+    if (!isServiceCall) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const processed = await pickAndProcessPending(3);
     return new Response(JSON.stringify({ processed }), {
       status: 200,
