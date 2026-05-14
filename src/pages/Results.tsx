@@ -204,8 +204,9 @@ const Results = () => {
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
   const force = searchParams.get("force") === "1";
-  const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isDemo = searchParams.get("demo") === "1";
+  const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(isDemo ? demoAnalysis : null);
+  const [loading, setLoading] = useState(!isDemo);
   const [jobStatus, setJobStatus] = useState<string>("pending");
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"analysis" | "trends" | "retention-lab">("analysis");
