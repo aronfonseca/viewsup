@@ -838,9 +838,14 @@ const Results = () => {
 
               {/* Burning Problems */}
               {analysis.burningProblems && analysis.burningProblems.length > 0 && (
-                <>
-                  <h2 className="text-lg font-bold text-foreground mb-4">{t("burningProblems")}</h2>
-                  <div className="space-y-6 mb-10">
+                <div className="rounded-2xl border border-destructive/50 bg-destructive/5 p-8 mb-12 card-shadow">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-11 w-11 rounded-xl bg-destructive/20 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="h-6 w-6 text-destructive" />
+                    </div>
+                    <h2 className="text-lg font-bold text-foreground">{t("burningProblems")}</h2>
+                  </div>
+                  <div className="space-y-6">
                     {analysis.burningProblems.map((bp, i) => (
                       <div key={i} className="p-6 rounded-xl bg-card border border-border card-shadow">
                         <div className="flex items-start gap-3 mb-4">
@@ -862,7 +867,7 @@ const Results = () => {
                       </div>
                     ))}
                   </div>
-                </>
+                </div>
               )}
 
               {/* ══ 10 VÍDEOS PARA GRAVAR AGORA ══ */}
