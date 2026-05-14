@@ -224,6 +224,11 @@ const Results = () => {
   }, [analysis]);
 
   useEffect(() => {
+    if (isDemo) {
+      setAnalysis(sanitizeAnalysis(demoAnalysis as any));
+      setLoading(false);
+      return;
+    }
     if (!url && !reportId) { navigate("/"); return; }
     setLoading(true);
     setError(null);
