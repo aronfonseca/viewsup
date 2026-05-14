@@ -522,15 +522,25 @@ const Results = () => {
                     <span className="text-xs text-muted-foreground mt-2">{t("viralProbability")}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="p-4 rounded-lg bg-secondary text-center">
+                    <div className="p-5 rounded-lg bg-secondary text-center">
                       <p className="text-xs text-muted-foreground mb-1">{t("hookStrength")}</p>
                       <p className="text-2xl font-bold text-foreground">{analysis.viralScore.hookStrengthFactor}</p>
-                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${analysis.viralScore.hookStrengthFactor}%` }} /></div>
+                      <div className="mt-3 h-2.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${analysis.viralScore.hookStrengthFactor}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="p-4 rounded-lg bg-secondary text-center">
+                    <div className="p-5 rounded-lg bg-secondary text-center">
                       <p className="text-xs text-muted-foreground mb-1">{t("editDensity")}</p>
                       <p className="text-2xl font-bold text-foreground">{analysis.viralScore.editDensityFactor}</p>
-                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-accent" style={{ width: `${analysis.viralScore.editDensityFactor}%` }} /></div>
+                      <div className="mt-3 h-2.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${analysis.viralScore.editDensityFactor}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
