@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
+import { demoAnalysis } from "@/lib/demoAnalysis";
 import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
