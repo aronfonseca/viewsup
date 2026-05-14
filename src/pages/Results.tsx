@@ -48,7 +48,13 @@ const RichText = ({ text }: { text: string }) => {
         typeof p === "string" ? (
           <span key={i}>{p}</span>
         ) : (
-          <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+          <a
+            key={i}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-primary underline underline-offset-2 transition-all hover:bg-accent hover:text-accent-foreground hover:no-underline"
+          >
             {p.label}
           </a>
         )
