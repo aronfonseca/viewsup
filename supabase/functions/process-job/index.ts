@@ -891,24 +891,8 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
       console.warn("[Worker] reports mirror failed:", (e as Error).message);
     }
 
-    // Decrement analyses_remaining (skip for unlimited / agency plan)
-    try {
-      const { data: prof } = await admin
-        .from("profiles")
-        .select("plan, analyses_remaining")
-        .eq("user_id", job.user_id)
-        .single();
-      if (prof && (prof as any).plan !== "agency" && (prof as any).analyses_remaining > 0) {
-        await admin.from("profiles")
-          .update({ analyses_remaining: (prof as any).analyses_remaining - 1 })
-          .eq("user_id", job.user_id);
-        console.log(`[Worker] analyses_remaining decremented for ${job.user_id}`);
-      }
-    } catch (e) {
-      console.warn("[Worker] decrement failed:", (e as Error).message);
-    }
-
-    console.log("[Worker] job completed:", jobId);
+    // Credit was consumed atomically at enqueue time. Nothing to do here on success.
+    console.log(`[Worker] job completed:`, jobId);
   } catch (e) {
     const msg = (e as Error).message || "Unknown error";
     console.error("[Worker] job failed:", jobId, msg);
@@ -917,9 +901,13 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
       error_message: msg.slice(0, 500),
       completed_at: new Date().toISOString(),
     }).eq("id", jobId);
-    // Credit protection: decrement only happens on the success path, so a failure
-    // here means the user was NOT charged. Log explicitly for auditability.
-    console.log(`[Worker] no credit charged for failed job ${jobId} (analyses_remaining untouched)`);
+    // Refund the credit consumed at enqueue time, since the analysis failed.
+    try {
+      await admin.rpc("refund_analysis_credit", { _user_id: job.user_id });
+      console.log(`[Worker] refunded credit for failed job ${jobId}`);
+    } catch (refundErr) {
+      console.warn(`[Worker] refund failed for ${jobId}:`, (refundErr as Error).message);
+    }
   }
 }
 
@@ -947,22 +935,21 @@ serve(async (req) => {
       });
     }
 
-    // Server-side entitlement check — block if no analyses left (skip for agency)
-    const adminEarly = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: entProf } = await adminEarly
-      .from("profiles")
-      .select("plan, analyses_remaining")
-      .eq("user_id", authData.user.id)
-      .single();
-    if (entProf && (entProf as any).plan !== "agency" && ((entProf as any).analyses_remaining ?? 0) <= 0) {
-      return new Response(JSON.stringify({ error: "No analyses remaining. Please upgrade your plan." }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Atomic credit consumption — prevents race conditions where concurrent
+    // requests could each pass an in-memory quota check.
+    const { data: consumed, error: consumeErr } = await adminEarly.rpc(
+      "consume_analysis_credit",
+      { _user_id: authData.user.id },
+    );
+    if (consumeErr) {
+      console.error("[process-job] consume_analysis_credit error:", consumeErr.message);
+      return new Response(JSON.stringify({ error: "Internal error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (authErr || !authData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (consumed !== true) {
+      return new Response(JSON.stringify({ error: "No analyses remaining. Please upgrade your plan." }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -981,6 +968,8 @@ serve(async (req) => {
       .eq("id", jobId)
       .maybeSingle();
     if (!job || job.user_id !== authData.user.id) {
+      // Refund the credit consumed earlier — we cannot run this job.
+      try { await adminEarly.rpc("refund_analysis_credit", { _user_id: authData.user.id }); } catch { /* ignore */ }
       return new Response(JSON.stringify({ error: "Not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

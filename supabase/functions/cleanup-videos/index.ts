@@ -1,5 +1,7 @@
 // Daily cleanup: deletes video files from storage for jobs older than 7 days,
 // keeping the analysis row + result_data so users still see their history.
+// Authenticated callers must present the service-role key (used by the cron
+// scheduler). All other callers are rejected with 401.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -11,10 +13,17 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  // Only allow callers presenting the service-role key (internal scheduler).
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const auth = req.headers.get("Authorization") ?? "";
+  const provided = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  if (provided !== SERVICE_KEY) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, SERVICE_KEY);
 
   // Calculate date 7 days ago
   const sevenDaysAgo = new Date();

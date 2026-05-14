@@ -51,12 +51,39 @@ Return STRICT JSON only, no markdown:
   return match ? JSON.parse(match[0]) : { summary: "", patterns: [] };
 }
 
+const ADMIN_EMAILS = new Set([
+  "aronfonseca2020@gmail.com",
+  "aronfonsecaoficial@gmail.com",
+]);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  // Auth: allow service-role bearer (cron) OR signed-in admin email.
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+  const isServiceCall = bearer === SERVICE_KEY;
+  if (!isServiceCall) {
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: u, error: uErr } = await userClient.auth.getUser();
+    if (uErr || !u?.user || !ADMIN_EMAILS.has((u.user.email || "").toLowerCase())) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
 
   if (!ANTHROPIC_API_KEY) return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY missing" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 

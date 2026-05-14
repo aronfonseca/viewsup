@@ -13,10 +13,35 @@ const FREE_LIMIT = 3;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+  const authHeader = req.headers.get('Authorization') ?? '';
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const isServiceCall = bearer === SERVICE_KEY;
+
+  // Authenticated user (when not service call) — required to call this endpoint
+  let callerId: string | null = null;
+  if (!isServiceCall) {
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: u, error: uErr } = await userClient.auth.getUser();
+    if (uErr || !u?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    callerId = u.user.id;
+  }
+
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   // Optional userId in body for on-demand single-user check
   let onlyUserId: string | undefined;
@@ -25,6 +50,13 @@ Deno.serve(async (req) => {
       const body = await req.json();
       if (typeof body?.userId === 'string') onlyUserId = body.userId;
     } catch { /* ignore */ }
+  }
+
+  // Non-service callers may only check/downgrade themselves.
+  if (!isServiceCall) {
+    if (!onlyUserId || onlyUserId !== callerId) {
+      onlyUserId = callerId!;
+    }
   }
 
   // Find expired canceled subscriptions

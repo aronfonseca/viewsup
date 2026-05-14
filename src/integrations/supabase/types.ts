@@ -403,6 +403,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_analysis_credit: { Args: { _user_id: string }; Returns: boolean }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -411,6 +412,7 @@ export type Database = {
         Args: { _nicho: Database["public"]["Enums"]["profile_niche"] }
         Returns: undefined
       }
+      refund_analysis_credit: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
       profile_niche:
