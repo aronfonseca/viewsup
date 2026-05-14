@@ -197,6 +197,7 @@ const sanitizeAnalysis = (raw: any): ProfileAnalysis => {
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { t, lang, companyName, setCompanyName } = useI18n();
   const { branding } = useAgencyBranding();
@@ -204,7 +205,7 @@ const Results = () => {
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
   const force = searchParams.get("force") === "1";
-  const isDemo = searchParams.get("demo") === "1";
+  const isDemo = searchParams.get("demo") === "1" || location.pathname === "/demo";
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(isDemo ? demoAnalysis : null);
   const [loading, setLoading] = useState(!isDemo);
   const [jobStatus, setJobStatus] = useState<string>("pending");
