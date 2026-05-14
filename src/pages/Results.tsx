@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, lazy, Suspense } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw,
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScoreRing from "@/components/ScoreRing";
 import DimensionBar from "@/components/DimensionBar";
 import { analyzeProfile, type ProfileAnalysis } from "@/lib/mockAnalysis";
+import { demoAnalysis } from "@/lib/demoAnalysis";
 import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,6 +197,7 @@ const sanitizeAnalysis = (raw: any): ProfileAnalysis => {
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { t, lang, companyName, setCompanyName } = useI18n();
   const { branding } = useAgencyBranding();
@@ -203,8 +205,9 @@ const Results = () => {
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
   const force = searchParams.get("force") === "1";
-  const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isDemo = searchParams.get("demo") === "1" || location.pathname === "/demo";
+  const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(isDemo ? demoAnalysis : null);
+  const [loading, setLoading] = useState(!isDemo);
   const [jobStatus, setJobStatus] = useState<string>("pending");
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"analysis" | "trends" | "retention-lab">("analysis");
@@ -222,6 +225,11 @@ const Results = () => {
   }, [analysis]);
 
   useEffect(() => {
+    if (isDemo) {
+      setAnalysis(sanitizeAnalysis(demoAnalysis as any));
+      setLoading(false);
+      return;
+    }
     if (!url && !reportId) { navigate("/"); return; }
     setLoading(true);
     setError(null);
@@ -259,7 +267,7 @@ const Results = () => {
         setLoading(false);
         toast({ title: t("errorTitle"), description: msg, variant: "destructive" });
       });
-  }, [url, reportId, force, navigate, lang, companyName, t, toast]);
+  }, [url, reportId, force, isDemo, navigate, lang, companyName, t, toast]);
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;

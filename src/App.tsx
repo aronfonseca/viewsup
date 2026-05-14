@@ -59,6 +59,8 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              {/* Public demo route — renders Results with mock data for layout/PDF preview */}
+              <Route path="/demo" element={<Results />} />
               <Route
                 path="/dashboard"
                 element={
