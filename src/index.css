@@ -109,3 +109,34 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Print: keep on-screen dark theme parity for PDF/print export */
+@media print {
+  :root {
+    color-scheme: dark;
+  }
+  html, body {
+    background: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  /* Avoid breaking cards across pages */
+  .card-shadow,
+  [class*="rounded-xl"],
+  [class*="rounded-2xl"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Hide UI chrome that doesn't belong in the export */
+  button, a[href]::after, .no-print {
+    display: revert;
+  }
+  .no-print { display: none !important; }
+}
