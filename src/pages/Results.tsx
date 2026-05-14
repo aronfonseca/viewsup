@@ -4,7 +4,7 @@ import {
   Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw,
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
   Link2, Users, Shield, Flame, Target, FileText, Radar, Video, Download,
-  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard,
+  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard, Copy,
 } from "lucide-react";
 const RetentionLab = lazy(() => import("@/components/RetentionLab"));
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,13 @@ const RichText = ({ text }: { text: string }) => {
         typeof p === "string" ? (
           <span key={i}>{p}</span>
         ) : (
-          <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+          <a
+            key={i}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-primary underline underline-offset-2 transition-all hover:bg-accent hover:text-accent-foreground hover:no-underline"
+          >
             {p.label}
           </a>
         )
@@ -516,15 +522,25 @@ const Results = () => {
                     <span className="text-xs text-muted-foreground mt-2">{t("viralProbability")}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="p-4 rounded-lg bg-secondary text-center">
+                    <div className="p-5 rounded-lg bg-secondary text-center">
                       <p className="text-xs text-muted-foreground mb-1">{t("hookStrength")}</p>
                       <p className="text-2xl font-bold text-foreground">{analysis.viralScore.hookStrengthFactor}</p>
-                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${analysis.viralScore.hookStrengthFactor}%` }} /></div>
+                      <div className="mt-3 h-2.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${analysis.viralScore.hookStrengthFactor}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="p-4 rounded-lg bg-secondary text-center">
+                    <div className="p-5 rounded-lg bg-secondary text-center">
                       <p className="text-xs text-muted-foreground mb-1">{t("editDensity")}</p>
                       <p className="text-2xl font-bold text-foreground">{analysis.viralScore.editDensityFactor}</p>
-                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-accent" style={{ width: `${analysis.viralScore.editDensityFactor}%` }} /></div>
+                      <div className="mt-3 h-2.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${analysis.viralScore.editDensityFactor}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
@@ -822,9 +838,14 @@ const Results = () => {
 
               {/* Burning Problems */}
               {analysis.burningProblems && analysis.burningProblems.length > 0 && (
-                <>
-                  <h2 className="text-lg font-bold text-foreground mb-4">{t("burningProblems")}</h2>
-                  <div className="space-y-6 mb-10">
+                <div className="rounded-2xl border border-destructive/50 bg-destructive/5 p-8 mb-12 card-shadow">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-11 w-11 rounded-xl bg-destructive/20 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="h-6 w-6 text-destructive" />
+                    </div>
+                    <h2 className="text-lg font-bold text-foreground">{t("burningProblems")}</h2>
+                  </div>
+                  <div className="space-y-6">
                     {analysis.burningProblems.map((bp, i) => (
                       <div key={i} className="p-6 rounded-xl bg-card border border-border card-shadow">
                         <div className="flex items-start gap-3 mb-4">
@@ -846,7 +867,7 @@ const Results = () => {
                       </div>
                     ))}
                   </div>
-                </>
+                </div>
               )}
 
               {/* ══ 10 VÍDEOS PARA GRAVAR AGORA ══ */}
@@ -1022,18 +1043,52 @@ const Results = () => {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("rewrittenCaptions")}</h2>
                 </div>
                 <div className="space-y-6">
-                  {(analysis.rewrittenCaptions ?? []).map((c, i) => (
-                    <div key={i} className="grid md:grid-cols-2 gap-4">
-                      <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-                        <p className="text-xs text-destructive font-medium mb-2 uppercase">{t("original")}</p>
-                        <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
+                  {(analysis.rewrittenCaptions ?? []).map((c, i) => {
+                    const copyCaption = async (text: string) => {
+                      try {
+                        await navigator.clipboard.writeText(text);
+                        toast({ title: lang === "pt-BR" ? "Copiado!" : "Copied!", description: lang === "pt-BR" ? "Legenda copiada para a área de transferência." : "Caption copied to clipboard." });
+                      } catch {
+                        toast({ title: "Error", description: lang === "pt-BR" ? "Falha ao copiar." : "Failed to copy.", variant: "destructive" });
+                      }
+                    };
+                    return (
+                      <div key={i} className="grid md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs text-destructive font-medium uppercase">{t("original")}</p>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1 transition-all hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => copyCaption(c.original)}
+                            >
+                              <Copy className="h-3 w-3" />
+                              {lang === "pt-BR" ? "Copiar" : "Copy"}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
+                        </div>
+                        <div className="p-4 rounded-lg gradient-border bg-card">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs text-primary font-medium uppercase">{t("rewrittenAI")}</p>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1 transition-all hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => copyCaption(c.rewritten)}
+                            >
+                              <Copy className="h-3 w-3" />
+                              {lang === "pt-BR" ? "Copiar" : "Copy"}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-foreground whitespace-pre-line">{c.rewritten}</p>
+                        </div>
                       </div>
-                      <div className="p-4 rounded-lg gradient-border bg-card">
-                        <p className="text-xs text-primary font-medium mb-2 uppercase">{t("rewrittenAI")}</p>
-                        <p className="text-sm text-foreground whitespace-pre-line">{c.rewritten}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </>
