@@ -162,8 +162,9 @@ const AgencySettings = () => {
           <Card className="border-border bg-card">
             <CardContent className="pt-6 space-y-5">
               <div className="space-y-2">
-                <Label>{isPt ? "Nome da agência" : "Agency name"}</Label>
+                <Label htmlFor="agency-name">{isPt ? "Nome da agência" : "Agency name"}</Label>
                 <Input
+                  id="agency-name"
                   value={agencyName}
                   onChange={(e) => setAgencyName(e.target.value)}
                   placeholder={isPt ? "Ex: Acme Marketing" : "E.g. Acme Marketing"}
@@ -209,7 +210,7 @@ const AgencySettings = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{isPt ? "Cor primária" : "Primary color"}</Label>
+                <Label htmlFor="primary-color">{isPt ? "Cor primária" : "Primary color"}</Label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -219,6 +220,7 @@ const AgencySettings = () => {
                     className="h-10 w-14 rounded border border-border bg-transparent cursor-pointer disabled:opacity-50"
                   />
                   <Input
+                    id="primary-color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
                     placeholder="#7c3aed"
@@ -230,8 +232,9 @@ const AgencySettings = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{isPt ? "Site da agência (opcional)" : "Agency website (optional)"}</Label>
+                <Label htmlFor="agency-website">{isPt ? "Site da agência (opcional)" : "Agency website (optional)"}</Label>
                 <Input
+                  id="agency-website"
                   type="url"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}

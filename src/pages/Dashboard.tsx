@@ -332,10 +332,12 @@ const Dashboard = () => {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
+                    id="profile-url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder={t("placeholder")}
                     className="pl-10"
+                    aria-label={isPt ? "Link do perfil Instagram" : "Instagram profile link"}
                   />
                 </div>
                 <Button type="submit" className="gradient-bg text-primary-foreground">
