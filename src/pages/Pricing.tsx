@@ -225,7 +225,7 @@ const Pricing = () => {
                   </div>
                 )}
                 <CardContent className="pt-8 pb-6 flex flex-col flex-1">
-                  <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
+                  <h2 className="text-xl font-bold text-foreground">{plan.name}</h2>
                   <p className="text-sm text-muted-foreground mt-1 mb-4">{description}</p>
                   <div className="flex items-baseline gap-1 mb-6">
                     <span className="text-4xl font-bold text-foreground">{price}</span>

@@ -101,10 +101,12 @@ const Index = () => {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              id="profile-url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder={t("placeholder")}
               className="pl-10 h-12 bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+              aria-label={isPt ? "Link do perfil Instagram" : "Instagram profile link"}
             />
           </div>
           <Button type="submit" className="h-12 px-8 gradient-bg font-semibold text-primary-foreground hover:opacity-90 transition-opacity">
@@ -127,7 +129,7 @@ const Index = () => {
               <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center mb-4">
                 <f.icon className="h-5 w-5 text-primary-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{f.title}</h3>
+              <h2 className="text-lg font-semibold text-foreground mb-2">{f.title}</h2>
               <p className="text-sm text-muted-foreground">{f.desc}</p>
             </div>
           ))}

@@ -113,11 +113,11 @@ const Auth = () => {
               <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold">
             {showForgot
               ? (isPt ? "Recuperar senha" : "Reset password")
               : (isLogin ? t("authLoginTitle") : t("authSignupTitle"))}
-          </CardTitle>
+          </h1>
           <CardDescription>
             {showForgot
               ? (isPt ? "Enviaremos um link por email." : "We'll email you a reset link.")

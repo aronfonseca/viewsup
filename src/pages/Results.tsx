@@ -357,7 +357,7 @@ const Results = () => {
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
           {branding.enabled && branding.agency_logo_url ? (
-            <img src={branding.agency_logo_url} alt={branding.agency_name || "Agency"} className="h-7 w-7 object-contain" />
+            <img src={branding.agency_logo_url} alt={branding.agency_name ? `${branding.agency_name} logo` : "Agency logo"} className="h-7 w-7 object-contain" />
           ) : (
             <Sparkles className="h-6 w-6 text-primary" />
           )}
@@ -391,6 +391,7 @@ const Results = () => {
                   placeholder="Viewsup Insights"
                   className="h-9 w-48 bg-secondary border-border text-sm"
                   autoFocus
+                  aria-label={lang === "pt-BR" ? "Nome da empresa" : "Company name"}
                 />
                 <Button type="submit" size="sm" className="h-9 gradient-bg text-primary-foreground">OK</Button>
               </form>
