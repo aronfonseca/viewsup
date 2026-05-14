@@ -1043,18 +1043,52 @@ const Results = () => {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("rewrittenCaptions")}</h2>
                 </div>
                 <div className="space-y-6">
-                  {(analysis.rewrittenCaptions ?? []).map((c, i) => (
-                    <div key={i} className="grid md:grid-cols-2 gap-4">
-                      <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-                        <p className="text-xs text-destructive font-medium mb-2 uppercase">{t("original")}</p>
-                        <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
+                  {(analysis.rewrittenCaptions ?? []).map((c, i) => {
+                    const copyCaption = async (text: string) => {
+                      try {
+                        await navigator.clipboard.writeText(text);
+                        toast({ title: lang === "pt-BR" ? "Copiado!" : "Copied!", description: lang === "pt-BR" ? "Legenda copiada para a área de transferência." : "Caption copied to clipboard." });
+                      } catch {
+                        toast({ title: "Error", description: lang === "pt-BR" ? "Falha ao copiar." : "Failed to copy.", variant: "destructive" });
+                      }
+                    };
+                    return (
+                      <div key={i} className="grid md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs text-destructive font-medium uppercase">{t("original")}</p>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1 transition-all hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => copyCaption(c.original)}
+                            >
+                              <Copy className="h-3 w-3" />
+                              {lang === "pt-BR" ? "Copiar" : "Copy"}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
+                        </div>
+                        <div className="p-4 rounded-lg gradient-border bg-card">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs text-primary font-medium uppercase">{t("rewrittenAI")}</p>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1 transition-all hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => copyCaption(c.rewritten)}
+                            >
+                              <Copy className="h-3 w-3" />
+                              {lang === "pt-BR" ? "Copiar" : "Copy"}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-foreground whitespace-pre-line">{c.rewritten}</p>
+                        </div>
                       </div>
-                      <div className="p-4 rounded-lg gradient-border bg-card">
-                        <p className="text-xs text-primary font-medium mb-2 uppercase">{t("rewrittenAI")}</p>
-                        <p className="text-sm text-foreground whitespace-pre-line">{c.rewritten}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </>
