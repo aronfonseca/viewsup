@@ -4,7 +4,7 @@ import {
   Sparkles, ArrowLeft, AlertTriangle, TrendingUp, Lightbulb, RefreshCw,
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
   Link2, Users, Shield, Flame, Target, FileText, Radar, Video, Download,
-  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard,
+  BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard, Copy,
 } from "lucide-react";
 const RetentionLab = lazy(() => import("@/components/RetentionLab"));
 import { Button } from "@/components/ui/button";
