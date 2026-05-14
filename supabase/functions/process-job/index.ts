@@ -968,6 +968,8 @@ serve(async (req) => {
       .eq("id", jobId)
       .maybeSingle();
     if (!job || job.user_id !== authData.user.id) {
+      // Refund the credit consumed earlier — we cannot run this job.
+      try { await adminEarly.rpc("refund_analysis_credit", { _user_id: authData.user.id }); } catch { /* ignore */ }
       return new Response(JSON.stringify({ error: "Not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
