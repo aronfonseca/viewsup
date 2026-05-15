@@ -937,6 +937,7 @@ serve(async (req) => {
 
     // Atomic credit consumption — prevents race conditions where concurrent
     // requests could each pass an in-memory quota check.
+    const adminEarly = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: consumed, error: consumeErr } = await adminEarly.rpc(
       "consume_analysis_credit",
       { _user_id: authData.user.id },
