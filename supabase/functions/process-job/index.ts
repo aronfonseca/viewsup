@@ -411,11 +411,11 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     return empty;
   }
   const ac = new AbortController();
-  const timeoutId = setTimeout(() => ac.abort(), 90_000);
+  const timeoutId = setTimeout(() => ac.abort(), 150_000);
   try {
     console.log("[Apify] starting scrape for @", username);
     const res = await fetch(
-      `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}&timeout=80`,
+      `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}&timeout=120`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -433,7 +433,7 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     if (!profile) return empty;
 
     const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
-    const latest = (profile.latestPosts || []).slice(0, 12) as any[];
+    const latest = (profile.latestPosts || []).slice(0, 6) as any[];
 
     // Per-post enriched normalisation
     const enriched = latest.map((p: any) => {
@@ -732,7 +732,7 @@ async function processJob(jobId: string) {
 
     console.log("[Worker] calling Anthropic for job:", jobId, "| prior=", !!prior, "| niche-rows=", allInsights?.length ?? 0);
     const ac = new AbortController();
-    const timeoutId = setTimeout(() => ac.abort(), 240_000);
+    const timeoutId = setTimeout(() => ac.abort(), 360_000);
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -783,7 +783,7 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     // ============================================================
     // DETERMINISTIC ENGAGEMENT OVERRIDE
     // The AI sometimes hallucinates engagementRatio.ratio (e.g. 0.001%).
-    // We recompute it from the real scrape (last ≤12 posts) and apply
+    // We recompute it from the real scrape (last ≤6 posts) and apply
     // dynamic benchmarks per follower tier so the label matches reality.
     // Formula: ((avgLikes + avgComments) / followers) * 100
     // ============================================================
