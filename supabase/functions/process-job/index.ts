@@ -415,7 +415,7 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   try {
     console.log("[Apify] starting scrape for @", username);
     const res = await fetch(
-      `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}&timeout=80`,
+      `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}&timeout=120`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
