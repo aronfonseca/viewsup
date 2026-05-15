@@ -411,7 +411,7 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     return empty;
   }
   const ac = new AbortController();
-  const timeoutId = setTimeout(() => ac.abort(), 90_000);
+  const timeoutId = setTimeout(() => ac.abort(), 150_000);
   try {
     console.log("[Apify] starting scrape for @", username);
     const res = await fetch(
