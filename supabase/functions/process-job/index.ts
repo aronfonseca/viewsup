@@ -732,7 +732,7 @@ async function processJob(jobId: string) {
 
     console.log("[Worker] calling Anthropic for job:", jobId, "| prior=", !!prior, "| niche-rows=", allInsights?.length ?? 0);
     const ac = new AbortController();
-    const timeoutId = setTimeout(() => ac.abort(), 240_000);
+    const timeoutId = setTimeout(() => ac.abort(), 360_000);
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
