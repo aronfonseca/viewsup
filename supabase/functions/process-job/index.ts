@@ -783,7 +783,7 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     // ============================================================
     // DETERMINISTIC ENGAGEMENT OVERRIDE
     // The AI sometimes hallucinates engagementRatio.ratio (e.g. 0.001%).
-    // We recompute it from the real scrape (last ≤12 posts) and apply
+    // We recompute it from the real scrape (last ≤6 posts) and apply
     // dynamic benchmarks per follower tier so the label matches reality.
     // Formula: ((avgLikes + avgComments) / followers) * 100
     // ============================================================
