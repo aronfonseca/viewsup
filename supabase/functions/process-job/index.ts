@@ -433,7 +433,7 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     if (!profile) return empty;
 
     const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
-    const latest = (profile.latestPosts || []).slice(0, 12) as any[];
+    const latest = (profile.latestPosts || []).slice(0, 6) as any[];
 
     // Per-post enriched normalisation
     const enriched = latest.map((p: any) => {
