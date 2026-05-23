@@ -344,6 +344,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedbacks: {
+        Row: {
+          created_at: string
+          id: string
+          language: string
+          message: string
+          page_url: string | null
+          type: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language?: string
+          message: string
+          page_url?: string | null
+          type: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string
+          message?: string
+          page_url?: string | null
+          type?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       video_jobs: {
         Row: {
           company_name: string | null

@@ -7,6 +7,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import Index from "./pages/Index.tsx";
 import Results from "./pages/Results.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </ErrorBoundary>
+            <FeedbackWidget />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
