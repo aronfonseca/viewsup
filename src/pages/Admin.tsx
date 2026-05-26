@@ -14,6 +14,7 @@ import NichoIntelligence from "@/components/NichoIntelligence";
 
 const ADMIN_EMAIL = "aronfonseca2020@gmail.com";
 const NICHO_INTEL_EMAIL = "aronfonsecaoficial@gmail.com";
+const ADMIN_EMAILS = [ADMIN_EMAIL, NICHO_INTEL_EMAIL];
 
 
 interface AdminUser {
@@ -33,7 +34,8 @@ const Admin = () => {
   const [edits, setEdits] = useState<Record<string, number>>({});
 
   const email = user?.email?.toLowerCase();
-  const isAdmin = email === ADMIN_EMAIL || email === NICHO_INTEL_EMAIL;
+  const isAdmin = !!email && ADMIN_EMAILS.includes(email);
+  const canManageUsers = email === ADMIN_EMAIL;
   const canSeeNichoIntel = email === NICHO_INTEL_EMAIL;
 
 
@@ -51,8 +53,8 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (isAdmin) load();
-  }, [isAdmin]);
+    if (canManageUsers) load();
+  }, [canManageUsers]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
@@ -91,62 +93,66 @@ const Admin = () => {
       <PageHelmet title="Admin | Viewsup AI" path="/admin" />
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Admin · Usuários</h1>
-          <Button variant="outline" onClick={load} disabled={busy}>
-            {busy ? <Loader2 className="animate-spin h-4 w-4" /> : "Recarregar"}
-          </Button>
+          <h1 className="text-3xl font-bold">Admin</h1>
+          {canManageUsers && (
+            <Button variant="outline" onClick={load} disabled={busy}>
+              {busy ? <Loader2 className="animate-spin h-4 w-4" /> : "Recarregar"}
+            </Button>
+          )}
         </div>
 
-        <Card>
-          <CardHeader><CardTitle>{users.length} usuário(s)</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Plano</TableHead>
-                  <TableHead>Análises</TableHead>
-                  <TableHead>Cadastro</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((u) => (
-                  <TableRow key={u.user_id}>
-                    <TableCell>{u.display_name ?? "—"}</TableCell>
-                    <TableCell className="text-xs">{u.email}</TableCell>
-                    <TableCell>
-                      <Select value={u.plan} onValueChange={(v) => updatePlan(u.user_id, v)}>
-                        <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="free">Free</SelectItem>
-                          <SelectItem value="starter">Starter</SelectItem>
-                          <SelectItem value="pro">Pro</SelectItem>
-                          <SelectItem value="agency">Agency</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="number"
-                          className="w-24"
-                          value={edits[u.user_id] ?? u.analyses_remaining}
-                          onChange={(e) => setEdits((s) => ({ ...s, [u.user_id]: Number(e.target.value) }))}
-                        />
-                        <span className="text-xs text-muted-foreground">/ {u.analyses_limit}</span>
-                        <Button size="sm" onClick={() => updateAnalyses(u.user_id)} disabled={edits[u.user_id] === undefined}>
-                          Salvar
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs">{new Date(u.created_at).toLocaleDateString()}</TableCell>
+        {canManageUsers && (
+          <Card>
+            <CardHeader><CardTitle>{users.length} usuário(s)</CardTitle></CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Análises</TableHead>
+                    <TableHead>Cadastro</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {users.map((u) => (
+                    <TableRow key={u.user_id}>
+                      <TableCell>{u.display_name ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{u.email}</TableCell>
+                      <TableCell>
+                        <Select value={u.plan} onValueChange={(v) => updatePlan(u.user_id, v)}>
+                          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="free">Free</SelectItem>
+                            <SelectItem value="starter">Starter</SelectItem>
+                            <SelectItem value="pro">Pro</SelectItem>
+                            <SelectItem value="agency">Agency</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="number"
+                            className="w-24"
+                            value={edits[u.user_id] ?? u.analyses_remaining}
+                            onChange={(e) => setEdits((s) => ({ ...s, [u.user_id]: Number(e.target.value) }))}
+                          />
+                          <span className="text-xs text-muted-foreground">/ {u.analyses_limit}</span>
+                          <Button size="sm" onClick={() => updateAnalyses(u.user_id)} disabled={edits[u.user_id] === undefined}>
+                            Salvar
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs">{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {canSeeNichoIntel && (
           <section className="space-y-3">
