@@ -147,9 +147,20 @@ const Admin = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {canSeeNichoIntel && (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-bold">Inteligência de Nichos</h2>
+            <p className="text-sm text-muted-foreground">
+              Agregados por nicho a partir do histórico de análises. Ordenado pelo volume total.
+            </p>
+            <NichoIntelligence />
+          </section>
+        )}
       </div>
     </div>
   );
 };
+
 
 export default Admin;
