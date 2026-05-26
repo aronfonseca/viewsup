@@ -10,8 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { PageHelmet } from "@/components/PageHelmet";
+import NichoIntelligence from "@/components/NichoIntelligence";
 
 const ADMIN_EMAIL = "aronfonseca2020@gmail.com";
+const NICHO_INTEL_EMAIL = "aronfonsecaoficial@gmail.com";
+
 
 interface AdminUser {
   user_id: string;
@@ -29,7 +32,10 @@ const Admin = () => {
   const [busy, setBusy] = useState(false);
   const [edits, setEdits] = useState<Record<string, number>>({});
 
-  const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
+  const email = user?.email?.toLowerCase();
+  const isAdmin = email === ADMIN_EMAIL || email === NICHO_INTEL_EMAIL;
+  const canSeeNichoIntel = email === NICHO_INTEL_EMAIL;
+
 
   const load = async () => {
     setBusy(true);
@@ -141,9 +147,20 @@ const Admin = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {canSeeNichoIntel && (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-bold">Inteligência de Nichos</h2>
+            <p className="text-sm text-muted-foreground">
+              Agregados por nicho a partir do histórico de análises. Ordenado pelo volume total.
+            </p>
+            <NichoIntelligence />
+          </section>
+        )}
       </div>
     </div>
   );
 };
+
 
 export default Admin;
