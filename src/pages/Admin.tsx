@@ -32,7 +32,10 @@ const Admin = () => {
   const [busy, setBusy] = useState(false);
   const [edits, setEdits] = useState<Record<string, number>>({});
 
-  const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
+  const email = user?.email?.toLowerCase();
+  const isAdmin = email === ADMIN_EMAIL || email === NICHO_INTEL_EMAIL;
+  const canSeeNichoIntel = email === NICHO_INTEL_EMAIL;
+
 
   const load = async () => {
     setBusy(true);
