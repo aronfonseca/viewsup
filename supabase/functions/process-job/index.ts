@@ -770,10 +770,59 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     const aiInput: any = toolUse.input;
     const analysis = aiInput;
     console.log('trendRadar raw:', JSON.stringify(aiInput.trendRadar));
-    const trendRadar = normaliseTrendRadar(analysis, isPT, analysis.nicho || "Outros", username);
+    let trendRadar = normaliseTrendRadar(analysis, isPT, analysis.nicho || "Outros", username);
     console.log(
       `[Worker] AI fields=${Object.keys(aiInput).join(",")} | trendRadar.length=${Array.isArray(aiInput.trendRadar) ? aiInput.trendRadar.length : "missing"} | normalisedTrendRadar.length=${trendRadar.length} | dimensions.length=${Array.isArray(aiInput.dimensions) ? aiInput.dimensions.length : "missing"}`,
     );
+
+    // Fallback: if trendRadar is empty, make a secondary Claude call to generate trending formats
+    if (trendRadar.length === 0) {
+      const fallbackNicho = analysis.nicho || "Outros";
+      console.log(`[Worker] trendRadar empty — invoking fallback for nicho=${fallbackNicho}`);
+      try {
+        const fbPrompt = isPT
+          ? `Você é um especialista em tendências de Instagram no Brasil em 2026. Liste EXATAMENTE 8 formatos de conteúdo em alta (trending content formats) para o nicho "${fallbackNicho}" no Instagram Brasil 2026. Responda APENAS com JSON válido no formato: {"trendRadar":[{"title":"...","description":"...","example":"...","relevance":"..."}]}. Não inclua texto fora do JSON.`
+          : `You are an Instagram trends expert for Brazil in 2026. List EXACTLY 8 trending content formats for the "${fallbackNicho}" niche on Instagram Brazil 2026. Respond ONLY with valid JSON in the format: {"trendRadar":[{"title":"...","description":"...","example":"...","relevance":"..."}]}. Do not include any text outside the JSON.`;
+
+        const fbAc = new AbortController();
+        const fbTimeout = setTimeout(() => fbAc.abort(), 60_000);
+        const fbRes = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 2000,
+            temperature: 0.3,
+            messages: [{ role: "user", content: fbPrompt }],
+          }),
+          signal: fbAc.signal,
+        });
+        clearTimeout(fbTimeout);
+
+        if (fbRes.ok) {
+          const fbData = await fbRes.json();
+          const text = (fbData.content || []).find((b: any) => b.type === "text")?.text || "";
+          const match = text.match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            const items = Array.isArray(parsed.trendRadar) ? parsed.trendRadar.filter(isValidTrendRadarItem) : [];
+            trendRadar = items;
+            console.log(`[Worker] trendRadar fallback generated ${items.length} items`);
+          } else {
+            console.warn("[Worker] trendRadar fallback: no JSON found in response");
+          }
+        } else {
+          const txt = await fbRes.text();
+          console.error("[Worker] trendRadar fallback Anthropic error:", fbRes.status, txt.slice(0, 300));
+        }
+      } catch (err) {
+        console.error("[Worker] trendRadar fallback failed:", err);
+      }
+    }
 
     // Normalise arrays so the frontend never crashes on missing fields
     for (const k of ["dimensions", "issues", "patterns", "improvedHooks", "rewrittenCaptions", "burningProblems", "contentPillars", "videoIdeas", "scriptSuggestions", "hookStyles", "recentPosts"]) {
