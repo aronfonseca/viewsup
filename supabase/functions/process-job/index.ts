@@ -433,7 +433,7 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
     if (!profile) return empty;
 
     const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
-    const latest = (profile.latestPosts || []).slice(0, 6) as any[];
+    const latest = (profile.latestPosts || []).slice(0, 9) as any[];
 
     // Per-post enriched normalisation
     const enriched = latest.map((p: any) => {
@@ -742,7 +742,7 @@ async function processJob(jobId: string) {
       },
       body: JSON.stringify({
   model: "claude-sonnet-4-5-20250929",
-  max_tokens: 8000,
+  max_tokens: 12000,
   temperature: 0.1,
   system: systemPrompt,
   tools: [{
