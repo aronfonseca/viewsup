@@ -18,6 +18,8 @@ import {
 import AgencyReportPreview from "@/components/AgencyReportPreview";
 import { PageHelmet } from "@/components/PageHelmet";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal, type UpgradeReason } from "@/components/UpgradeModal";
 
 interface Report {
   id: string;
@@ -55,6 +57,8 @@ const Dashboard = () => {
   const [periodEnd, setPeriodEnd] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const { branding } = useAgencyBranding();
+  const { canSeeFullHistory } = usePlan();
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason | null>(null);
   const isPt = lang === "pt-BR";
 
   useEffect(() => {
@@ -130,12 +134,14 @@ const Dashboard = () => {
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
     if (limitReached) {
-      navigate("/pricing");
+      setUpgradeReason("analyses_limit");
       return;
     }
     if (!url.trim()) return;
     navigate(`/results?url=${encodeURIComponent(url.trim())}`);
   };
+
+  const visibleReports = canSeeFullHistory ? reports : reports.slice(0, 1);
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
