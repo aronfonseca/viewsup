@@ -144,10 +144,17 @@ const Pricing = () => {
     mostPopular: isPt ? "Mais popular" : "Most popular",
     subscribe: isPt ? "Assinar agora" : "Subscribe now",
     back: isPt ? "Voltar" : "Back",
+    guarantee: isPt ? "✓ 7 dias de garantia ou seu dinheiro de volta" : "✓ 7-day money-back guarantee",
+    freeTitle: isPt ? "Grátis" : "Free",
+    freeDesc: isPt
+      ? "1 análise sem cadastro • Sem cartão de crédito • Resultado em segundos"
+      : "1 analysis with no sign-up • No credit card • Results in seconds",
+    freeCta: isPt ? "Experimentar grátis" : "Try it free",
     footer: isPt
       ? "Pagamentos processados com segurança. Cancele a qualquer momento direto pelo seu painel."
       : "Payments processed securely. Cancel anytime from your dashboard.",
   };
+
 
 
   // Format display price using detected currency for "rest of world"
