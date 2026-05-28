@@ -357,7 +357,7 @@ export type Database = {
           type: string
           user_agent: string | null
           user_email: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -368,7 +368,7 @@ export type Database = {
           type: string
           user_agent?: string | null
           user_email?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -379,7 +379,7 @@ export type Database = {
           type?: string
           user_agent?: string | null
           user_email?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
