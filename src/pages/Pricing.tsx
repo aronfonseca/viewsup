@@ -16,15 +16,17 @@ interface Plan {
   priceId: string;
   pricePt: string;
   priceEn: string;
+  perDayPt: string;
+  perDayEn: string;
   descriptionPt: string;
   descriptionEn: string;
+  tagPt?: string;
+  tagEn?: string;
   featuresPt: string[];
   featuresEn: string[];
   highlight?: boolean;
 }
 
-// Base USD prices (cents) — used for "rest of world" display.
-// PT-BR shows R$, GB shows £. Other countries show approx local currency via Intl.NumberFormat.
 const PLANS: Plan[] = [
   {
     id: "starter",
@@ -32,6 +34,8 @@ const PLANS: Plan[] = [
     priceId: "starter_monthly",
     pricePt: "R$ 47",
     priceEn: "£8",
+    perDayPt: "R$ 1,57/dia",
+    perDayEn: "£0.27/day",
     descriptionPt: "Para criadores começando",
     descriptionEn: "For creators just getting started",
     featuresPt: [
@@ -42,7 +46,7 @@ const PLANS: Plan[] = [
       "Trend Radar",
     ],
     featuresEn: [
-      "15 analyses per month",
+      "15 profile analyses / month",
       "Full report",
       "Scores & dimensions",
       "10 ready-to-record scripts",
@@ -53,24 +57,30 @@ const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     priceId: "pro_monthly",
-    pricePt: "R$ 197",
-    priceEn: "£32",
+    pricePt: "R$ 97",
+    priceEn: "£16",
+    perDayPt: "R$ 3,23/dia",
+    perDayEn: "£0.53/day",
     descriptionPt: "Para criadores sérios e small business",
     descriptionEn: "For serious creators and small businesses",
+    tagPt: "Ideal para quem posta mais de 2x por semana e quer crescer com dados",
+    tagEn: "Ideal for creators posting 2+ times a week who want to grow with data",
     featuresPt: [
       "60 análises de perfil/mês",
+      "Tudo do Starter",
       "Relatório completo com 14 módulos",
-      "Hook Swapper",
-      "Soundscape Architect",
+      "Reescreva os hooks dos seus vídeos com IA",
+      "Sugestões de música e áudio para cada vídeo",
       "Laboratório de Vídeo",
       "Relatório em PDF",
       "Suporte prioritário",
     ],
     featuresEn: [
-      "60 analyses per month",
+      "60 profile analyses / month",
+      "Everything in Starter",
       "Complete report with 14 modules",
-      "Hook Swapper",
-      "Soundscape Architect",
+      "Rewrite your video hooks with AI",
+      "Music and audio suggestions for each video",
       "Video Lab",
       "PDF report",
       "Priority support",
@@ -81,34 +91,39 @@ const PLANS: Plan[] = [
     id: "agency",
     name: "Agency",
     priceId: "agency_monthly",
-    pricePt: "R$ 497",
-    priceEn: "£79",
+    pricePt: "R$ 297",
+    priceEn: "£49",
+    perDayPt: "R$ 9,90/dia",
+    perDayEn: "£1.63/day",
     descriptionPt: "Para agências e consultores",
     descriptionEn: "For agencies and consultants",
+    tagPt: "Seus clientes recebem relatórios com a logo da sua agência — não do Viewsup",
+    tagEn: "Your clients receive reports with your agency's logo — not Viewsup's",
     featuresPt: [
       "Análises ilimitadas",
       "Tudo do Pro",
       "Relatórios white-label",
       "Painel de agência",
-      "PDF customizado",
-      "Suporte VIP",
+      "PDF customizado com sua marca",
+      "Múltiplos clientes / workspaces",
+      "Suporte VIP dedicado",
     ],
     featuresEn: [
       "Unlimited analyses",
       "Everything in Pro",
       "White-label reports",
       "Agency dashboard",
-      "Custom PDF",
-      "VIP support",
+      "Custom-branded PDF",
+      "Multiple clients / workspaces",
+      "Dedicated VIP support",
     ],
   },
 ];
 
-// Approx USD price for "rest of world" fallback display
 const PLAN_USD: Record<string, number> = {
   starter: 9,
-  pro: 39,
-  agency: 99,
+  pro: 19,
+  agency: 59,
 };
 
 const Pricing = () => {
@@ -129,10 +144,17 @@ const Pricing = () => {
     mostPopular: isPt ? "Mais popular" : "Most popular",
     subscribe: isPt ? "Assinar agora" : "Subscribe now",
     back: isPt ? "Voltar" : "Back",
+    guarantee: isPt ? "✓ 7 dias de garantia ou seu dinheiro de volta" : "✓ 7-day money-back guarantee",
+    freeTitle: isPt ? "Grátis" : "Free",
+    freeDesc: isPt
+      ? "1 análise sem cadastro • Sem cartão de crédito • Resultado em segundos"
+      : "1 analysis with no sign-up • No credit card • Results in seconds",
+    freeCta: isPt ? "Experimentar grátis" : "Try it free",
     footer: isPt
       ? "Pagamentos processados com segurança. Cancele a qualquer momento direto pelo seu painel."
       : "Payments processed securely. Cancel anytime from your dashboard.",
   };
+
 
 
   // Format display price using detected currency for "rest of world"
@@ -204,22 +226,46 @@ const Pricing = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{tx.subtitle}</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Free trial banner */}
+        <Card className="mb-10 border-primary/40 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 shadow-md shadow-primary/10">
+          <CardContent className="py-5 px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <div className="flex items-center gap-2 justify-center md:justify-start">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">{tx.freeTitle}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">{tx.freeDesc}</p>
+            </div>
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              className="border-primary/50 text-foreground hover:bg-primary/10 shrink-0"
+            >
+              {tx.freeCta}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {PLANS.map((plan) => {
             const isLoading = loading && selectedPlan === plan.id;
             const price = formatPrice(plan);
+            const perDay = isPt ? plan.perDayPt : plan.perDayEn;
             const description = isPt ? plan.descriptionPt : plan.descriptionEn;
+            const tag = isPt ? plan.tagPt : plan.tagEn;
             const features = isPt ? plan.featuresPt : plan.featuresEn;
             return (
               <Card
                 key={plan.id}
                 className={`relative border-border bg-card flex flex-col ${
-                  plan.highlight ? "border-primary/50 shadow-lg shadow-primary/10 md:scale-105" : ""
+                  plan.highlight
+                    ? "border-primary shadow-2xl shadow-primary/20 md:scale-110 md:-my-2 z-10 ring-1 ring-primary/40"
+                    : "opacity-95"
                 }`}
               >
                 {plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="gradient-bg text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="gradient-bg text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full shadow-md">
                       {tx.mostPopular}
                     </span>
                   </div>
@@ -227,10 +273,16 @@ const Pricing = () => {
                 <CardContent className="pt-8 pb-6 flex flex-col flex-1">
                   <h2 className="text-xl font-bold text-foreground">{plan.name}</h2>
                   <p className="text-sm text-muted-foreground mt-1 mb-4">{description}</p>
-                  <div className="flex items-baseline gap-1 mb-6">
+                  <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold text-foreground">{price}</span>
                     <span className="text-muted-foreground">{tx.period}</span>
                   </div>
+                  <p className="text-xs text-muted-foreground mb-4 mt-1">{perDay}</p>
+                  {tag && (
+                    <p className={`text-xs italic mb-4 ${plan.highlight ? "text-primary" : "text-muted-foreground"}`}>
+                      {tag}
+                    </p>
+                  )}
                   <ul className="space-y-3 flex-1 mb-6">
                     {features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-foreground">
@@ -247,11 +299,13 @@ const Pricing = () => {
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : tx.subscribe}
                   </Button>
+                  <p className="text-center text-xs text-muted-foreground mt-3">{tx.guarantee}</p>
                 </CardContent>
               </Card>
             );
           })}
         </div>
+
 
         <p className="text-center text-xs text-muted-foreground mt-12">{tx.footer}</p>
         <p className="text-center text-xs text-muted-foreground mt-4">
