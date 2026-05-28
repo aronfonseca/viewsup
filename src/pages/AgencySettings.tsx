@@ -12,6 +12,7 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { toast } from "@/hooks/use-toast";
 import AgencyReportPreview from "@/components/AgencyReportPreview";
 import { PageHelmet } from "@/components/PageHelmet";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 const DEFAULT_COLOR = "#7c3aed";
 
@@ -52,6 +53,10 @@ const AgencySettings = () => {
   }, [user]);
 
   const isAgency = plan === "agency";
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  useEffect(() => {
+    if (!loading && !isAgency) setShowUpgrade(true);
+  }, [loading, isAgency]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -274,6 +279,11 @@ const AgencySettings = () => {
           </div>
         </div>
       </main>
+      <UpgradeModal
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        reason="white_label"
+      />
     </div>
   );
 };

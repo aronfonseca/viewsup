@@ -18,6 +18,8 @@ import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal, LockedOverlay, type UpgradeReason } from "@/components/UpgradeModal";
 import { PageHelmet } from "@/components/PageHelmet";
 import { hexToHslString } from "@/lib/colorUtils";
 
@@ -201,6 +203,8 @@ const Results = () => {
   const { toast } = useToast();
   const { t, lang, companyName, setCompanyName } = useI18n();
   const { branding } = useAgencyBranding();
+  const { canUseRetentionLab, canExportPdf } = usePlan();
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
@@ -270,6 +274,7 @@ const Results = () => {
   }, [url, reportId, force, isDemo, navigate, lang, companyName, t, toast]);
 
   const handleExportPDF = async () => {
+    if (!canExportPdf) { setUpgradeReason("pdf_export"); return; }
     if (!reportRef.current) return;
     setExporting(true);
     try {
@@ -420,7 +425,7 @@ const Results = () => {
               </button>
             )}
             <Button onClick={handleExportPDF} disabled={exporting} className="gradient-bg text-primary-foreground">
-              <Download className="h-4 w-4 mr-2" />
+              {canExportPdf ? <Download className="h-4 w-4 mr-2" /> : <span className="mr-2">🔒</span>}
               {exporting ? "..." : t("savePDF")}
             </Button>
           </div>
@@ -446,12 +451,15 @@ const Results = () => {
             {t("tabTrendRadar")}
           </button>
           <button
-            onClick={() => setActiveTab("retention-lab")}
+            onClick={() => {
+              if (!canUseRetentionLab) { setUpgradeReason("retention_lab"); return; }
+              setActiveTab("retention-lab");
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === "retention-lab" ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
-            <FlaskConical className="h-4 w-4" />
+            {canUseRetentionLab ? <FlaskConical className="h-4 w-4" /> : <span className="text-sm">🔒</span>}
             {t("tabRetentionLab")}
           </button>
         </div>
@@ -1149,7 +1157,7 @@ const Results = () => {
             </div>
           )}
 
-          {activeTab === "retention-lab" && (
+          {activeTab === "retention-lab" && canUseRetentionLab && (
             <Suspense fallback={
               <div className="flex items-center justify-center p-12">
                 <div className="h-8 w-8 rounded-full gradient-bg animate-spin opacity-30" />
@@ -1160,6 +1168,11 @@ const Results = () => {
           )}
         </div>
       </main>
+      <UpgradeModal
+        open={upgradeReason !== null}
+        onOpenChange={(v) => !v && setUpgradeReason(null)}
+        reason={upgradeReason ?? "analyses_limit"}
+      />
     </div>
   );
 };
