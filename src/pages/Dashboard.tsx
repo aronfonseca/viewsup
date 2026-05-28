@@ -512,7 +512,13 @@ const Dashboard = () => {
           )}
         </div>
       </main>
+      <UpgradeModal
+        open={upgradeReason !== null}
+        onOpenChange={(v) => !v && setUpgradeReason(null)}
+        reason={upgradeReason ?? "analyses_limit"}
+      />
     </div>
+
   );
 };
 
