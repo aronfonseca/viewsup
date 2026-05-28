@@ -80,11 +80,9 @@ const Dashboard = () => {
         .select("display_name, full_name, plan, analyses_remaining, analyses_limit, period_end")
         .eq("user_id", user!.id)
         .single();
+      const firstName = ((user as any)?.user_metadata?.full_name || user?.email || "").split(/[\s@]/)[0];
+      setDisplayName(firstName);
       if (profile) {
-        const rawFullName = (profile as any).full_name || "";
-        const firstName = rawFullName.trim().split(" ")[0];
-        const fallbackName = user!.email ? user!.email.split("@")[0] : "";
-        setDisplayName(firstName || fallbackName);
         setPlan((profile as any).plan || "free");
         setAnalysesRemaining((profile as any).analyses_remaining ?? 0);
         setAnalysesLimit((profile as any).analyses_limit ?? 0);
