@@ -451,12 +451,15 @@ const Results = () => {
             {t("tabTrendRadar")}
           </button>
           <button
-            onClick={() => setActiveTab("retention-lab")}
+            onClick={() => {
+              if (!canUseRetentionLab) { setUpgradeReason("retention_lab"); return; }
+              setActiveTab("retention-lab");
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === "retention-lab" ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
-            <FlaskConical className="h-4 w-4" />
+            {canUseRetentionLab ? <FlaskConical className="h-4 w-4" /> : <span className="text-sm">🔒</span>}
             {t("tabRetentionLab")}
           </button>
         </div>
@@ -1154,7 +1157,7 @@ const Results = () => {
             </div>
           )}
 
-          {activeTab === "retention-lab" && (
+          {activeTab === "retention-lab" && canUseRetentionLab && (
             <Suspense fallback={
               <div className="flex items-center justify-center p-12">
                 <div className="h-8 w-8 rounded-full gradient-bg animate-spin opacity-30" />
@@ -1165,6 +1168,11 @@ const Results = () => {
           )}
         </div>
       </main>
+      <UpgradeModal
+        open={upgradeReason !== null}
+        onOpenChange={(v) => !v && setUpgradeReason(null)}
+        reason={upgradeReason ?? "analyses_limit"}
+      />
     </div>
   );
 };
