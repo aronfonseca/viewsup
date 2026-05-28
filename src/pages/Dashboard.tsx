@@ -77,11 +77,14 @@ const Dashboard = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, plan, analyses_remaining, analyses_limit, period_end")
+        .select("display_name, full_name, plan, analyses_remaining, analyses_limit, period_end")
         .eq("user_id", user!.id)
         .single();
       if (profile) {
-        setDisplayName(profile.display_name || user!.email || "");
+        const rawFullName = (profile as any).full_name || "";
+        const firstName = rawFullName.trim().split(" ")[0];
+        const fallbackName = user!.email ? user!.email.split("@")[0] : "";
+        setDisplayName(firstName || fallbackName);
         setPlan((profile as any).plan || "free");
         setAnalysesRemaining((profile as any).analyses_remaining ?? 0);
         setAnalysesLimit((profile as any).analyses_limit ?? 0);
@@ -193,7 +196,7 @@ const Dashboard = () => {
         {/* Welcome + New Analysis */}
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {t("dashWelcome")}, {displayName.split("@")[0]}! 👋
+            {t("dashWelcome")}, {displayName}! 👋
           </h1>
           <p className="text-muted-foreground">{t("dashSubtitle")}</p>
         </div>
