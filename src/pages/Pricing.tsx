@@ -226,22 +226,46 @@ const Pricing = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{tx.subtitle}</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Free trial banner */}
+        <Card className="mb-10 border-primary/40 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 shadow-md shadow-primary/10">
+          <CardContent className="py-5 px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <div className="flex items-center gap-2 justify-center md:justify-start">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">{tx.freeTitle}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">{tx.freeDesc}</p>
+            </div>
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              className="border-primary/50 text-foreground hover:bg-primary/10 shrink-0"
+            >
+              {tx.freeCta}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {PLANS.map((plan) => {
             const isLoading = loading && selectedPlan === plan.id;
             const price = formatPrice(plan);
+            const perDay = isPt ? plan.perDayPt : plan.perDayEn;
             const description = isPt ? plan.descriptionPt : plan.descriptionEn;
+            const tag = isPt ? plan.tagPt : plan.tagEn;
             const features = isPt ? plan.featuresPt : plan.featuresEn;
             return (
               <Card
                 key={plan.id}
                 className={`relative border-border bg-card flex flex-col ${
-                  plan.highlight ? "border-primary/50 shadow-lg shadow-primary/10 md:scale-105" : ""
+                  plan.highlight
+                    ? "border-primary shadow-2xl shadow-primary/20 md:scale-110 md:-my-2 z-10 ring-1 ring-primary/40"
+                    : "opacity-95"
                 }`}
               >
                 {plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="gradient-bg text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="gradient-bg text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full shadow-md">
                       {tx.mostPopular}
                     </span>
                   </div>
@@ -249,10 +273,16 @@ const Pricing = () => {
                 <CardContent className="pt-8 pb-6 flex flex-col flex-1">
                   <h2 className="text-xl font-bold text-foreground">{plan.name}</h2>
                   <p className="text-sm text-muted-foreground mt-1 mb-4">{description}</p>
-                  <div className="flex items-baseline gap-1 mb-6">
+                  <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold text-foreground">{price}</span>
                     <span className="text-muted-foreground">{tx.period}</span>
                   </div>
+                  <p className="text-xs text-muted-foreground mb-4 mt-1">{perDay}</p>
+                  {tag && (
+                    <p className={`text-xs italic mb-4 ${plan.highlight ? "text-primary" : "text-muted-foreground"}`}>
+                      {tag}
+                    </p>
+                  )}
                   <ul className="space-y-3 flex-1 mb-6">
                     {features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-foreground">
@@ -269,11 +299,13 @@ const Pricing = () => {
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : tx.subscribe}
                   </Button>
+                  <p className="text-center text-xs text-muted-foreground mt-3">{tx.guarantee}</p>
                 </CardContent>
               </Card>
             );
           })}
         </div>
+
 
         <p className="text-center text-xs text-muted-foreground mt-12">{tx.footer}</p>
         <p className="text-center text-xs text-muted-foreground mt-4">
