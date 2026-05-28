@@ -274,6 +274,7 @@ const Results = () => {
   }, [url, reportId, force, isDemo, navigate, lang, companyName, t, toast]);
 
   const handleExportPDF = async () => {
+    if (!canExportPdf) { setUpgradeReason("pdf_export"); return; }
     if (!reportRef.current) return;
     setExporting(true);
     try {
