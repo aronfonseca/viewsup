@@ -18,6 +18,8 @@ import { useI18n } from "@/lib/i18n";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgencyBranding } from "@/hooks/useAgencyBranding";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal, LockedOverlay, type UpgradeReason } from "@/components/UpgradeModal";
 import { PageHelmet } from "@/components/PageHelmet";
 import { hexToHslString } from "@/lib/colorUtils";
 
@@ -201,6 +203,8 @@ const Results = () => {
   const { toast } = useToast();
   const { t, lang, companyName, setCompanyName } = useI18n();
   const { branding } = useAgencyBranding();
+  const { canUseRetentionLab, canExportPdf } = usePlan();
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const url = searchParams.get("url") || "";
   const reportId = searchParams.get("reportId") || "";
