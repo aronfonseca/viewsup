@@ -375,7 +375,7 @@ const Dashboard = () => {
             </Card>
           ) : (
             <div className="grid gap-3">
-              {reports.map((r) => (
+              {visibleReports.map((r) => (
                 <Card
                   key={r.id}
                   className="border-border bg-card hover:border-primary/30 transition-colors cursor-pointer"
@@ -410,7 +410,7 @@ const Dashboard = () => {
                         title={isPt ? "Forçar nova análise" : "Force new analysis"}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (limitReached) { navigate("/pricing"); return; }
+                          if (limitReached) { setUpgradeReason("analyses_limit"); return; }
                           navigate(`/results?url=${encodeURIComponent(r.profile_url)}&force=1`);
                         }}
                       >
@@ -422,9 +422,33 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               ))}
+              {!canSeeFullHistory && reports.length > 1 && (
+                <Card
+                  className="border-dashed border-primary/40 bg-card cursor-pointer hover:border-primary/70 transition-colors"
+                  onClick={() => setUpgradeReason("full_history")}
+                >
+                  <CardContent className="py-6 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-lg">🔒</div>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {isPt ? `+ ${reports.length - 1} análises bloqueadas` : `+ ${reports.length - 1} analyses locked`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {isPt ? "Faça upgrade para ver o histórico completo." : "Upgrade to view the full history."}
+                        </p>
+                      </div>
+                    </div>
+                    <Button size="sm" className="gradient-bg text-primary-foreground">
+                      {isPt ? "Ver planos" : "See plans"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </div>
+
 
         {/* Video Analyses History */}
         <div>
