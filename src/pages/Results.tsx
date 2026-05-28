@@ -425,7 +425,7 @@ const Results = () => {
               </button>
             )}
             <Button onClick={handleExportPDF} disabled={exporting} className="gradient-bg text-primary-foreground">
-              <Download className="h-4 w-4 mr-2" />
+              {canExportPdf ? <Download className="h-4 w-4 mr-2" /> : <span className="mr-2">🔒</span>}
               {exporting ? "..." : t("savePDF")}
             </Button>
           </div>
