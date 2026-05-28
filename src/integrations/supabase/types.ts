@@ -218,6 +218,7 @@ export type Database = {
           country_code: string | null
           created_at: string
           display_name: string | null
+          full_name: string | null
           id: string
           language_pref: string | null
           period_end: string | null
@@ -236,6 +237,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id?: string
           language_pref?: string | null
           period_end?: string | null
@@ -254,6 +256,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id?: string
           language_pref?: string | null
           period_end?: string | null
