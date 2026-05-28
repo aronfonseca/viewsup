@@ -16,15 +16,17 @@ interface Plan {
   priceId: string;
   pricePt: string;
   priceEn: string;
+  perDayPt: string;
+  perDayEn: string;
   descriptionPt: string;
   descriptionEn: string;
+  tagPt?: string;
+  tagEn?: string;
   featuresPt: string[];
   featuresEn: string[];
   highlight?: boolean;
 }
 
-// Base USD prices (cents) — used for "rest of world" display.
-// PT-BR shows R$, GB shows £. Other countries show approx local currency via Intl.NumberFormat.
 const PLANS: Plan[] = [
   {
     id: "starter",
@@ -32,6 +34,8 @@ const PLANS: Plan[] = [
     priceId: "starter_monthly",
     pricePt: "R$ 47",
     priceEn: "£8",
+    perDayPt: "R$ 1,57/dia",
+    perDayEn: "£0.27/day",
     descriptionPt: "Para criadores começando",
     descriptionEn: "For creators just getting started",
     featuresPt: [
@@ -42,7 +46,7 @@ const PLANS: Plan[] = [
       "Trend Radar",
     ],
     featuresEn: [
-      "15 analyses per month",
+      "15 profile analyses / month",
       "Full report",
       "Scores & dimensions",
       "10 ready-to-record scripts",
@@ -53,24 +57,30 @@ const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     priceId: "pro_monthly",
-    pricePt: "R$ 197",
-    priceEn: "£32",
+    pricePt: "R$ 97",
+    priceEn: "£16",
+    perDayPt: "R$ 3,23/dia",
+    perDayEn: "£0.53/day",
     descriptionPt: "Para criadores sérios e small business",
     descriptionEn: "For serious creators and small businesses",
+    tagPt: "Ideal para quem posta mais de 2x por semana e quer crescer com dados",
+    tagEn: "Ideal for creators posting 2+ times a week who want to grow with data",
     featuresPt: [
       "60 análises de perfil/mês",
+      "Tudo do Starter",
       "Relatório completo com 14 módulos",
-      "Hook Swapper",
-      "Soundscape Architect",
+      "Reescreva os hooks dos seus vídeos com IA",
+      "Sugestões de música e áudio para cada vídeo",
       "Laboratório de Vídeo",
       "Relatório em PDF",
       "Suporte prioritário",
     ],
     featuresEn: [
-      "60 analyses per month",
+      "60 profile analyses / month",
+      "Everything in Starter",
       "Complete report with 14 modules",
-      "Hook Swapper",
-      "Soundscape Architect",
+      "Rewrite your video hooks with AI",
+      "Music and audio suggestions for each video",
       "Video Lab",
       "PDF report",
       "Priority support",
@@ -81,34 +91,39 @@ const PLANS: Plan[] = [
     id: "agency",
     name: "Agency",
     priceId: "agency_monthly",
-    pricePt: "R$ 497",
-    priceEn: "£79",
+    pricePt: "R$ 297",
+    priceEn: "£49",
+    perDayPt: "R$ 9,90/dia",
+    perDayEn: "£1.63/day",
     descriptionPt: "Para agências e consultores",
     descriptionEn: "For agencies and consultants",
+    tagPt: "Seus clientes recebem relatórios com a logo da sua agência — não do Viewsup",
+    tagEn: "Your clients receive reports with your agency's logo — not Viewsup's",
     featuresPt: [
       "Análises ilimitadas",
       "Tudo do Pro",
       "Relatórios white-label",
       "Painel de agência",
-      "PDF customizado",
-      "Suporte VIP",
+      "PDF customizado com sua marca",
+      "Múltiplos clientes / workspaces",
+      "Suporte VIP dedicado",
     ],
     featuresEn: [
       "Unlimited analyses",
       "Everything in Pro",
       "White-label reports",
       "Agency dashboard",
-      "Custom PDF",
-      "VIP support",
+      "Custom-branded PDF",
+      "Multiple clients / workspaces",
+      "Dedicated VIP support",
     ],
   },
 ];
 
-// Approx USD price for "rest of world" fallback display
 const PLAN_USD: Record<string, number> = {
   starter: 9,
-  pro: 39,
-  agency: 99,
+  pro: 19,
+  agency: 59,
 };
 
 const Pricing = () => {
