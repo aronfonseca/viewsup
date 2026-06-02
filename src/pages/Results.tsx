@@ -184,6 +184,47 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
 
 const toArray = (val: any): any[] => Array.isArray(val) ? val : val ? [val] : [];
 
+/* ── Dimension context line helpers ── */
+const DIM_CONTEXT_PT: Record<string, { strength: string; weakness: string }> = {
+  hookRetention: { strength: "Hooks fortes", weakness: "hooks fracos" },
+  visualConsistency: { strength: "Identidade visual forte", weakness: "identidade visual fraca" },
+  consistency: { strength: "Identidade visual forte", weakness: "identidade visual fraca" },
+  engagement: { strength: "Engajamento forte", weakness: "engajamento fraco" },
+  contentStrategy: { strength: "Estratégia de conteúdo forte", weakness: "estratégia de conteúdo fraca" },
+  contentValue: { strength: "Estratégia de conteúdo forte", weakness: "estratégia de conteúdo fraca" },
+  community: { strength: "Comunidade forte", weakness: "comunidade fraca" },
+  viralPotential: { strength: "Potencial viral forte", weakness: "potencial viral fraco" },
+  profileHealth: { strength: "Saúde do perfil forte", weakness: "saúde do perfil fraca" },
+};
+
+const DIM_CONTEXT_EN: Record<string, { strength: string; weakness: string }> = {
+  hookRetention: { strength: "Strong hooks", weakness: "weak hooks" },
+  visualConsistency: { strength: "Strong visual identity", weakness: "weak visual identity" },
+  consistency: { strength: "Strong visual identity", weakness: "weak visual identity" },
+  engagement: { strength: "Strong engagement", weakness: "weak engagement" },
+  contentStrategy: { strength: "Strong content strategy", weakness: "weak content strategy" },
+  contentValue: { strength: "Strong content strategy", weakness: "weak content strategy" },
+  community: { strength: "Strong community", weakness: "weak community" },
+  viralPotential: { strength: "Strong viral potential", weakness: "weak viral potential" },
+  profileHealth: { strength: "Strong profile health", weakness: "weak profile health" },
+};
+
+const getContextLine = (dimensions: any[], lang: "pt-BR" | "en-GB"): string | null => {
+  if (!dimensions || dimensions.length < 2) return null;
+  const sorted = [...dimensions].sort((a, b) => b.score - a.score);
+  const highest = sorted[0];
+  const lowest = sorted[sorted.length - 1];
+  const map = lang === "pt-BR" ? DIM_CONTEXT_PT : DIM_CONTEXT_EN;
+  const keyHi = highest.name || highest.label || "";
+  const keyLo = lowest.name || lowest.label || "";
+  const hi = map[keyHi];
+  const lo = map[keyLo];
+  if (!hi || !lo) return null;
+  return lang === "pt-BR"
+    ? `${hi.strength}, mas perdendo alcance por ${lo.weakness}`
+    : `${hi.strength}, but losing reach due to ${lo.weakness}`;
+};
+
 const sanitizeAnalysis = (raw: any): ProfileAnalysis => {
   if (!raw || typeof raw !== "object") return raw;
   const fields = [
@@ -227,6 +268,8 @@ const Results = () => {
       ?? source?.result_data?.trendRadar;
     return Array.isArray(value) ? value : [];
   }, [analysis]);
+
+  const contextLine = useMemo(() => getContextLine(analysis?.dimensions ?? [], lang), [analysis, lang]);
 
   useEffect(() => {
     if (isDemo) {
@@ -499,6 +542,9 @@ const Results = () => {
                 <div className="flex flex-col items-center justify-center p-8 rounded-xl bg-card border border-border card-shadow">
                   <p className="text-xs text-muted-foreground mb-4 tracking-wide">{t("overallScore")}</p>
                   <ScoreRing score={analysis.overallScore} />
+                  {contextLine && (
+                    <p className="text-xs text-muted-foreground mt-4 text-center italic leading-relaxed">{contextLine}</p>
+                  )}
                 </div>
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
                   <h2 className="text-sm font-semibold text-muted-foreground tracking-wide">{t("dimensions")}</h2>
