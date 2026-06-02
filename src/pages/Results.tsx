@@ -542,6 +542,9 @@ const Results = () => {
                 <div className="flex flex-col items-center justify-center p-8 rounded-xl bg-card border border-border card-shadow">
                   <p className="text-xs text-muted-foreground mb-4 tracking-wide">{t("overallScore")}</p>
                   <ScoreRing score={analysis.overallScore} />
+                  {contextLine && (
+                    <p className="text-xs text-muted-foreground mt-4 text-center italic leading-relaxed">{contextLine}</p>
+                  )}
                 </div>
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
                   <h2 className="text-sm font-semibold text-muted-foreground tracking-wide">{t("dimensions")}</h2>
