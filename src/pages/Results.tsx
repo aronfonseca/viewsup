@@ -269,6 +269,8 @@ const Results = () => {
     return Array.isArray(value) ? value : [];
   }, [analysis]);
 
+  const contextLine = useMemo(() => getContextLine(analysis?.dimensions ?? [], lang), [analysis, lang]);
+
   useEffect(() => {
     if (isDemo) {
       setAnalysis(sanitizeAnalysis(demoAnalysis as any));
