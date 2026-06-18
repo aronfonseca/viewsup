@@ -311,7 +311,7 @@ export async function waitForAnalysisJob(
   opts: { intervalMs?: number; timeoutMs?: number; onTick?: (status: string) => void } = {},
 ): Promise<ProfileAnalysis> {
   const interval = opts.intervalMs ?? 5000;
-  const timeout = opts.timeoutMs ?? 5 * 60 * 1000; // 5 minutes
+  const timeout = opts.timeoutMs ?? 10 * 60 * 1000; // 10 minutes
   const start = Date.now();
 
   while (Date.now() - start < timeout) {
