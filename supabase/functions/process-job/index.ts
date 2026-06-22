@@ -201,6 +201,22 @@ const ANALYSIS_SCHEMA = {
           additionalProperties: false,
         },
       },
+      soundscapeArchitect: {
+        type: "array",
+        minItems: 5,
+        maxItems: 5,
+        items: {
+          type: "object",
+          properties: {
+            mood: { type: "string", description: "Audio mood (e.g. 'energetic', 'emotional', 'inspiring')" },
+            suggestion: { type: "string", description: "Music style name or audio type (e.g. 'Lo-fi beat 120 BPM', 'Brazilian funk trending')" },
+            useCase: { type: "string", description: "Which type of video to use it on (e.g. 'Transformation reels', 'Step-by-step tutorial')" },
+            trending: { type: "boolean", description: "Whether this audio is trending on Instagram right now" },
+          },
+          required: ["mood", "suggestion", "useCase", "trending"],
+          additionalProperties: false,
+        },
+      },
     },
     required: [
       "nicho",
@@ -218,6 +234,7 @@ const ANALYSIS_SCHEMA = {
       "videoIdeas",
       "trendRadar",
       "scriptSuggestions",
+      "soundscapeArchitect",
     ],
     additionalProperties: false,
   },
