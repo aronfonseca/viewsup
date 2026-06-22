@@ -201,6 +201,22 @@ const ANALYSIS_SCHEMA = {
           additionalProperties: false,
         },
       },
+      soundscapeArchitect: {
+        type: "array",
+        minItems: 5,
+        maxItems: 5,
+        items: {
+          type: "object",
+          properties: {
+            mood: { type: "string", description: "Audio mood (e.g. 'energetic', 'emotional', 'inspiring')" },
+            suggestion: { type: "string", description: "Music style name or audio type (e.g. 'Lo-fi beat 120 BPM', 'Brazilian funk trending')" },
+            useCase: { type: "string", description: "Which type of video to use it on (e.g. 'Transformation reels', 'Step-by-step tutorial')" },
+            trending: { type: "boolean", description: "Whether this audio is trending on Instagram right now" },
+          },
+          required: ["mood", "suggestion", "useCase", "trending"],
+          additionalProperties: false,
+        },
+      },
     },
     required: [
       "nicho",
@@ -218,6 +234,7 @@ const ANALYSIS_SCHEMA = {
       "videoIdeas",
       "trendRadar",
       "scriptSuggestions",
+      "soundscapeArchitect",
     ],
     additionalProperties: false,
   },
@@ -348,7 +365,9 @@ Mention "${c}" naturally in 1-2 burningProblems solutions when relevant.
 
 Return ONLY the fields defined in the tool schema. Keep each text field tight so the full JSON stays compact, but always include the exact numbers and shortcodes required by the rules above.
 
-trendRadar MUST contain EXACTLY 8 items. Returning fewer than 8 items or an empty array will FAIL the analysis. Each item must use the viral_patterns from the REAL NICHE RESEARCH block above as inspiration.`;
+trendRadar MUST contain EXACTLY 8 items. Returning fewer than 8 items or an empty array will FAIL the analysis. Each item must use the viral_patterns from the REAL NICHE RESEARCH block above as inspiration.
+
+soundscapeArchitect MUST contain EXACTLY 5 audio suggestions tailored to the niche "${'${'}nicho${'}'}" and the profile's content style/tone. Each item must have: mood (one or two words — e.g. "energético", "emocional", "inspirador", "energetic", "calm"), suggestion (concrete music style/genre or audio type — e.g. "Lo-fi beat 120 BPM", "Funk melódico brasileiro trending", "Cinematic build-up com drop", "Trending pop remix"), useCase (which type of video to use it on — e.g. "Reels de transformação antes/depois", "Tutorial passo a passo", "Bastidores e storytelling"), and trending (boolean — true ONLY if this style is currently trending on Instagram for that niche). At least 2 of the 5 items MUST have trending=true. Write all text in ${isPT ? '"Português Brasileiro"' : '"British English"'}.`;
 
  const userPrompt = isPT
     ? `Faça a auditoria do perfil @${username} (URL: ${url}) com base nos dados REAIS abaixo.

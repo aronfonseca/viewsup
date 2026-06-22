@@ -696,7 +696,30 @@ const Results = () => {
               })()}
 
               {/* ══ SOUNDSCAPE ARCHITECT ══ */}
-              {analysis.soundscapeArchitect && (
+              {Array.isArray(analysis.soundscapeArchitect) && analysis.soundscapeArchitect.length > 0 && (
+                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Music className="h-5 w-5 text-success" />
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("soundscapeTitle")}</h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-6">{t("soundscapeDesc")}</p>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {analysis.soundscapeArchitect.map((s: any, i: number) => (
+                      <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-medium uppercase tracking-wider">{s.mood}</span>
+                          {s.trending && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/20 text-success font-semibold">🔥 {t("soundTrending")}</span>
+                          )}
+                        </div>
+                        <p className="font-semibold text-foreground text-sm leading-snug">{s.suggestion}</p>
+                        <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/80">{t("soundUseCase")}:</span> {s.useCase}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {analysis.soundscapeArchitect && !Array.isArray(analysis.soundscapeArchitect) && (
                 <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
                   <div className="flex items-center gap-2 mb-2">
                     <Music className="h-5 w-5 text-success" />
@@ -721,7 +744,7 @@ const Results = () => {
                     <>
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("trackSuggestions")}</h3>
                       <div className="grid sm:grid-cols-3 gap-3 mb-4">
-                        {analysis.soundscapeArchitect.trackSuggestions.map((tr, i) => (
+                        {analysis.soundscapeArchitect.trackSuggestions.map((tr: any, i: number) => (
                           <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
                             <p className="font-semibold text-foreground text-sm">{tr.title}</p>
                             <p className="text-xs text-muted-foreground">{tr.artist}</p>
@@ -734,9 +757,11 @@ const Results = () => {
                       </div>
                     </>
                   )}
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                    <p className="text-sm text-foreground italic"><RichText text={analysis.soundscapeArchitect.insight} /></p>
-                  </div>
+                  {analysis.soundscapeArchitect.insight && (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                      <p className="text-sm text-foreground italic"><RichText text={analysis.soundscapeArchitect.insight} /></p>
+                    </div>
+                  )}
                 </div>
               )}
 
