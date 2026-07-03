@@ -432,24 +432,71 @@ async function scrapeInstagram(username: string): Promise<ScrapeResult> {
   const ac = new AbortController();
   const timeoutId = setTimeout(() => ac.abort(), 150_000);
   try {
-    console.log("[Apify] starting scrape for @", username);
-    const res = await fetch(
-      `https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}&timeout=120`,
-      {
+    const fetchFromActor = async (actor: string, body: unknown): Promise<any[]> => {
+      const url = `https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${APIFY_API_KEY}&timeout=120`;
+      const r = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usernames: [username] }),
+        body: JSON.stringify(body),
         signal: ac.signal,
-      },
-    );
-    clearTimeout(timeoutId);
-    if (!res.ok) {
-      console.warn("[Apify] non-OK status:", res.status);
-      return empty;
+      });
+      if (!r.ok) {
+        console.warn(`[Apify] ${actor} non-OK status:`, r.status);
+        return [];
+      }
+      return (await r.json()) as any[];
+    };
+
+    console.log("[Apify] starting scrape for @", username);
+    let items = await fetchFromActor("apify~instagram-profile-scraper", { usernames: [username] });
+    let profile = items?.[0];
+
+    // Fallback: primary returned empty → try generic instagram-scraper
+    const primaryEmpty = !profile || (!profile.latestPosts?.length && profile.followersCount == null);
+    if (primaryEmpty) {
+      console.warn("[Apify] primary scraper returned empty — trying fallback apify~instagram-scraper");
+      const fbItems = await fetchFromActor("apify~instagram-scraper", {
+        directUrls: [`https://www.instagram.com/${username}/`],
+        resultsType: "details",
+        resultsLimit: 12,
+        searchType: "user",
+        addParentData: false,
+      });
+      clearTimeout(timeoutId);
+      // instagram-scraper returns items where the first can be the profile with latestPosts,
+      // or a flat list of posts referencing ownerUsername.
+      const profItem = fbItems.find((x: any) => x && (x.username === username || x.ownerUsername === username) && (x.latestPosts || x.followersCount != null));
+      if (profItem) {
+        profile = {
+          ...profItem,
+          latestPosts: profItem.latestPosts || fbItems.filter((x: any) => x?.ownerUsername === username || x?.shortCode || x?.shortcode).slice(0, 12),
+        };
+      } else {
+        // Build a synthetic profile out of raw posts
+        const posts = fbItems.filter((x: any) => x && (x.shortCode || x.shortcode));
+        if (posts.length) {
+          profile = {
+            username,
+            biography: "",
+            followersCount: null,
+            followsCount: null,
+            postsCount: posts.length,
+            verified: false,
+            isBusinessAccount: false,
+            externalUrl: null,
+            fullName: null,
+            latestPosts: posts.slice(0, 12),
+          };
+        }
+      }
+      if (!profile) {
+        console.warn("[Apify] fallback also returned empty");
+        return empty;
+      }
+    } else {
+      clearTimeout(timeoutId);
     }
-    const items = (await res.json()) as any[];
-    const profile = items?.[0];
-    if (!profile) return empty;
+
 
     const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
     const latest = (profile.latestPosts || []).slice(0, 9) as any[];
