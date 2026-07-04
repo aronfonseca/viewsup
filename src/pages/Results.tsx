@@ -833,15 +833,27 @@ const Results = () => {
 
               {/* Video Engineering */}
               <h2 className="text-lg font-bold text-foreground mb-4">{t("videoEngineering")}</h2>
+              <div className="mb-4 p-3 rounded-lg bg-muted/40 border border-border/50">
+                <p className="text-xs text-muted-foreground">
+                  {lang === "pt-BR"
+                    ? "ℹ️ A análise de métricas é baseada em dados públicos do Instagram. Para análise do conteúdo real dos seus vídeos, use o Laboratório de Retenção."
+                    : "ℹ️ Metric analysis is based on public Instagram data. For real analysis of your video content, use the Retention Lab."}
+                </p>
+              </div>
               <div className="grid md:grid-cols-2 gap-6 mb-10">
                 {analysis.hookRetention && (
                   <AdvancedCard icon={Timer} title={t("hookRetention")} score={analysis.hookRetention.score}
                     stats={[
                       { label: t("audienceLost"), value: `${analysis.hookRetention.audienceLostPercent}%` },
-                      { label: t("visualHook"), value: analysis.hookRetention.hasVisualHook },
-                      { label: t("verbalHook"), value: analysis.hookRetention.hasVerbalHook },
                     ]}
-                    issues={analysis.hookRetention.issues} insight={analysis.hookRetention.insight} iconColor="text-warning" />
+                    issues={analysis.hookRetention.issues}
+                    insight={
+                      (lang === "pt-BR"
+                        ? "Para análise real de hook visual e verbal, envie seu vídeo no Laboratório de Retenção. "
+                        : "For real visual and verbal hook analysis, upload your video in the Retention Lab. ") +
+                      (analysis.hookRetention.insight || "")
+                    }
+                    iconColor="text-warning" />
                 )}
                 {analysis.visualFatigue && (
                   <AdvancedCard icon={Eye} title={t("visualFatigue")} score={analysis.visualFatigue.score}
