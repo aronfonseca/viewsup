@@ -21,7 +21,9 @@ import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Refund from "./pages/Refund.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
+import Connect from "./pages/Connect.tsx";
 import NotFound from "./pages/NotFound.tsx";
+
 
 
 const queryClient = new QueryClient();
@@ -45,6 +47,8 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/refund" element={<Refund />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+              <Route path="/connect" element={<Connect />} />
+
 
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route
