@@ -142,6 +142,8 @@ const Index = () => {
           <a href="/privacy" className="hover:text-foreground">{isPt ? "Privacidade" : "Privacy"}</a>
           <a href="/refund" className="hover:text-foreground">{isPt ? "Reembolso" : "Refund"}</a>
           <a href="/pricing" className="hover:text-foreground">{pricingLabel}</a>
+          <a href="/connect" className="hover:text-foreground">{isPt ? "Conectar IA" : "Connect AI"}</a>
+
         </div>
         <div>{t("footer")}</div>
       </footer>
