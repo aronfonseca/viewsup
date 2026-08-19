@@ -17,7 +17,7 @@ const NICHE_ENUM = [
   "Imobiliaria", "Fitness", "Beleza", "Moda", "Alimentacao", "Educacao",
   "Tecnologia", "Marketing", "Financas", "Saude", "Coaching", "Ecommerce",
   "Turismo", "Automotivo", "Entretenimento", "Servicos", "B2B", "Lifestyle",
-  "Arte", "Outros",
+  "Arte", "Empresarios", "Empresas", "Influenciadores", "Outros",
 ];
 
 const ANALYSIS_SCHEMA = {
@@ -131,6 +131,20 @@ const ANALYSIS_SCHEMA = {
           additionalProperties: false,
         },
       },
+      contentFocus: {
+        type: "object",
+        description: "Diagnosis of whether the profile has a clear content focus, and — if not — a concrete recommended direction grounded in the profile's own best-performing posts and niche data.",
+        properties: {
+          hasClearFocus: { type: "boolean" },
+          currentThemesDetected: { type: "array", items: { type: "string" } },
+          diagnosis: { type: "string" },
+          recommendedFocus: { type: "string" },
+          recommendedPillars: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+          transitionSteps: { type: "array", items: { type: "string" } },
+        },
+        required: ["hasClearFocus", "currentThemesDetected", "diagnosis", "recommendedFocus", "recommendedPillars", "transitionSteps"],
+        additionalProperties: false,
+      },
       issues: { type: "array", items: { type: "string" } },
       patterns: { type: "array", items: { type: "string" } },
       improvedHooks: { type: "array", items: { type: "string" } },
@@ -228,6 +242,7 @@ const ANALYSIS_SCHEMA = {
       "hookRetention",
       "viralScore",
       "burningProblems",
+      "contentFocus",
       "issues",
       "patterns",
       "improvedHooks",
@@ -334,7 +349,8 @@ function buildPrompts(
 9. improvedHooks: cada hook reescrito DEVE referenciar a caption original do post (shortcode) que está sendo melhorado.
 10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
 11. trendRadar CRITICAL — MANDATORY 8 ITEMS: You MUST return exactly 8 trendRadar items. Returning fewer than 8 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
-12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
+12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".
+13. contentFocus — SEMPRE preencha, analisando os temas/assuntos das captions em "POSTS DETAIL" (não a identidade visual, isso é outro campo): se os posts recentes cobrem assuntos sem relação entre si, sem um nicho/audiência clara, defina hasClearFocus=false. Nesse caso, "recommendedFocus" DEVE ser uma direção específica e concreta (nunca genérica como "poste sobre o que você gosta"), ancorada em: (a) qual tema/formato JÁ teve melhor desempenho no próprio perfil (cite o shortcode), e (b) dados reais de nicho/tendência disponíveis no contexto acima, quando existirem. "recommendedPillars" DEVE ter exatamente 3 pilares de conteúdo concretos e específicos do contexto do perfil. "transitionSteps" DEVE ter passos acionáveis, referenciando posts reais que já funcionaram. Se hasClearFocus=true, "diagnosis" deve reconhecer o foco já existente, "recommendedFocus" deve reforçar/refinar (não inventar) a direção atual, e "transitionSteps" deve tratar de aprofundar o foco já estabelecido.`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
 1. ALWAYS cite real profile numbers: exact follower count, real avgLikes, real avgComments, and the computed engagement rate (engagementRate %). Use the exact raw numbers shown in "PROFILE METRICS" and "AGGREGATE METRICS".
@@ -348,7 +364,8 @@ function buildPrompts(
 9. improvedHooks: each rewritten hook MUST reference the original post caption (shortcode) being improved.
 10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
 11. trendRadar CRITICAL — MANDATORY 8 ITEMS: You MUST return exactly 8 trendRadar items. Returning fewer than 8 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
-12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".`;
+12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".
+13. contentFocus — ALWAYS fill this in, by analysing the subject matter of captions in "POSTS DETAIL" (not visual identity, that's a different field): if recent posts cover unrelated subjects with no coherent niche/audience, set hasClearFocus=false. In that case, "recommendedFocus" MUST be a specific, concrete direction (never generic like "post about what you enjoy"), grounded in: (a) which theme/format ALREADY performed best on this profile (cite the shortcode), and (b) real niche/trend data available in the context above, when present. "recommendedPillars" MUST have exactly 3 concrete content pillars specific to this profile's context. "transitionSteps" MUST have actionable steps referencing real posts that already worked. If hasClearFocus=true, "diagnosis" should acknowledge the existing focus, "recommendedFocus" should reinforce/refine (not invent) the current direction, and "transitionSteps" should be about deepening the established focus.`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
 
@@ -732,6 +749,19 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     for (const k of ["dimensions", "issues", "patterns", "improvedHooks", "rewrittenCaptions", "burningProblems", "contentPillars", "videoIdeas", "scriptSuggestions", "hookStyles", "recentPosts"]) {
       if (!Array.isArray(aiInput[k])) aiInput[k] = [];
     }
+    if (!aiInput.contentFocus || typeof aiInput.contentFocus !== "object" || Array.isArray(aiInput.contentFocus)) {
+      aiInput.contentFocus = {
+        hasClearFocus: true,
+        currentThemesDetected: [],
+        diagnosis: "",
+        recommendedFocus: "",
+        recommendedPillars: [],
+        transitionSteps: [],
+      };
+    }
+    if (!Array.isArray(aiInput.contentFocus.currentThemesDetected)) aiInput.contentFocus.currentThemesDetected = [];
+    if (!Array.isArray(aiInput.contentFocus.recommendedPillars)) aiInput.contentFocus.recommendedPillars = [];
+    if (!Array.isArray(aiInput.contentFocus.transitionSteps)) aiInput.contentFocus.transitionSteps = [];
 
     // ============================================================
     // DETERMINISTIC ENGAGEMENT OVERRIDE

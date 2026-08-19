@@ -8,7 +8,8 @@ const corsHeaders = {
 const NICHES = [
   "Imobiliaria","Fitness","Beleza","Moda","Alimentacao","Educacao","Tecnologia",
   "Marketing","Financas","Saude","Coaching","Ecommerce","Turismo","Automotivo",
-  "Entretenimento","Servicos","B2B","Lifestyle","Arte","Outros",
+  "Entretenimento","Servicos","B2B","Lifestyle","Arte",
+  "Empresarios","Empresas","Influenciadores","Outros",
 ];
 
 // Real, grounded research using Anthropic's server-side web_search tool.

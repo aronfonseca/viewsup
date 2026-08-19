@@ -5,6 +5,7 @@ import {
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
   Link2, Users, Shield, Flame, Target, FileText, Radar, Video, Download,
   BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard, Copy,
+  CheckCircle2,
 } from "lucide-react";
 const RetentionLab = lazy(() => import("@/components/RetentionLab"));
 import { Button } from "@/components/ui/button";
@@ -966,6 +967,80 @@ const Results = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Content Focus Diagnosis */}
+              {analysis.contentFocus && (
+                <div className={`rounded-2xl border p-8 mb-12 card-shadow ${
+                  analysis.contentFocus.hasClearFocus
+                    ? "border-success/40 bg-success/5"
+                    : "border-warning/50 bg-warning/5"
+                }`}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
+                      analysis.contentFocus.hasClearFocus ? "bg-success/20" : "bg-warning/20"
+                    }`}>
+                      {analysis.contentFocus.hasClearFocus
+                        ? <CheckCircle2 className="h-6 w-6 text-success" />
+                        : <Crosshair className="h-6 w-6 text-warning" />}
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">{t("contentFocusTitle")}</h2>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {analysis.contentFocus.hasClearFocus ? t("contentFocusOnTrack") : t("contentFocusScattered")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-foreground mb-6"><RichText text={analysis.contentFocus.diagnosis} /></p>
+
+                  {analysis.contentFocus.currentThemesDetected.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("contentFocusThemes")}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {analysis.contentFocus.currentThemesDetected.map((theme, i) => (
+                          <span key={i} className="px-3 py-1 rounded-full text-xs bg-secondary text-muted-foreground">{theme}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-4 rounded-lg bg-card border border-border mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-semibold text-primary uppercase tracking-wider">{t("contentFocusRecommendation")}</span>
+                    </div>
+                    <p className="text-sm text-foreground"><RichText text={analysis.contentFocus.recommendedFocus} /></p>
+                  </div>
+
+                  {analysis.contentFocus.recommendedPillars.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("contentFocusPillars")}</p>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {analysis.contentFocus.recommendedPillars.map((pillar, i) => (
+                          <div key={i} className="p-3 rounded-lg bg-card border border-border text-sm text-foreground">
+                            <span className="font-bold text-primary mr-1">{i + 1}.</span>
+                            <RichText text={pillar} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {analysis.contentFocus.transitionSteps.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("contentFocusSteps")}</p>
+                      <ol className="space-y-2">
+                        {analysis.contentFocus.transitionSteps.map((step, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                            <span className="shrink-0 h-5 w-5 rounded-full bg-primary/20 text-primary text-[11px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                            <RichText text={step} />
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
                 </div>
               )}
 

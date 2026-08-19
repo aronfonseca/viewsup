@@ -213,6 +213,15 @@ export interface SoundscapeArchitect {
   insight: string;
 }
 
+export interface ContentFocus {
+  hasClearFocus: boolean;
+  currentThemesDetected: string[];
+  diagnosis: string;
+  recommendedFocus: string;
+  recommendedPillars: string[];
+  transitionSteps: string[];
+}
+
 export interface ProfileAnalysis {
   url: string;
   username: string;
@@ -229,6 +238,7 @@ export interface ProfileAnalysis {
   captionLanguageQuality: CaptionLanguageQuality;
   contentPillars: ContentPillar[];
   burningProblems: BurningProblem[];
+  contentFocus?: ContentFocus;
   recentPosts: RecentPost[];
   issues: string[];
   patterns: string[];

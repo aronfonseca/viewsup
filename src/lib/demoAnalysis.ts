@@ -142,6 +142,22 @@ export const demoAnalysis: ProfileAnalysis = {
       solution: "Crie 3 pilares fixos rotativos (ver acima) e distribua o ritmo de cortes Hormozi em 100% dos vídeos para subir a base.",
     },
   ],
+  contentFocus: {
+    hasClearFocus: false,
+    currentThemesDetected: ["Bastidores pessoais", "Mitos de marketing", "Estudos de caso", "Motivacional genérico"],
+    diagnosis: "Os últimos posts alternam entre 4 assuntos sem relação direta — bastidores, mitos, estudos de caso e motivacional — o que dilui a percepção de autoridade e confunde o algoritmo sobre qual audiência entregar seu conteúdo.",
+    recommendedFocus: "Focar em 'estratégia de crescimento orgânico com prova de resultado', o formato que já performou melhor no perfil (post `Cz9X4HiJkLm`, estudo de caso, teve o dobro de salvamentos da média).",
+    recommendedPillars: [
+      "Estudos de caso com números reais de clientes/resultados próprios",
+      "Mitos de marketing digital desmontados com dados",
+      "Bastidores da execução (não da vida pessoal) mostrando o processo por trás dos resultados",
+    ],
+    transitionSteps: [
+      "Nas próximas 2 semanas, publique apenas dentro dos 3 pilares acima — pare o conteúdo motivacional genérico.",
+      "Reaproveite o formato do post `Cz9X4HiJkLm` (estudo de caso) em pelo menos 2 novos vídeos, já que foi o que mais reteve audiência.",
+      "Atualize a bio para deixar explícito o pilar central antes de postar o próximo conteúdo.",
+    ],
+  },
   recentPosts: [
     { postUrl: "https://www.instagram.com/p/Cx1y8aBpQ4w/", shortCode: "Cx1y8aBpQ4w", description: "Reel de bastidores com 18k views" },
     { postUrl: "https://www.instagram.com/p/Cy3a2BcDeFg/", shortCode: "Cy3a2BcDeFg", description: "Carrossel de mitos com salvamento alto" },
