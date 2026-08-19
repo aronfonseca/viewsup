@@ -2,3 +2,6 @@ project_id = "tbxjtxzokhwobxipcwkb"
 
 [functions.niche-research-agent]
 verify_jwt = false
+
+[functions.niche-benchmark-agent]
+verify_jwt = false
