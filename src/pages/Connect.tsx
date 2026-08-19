@@ -127,7 +127,7 @@ const Connect = () => {
 
         <Card className="border-border bg-card/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Claude</CardTitle>
+            <CardTitle className="text-lg">Claude (claude.ai)</CardTitle>
           </CardHeader>
           <CardContent>
             <ol className="list-decimal list-inside space-y-2 text-sm leading-relaxed">
@@ -152,6 +152,80 @@ const Connect = () => {
                 {isPt
                   ? "Ative o conector no campo de mensagem e peça ao Claude para usar o Viewsup AI."
                   : "Enable the connector from the chat composer, then ask Claude to use Viewsup AI."}
+              </li>
+            </ol>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">Claude Code</CardTitle>
+            <CardDescription>
+              {isPt
+                ? "Use no terminal com o claude.ai/code."
+                : "Use in your terminal with claude.ai/code."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ol className="list-decimal list-inside space-y-2 text-sm leading-relaxed">
+              <li>
+                {isPt
+                  ? "Crie ou edite o arquivo de configuração do Claude Code (claude.json)."
+                  : "Create or edit your Claude Code config file (claude.json)."}
+              </li>
+              <li>
+                {isPt
+                  ? "Adicione o bloco do servidor MCP abaixo."
+                  : "Add the MCP server block below."}
+              </li>
+              <li>
+                {isPt
+                  ? "Rode claude no terminal e faça login com sua conta Viewsup quando solicitado."
+                  : "Run claude in your terminal and sign in with your Viewsup account when prompted."}
+              </li>
+            </ol>
+            <div className="rounded-md border border-border bg-muted/30 p-3 font-mono text-xs overflow-x-auto">
+              <pre>{`{
+  "mcpServers": {
+    "viewsup": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "${mcpUrl}"
+      ]
+    }
+  }
+}`}</pre>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">{isPt ? "Outros agentes" : "Other agents"}</CardTitle>
+            <CardDescription>
+              {isPt
+                ? "OpenAI Agents, Cursor, Windsurf e agentes próprios."
+                : "OpenAI Agents, Cursor, Windsurf and your own agents."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal list-inside space-y-2 text-sm leading-relaxed">
+              <li>
+                {isPt
+                  ? "No client escolhido, adicione um servidor MCP remoto via Streamable HTTP."
+                  : "In your chosen client, add a remote MCP server via Streamable HTTP."}
+              </li>
+              <li>
+                {isPt
+                  ? "Cole a URL do servidor acima e habilite OAuth."
+                  : "Paste the server URL above and enable OAuth."}
+              </li>
+              <li>
+                {isPt
+                  ? "Autorize com sua conta Viewsup quando o navegador abrir."
+                  : "Authorize with your Viewsup account when the browser opens."}
               </li>
             </ol>
           </CardContent>
