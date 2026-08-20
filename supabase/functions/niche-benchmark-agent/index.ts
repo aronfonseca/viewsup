@@ -1,3 +1,4 @@
+// Updated by Aron on 2026-08-20
 // Scrapes admin-curated reference accounts (public.nicho_seed_accounts) per
 // niche via Apify and writes real follower/engagement benchmarks into
 // nicho_insights.seed_* columns. This is intentionally separate from
