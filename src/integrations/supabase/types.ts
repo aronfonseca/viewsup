@@ -97,6 +97,13 @@ export type Database = {
           insight_generated_at_count: number
           insight_text: string | null
           nicho: Database["public"]["Enums"]["profile_niche"]
+          seed_avg_comments: number | null
+          seed_avg_followers: number | null
+          seed_avg_likes: number | null
+          seed_engagement_rate: number | null
+          seed_examples: Json
+          seed_profiles_sampled: number
+          seed_updated_at: string | null
           top_problemas: Json
           top_solucoes: Json
           total_analises: number
@@ -113,6 +120,13 @@ export type Database = {
           insight_generated_at_count?: number
           insight_text?: string | null
           nicho: Database["public"]["Enums"]["profile_niche"]
+          seed_avg_comments?: number | null
+          seed_avg_followers?: number | null
+          seed_avg_likes?: number | null
+          seed_engagement_rate?: number | null
+          seed_examples?: Json
+          seed_profiles_sampled?: number
+          seed_updated_at?: string | null
           top_problemas?: Json
           top_solucoes?: Json
           total_analises?: number
@@ -129,11 +143,54 @@ export type Database = {
           insight_generated_at_count?: number
           insight_text?: string | null
           nicho?: Database["public"]["Enums"]["profile_niche"]
+          seed_avg_comments?: number | null
+          seed_avg_followers?: number | null
+          seed_avg_likes?: number | null
+          seed_engagement_rate?: number | null
+          seed_examples?: Json
+          seed_profiles_sampled?: number
+          seed_updated_at?: string | null
           top_problemas?: Json
           top_solucoes?: Json
           total_analises?: number
           updated_at?: string
           viral_patterns?: Json | null
+        }
+        Relationships: []
+      }
+      nicho_seed_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          nicho: Database["public"]["Enums"]["profile_niche"]
+          notes: string | null
+          reasoning: string | null
+          source: string | null
+          status: string
+          suggested_by: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nicho: Database["public"]["Enums"]["profile_niche"]
+          notes?: string | null
+          reasoning?: string | null
+          source?: string | null
+          status?: string
+          suggested_by?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nicho?: Database["public"]["Enums"]["profile_niche"]
+          notes?: string | null
+          reasoning?: string | null
+          source?: string | null
+          status?: string
+          suggested_by?: string
+          username?: string
         }
         Relationships: []
       }
@@ -475,6 +532,9 @@ export type Database = {
         | "Lifestyle"
         | "Arte"
         | "Outros"
+        | "Empresarios"
+        | "Empresas"
+        | "Influenciadores"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -623,6 +683,9 @@ export const Constants = {
         "Lifestyle",
         "Arte",
         "Outros",
+        "Empresarios",
+        "Empresas",
+        "Influenciadores",
       ],
     },
   },
