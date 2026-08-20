@@ -76,10 +76,12 @@ Deno.serve(async (req) => {
     }
   } catch (_) { /* no body */ }
 
-  // Only process niches that actually have curated seed accounts.
+  // Only process niches that have APPROVED seed accounts — AI-suggested
+  // accounts sit as 'pending' until an admin approves them in the Admin UI.
   const { data: seedRows, error: seedErr } = await supabase
     .from("nicho_seed_accounts")
     .select("nicho, username")
+    .eq("status", "approved")
     .order("nicho", { ascending: true });
 
   if (seedErr) {

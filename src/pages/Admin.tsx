@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { PageHelmet } from "@/components/PageHelmet";
 import NichoIntelligence from "@/components/NichoIntelligence";
+import SeedAccountReview from "@/components/SeedAccountReview";
 
 const ADMIN_EMAIL = "aronfonseca2020@gmail.com";
 const NICHO_INTEL_EMAIL = "aronfonsecaoficial@gmail.com";
@@ -152,6 +153,17 @@ const Admin = () => {
               </Table>
             </CardContent>
           </Card>
+        )}
+
+        {canSeeNichoIntel && (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-bold">Contas de Referência Sugeridas pela IA</h2>
+            <p className="text-sm text-muted-foreground">
+              O niche-account-scout pesquisa contas reais do Instagram por nicho. Aprove só as que fizerem sentido —
+              contas aprovadas passam a ser usadas pelo niche-benchmark-agent para gerar benchmarks reais.
+            </p>
+            <SeedAccountReview />
+          </section>
         )}
 
         {canSeeNichoIntel && (

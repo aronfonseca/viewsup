@@ -125,18 +125,10 @@ Deno.serve(async (req) => {
     }
   } catch (_) { /* no body */ }
 
-  // No explicit niches passed (e.g. the weekly cron call) → only research
-  // niches you've actively opted into via nicho_seed_accounts, instead of
-  // spending real web-search calls on every niche by default. Curating a
-  // niche there is what signals "I want deeper knowledge here".
-  let target = requested && requested.length > 0 ? requested : null;
-  if (!target) {
-    const { data: priorityRows, error: priorityErr } = await supabase
-      .from("nicho_seed_accounts")
-      .select("nicho");
-    if (priorityErr) console.warn("[niche-research] failed to load priority niches:", priorityErr.message);
-    target = [...new Set((priorityRows ?? []).map((r: any) => r.nicho as string))];
-  }
+  // No explicit niches passed (e.g. the weekly cron call) → research every
+  // niche. Pass { niches: [...] } explicitly to focus a single call on
+  // specific niches only (used for on-demand/manual runs).
+  const target = requested && requested.length > 0 ? requested : NICHES;
 
   // Real web search per niche is much slower than the old stub, so we run the
   // batch in the background (like analyze-video / process-job do) and reply
