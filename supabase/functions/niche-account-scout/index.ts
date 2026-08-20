@@ -1,3 +1,4 @@
+// Updated by Aron on 2026-08-20
 // Suggests real Instagram reference accounts per niche using Claude's
 // server-side web_search tool, and inserts them into nicho_seed_accounts
 // as 'pending'. Nothing here is trusted automatically — niche-benchmark-agent
