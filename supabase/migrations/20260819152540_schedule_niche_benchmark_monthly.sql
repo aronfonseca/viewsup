@@ -3,7 +3,7 @@
 -- that have curated accounts in nicho_seed_accounts (the function
 -- itself skips niches with no seed accounts, so this is safe to
 -- run even while the table is still empty — it just does nothing).
--- Requires the same Vault secret 'service_role_key' used by the
+-- Requires the same Vault secret 'cron_shared_secret' used by the
 -- niche-research-weekly cron job (see that migration's comment).
 -- ============================================================
 
@@ -26,7 +26,7 @@ SELECT cron.schedule(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (
         SELECT decrypted_secret FROM vault.decrypted_secrets
-        WHERE name = 'service_role_key'
+        WHERE name = 'cron_shared_secret'
         LIMIT 1
       )
     ),

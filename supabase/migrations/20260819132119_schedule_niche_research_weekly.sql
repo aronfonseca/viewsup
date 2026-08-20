@@ -1,8 +1,12 @@
 -- ============================================================
 -- Weekly cron job: call niche-research-agent for all niches.
--- Requires a Vault secret named 'service_role_key' holding the
--- project's service_role key (see manual step below — NEVER commit
--- the actual key value to a migration file).
+-- Requires a Vault secret named 'cron_shared_secret' holding a
+-- random string that also matches the CRON_SHARED_SECRET env var
+-- configured for the edge functions (see the functions' auth check).
+-- Using a purpose-made shared secret instead of the project's real
+-- service_role key means this works even in setups without direct
+-- Supabase dashboard access (e.g. Lovable Cloud-managed projects).
+-- NEVER commit the actual secret value to a migration file.
 -- ============================================================
 
 -- Idempotent: drop any existing job with the same name before recreating it.
@@ -24,7 +28,7 @@ SELECT cron.schedule(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (
         SELECT decrypted_secret FROM vault.decrypted_secrets
-        WHERE name = 'service_role_key'
+        WHERE name = 'cron_shared_secret'
         LIMIT 1
       )
     ),

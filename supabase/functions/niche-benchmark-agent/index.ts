@@ -40,11 +40,15 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+  // Fallback shared secret for the cron job, for setups where the caller
+  // doesn't have direct access to SUPABASE_SERVICE_ROLE_KEY (e.g. managed
+  // via Lovable Cloud). Set as a Lovable secret + a matching Vault secret.
+  const CRON_SHARED_SECRET = Deno.env.get("CRON_SHARED_SECRET");
 
-  // Auth: allow service-role bearer (cron) OR signed-in admin email.
+  // Auth: allow service-role bearer OR the cron shared secret OR signed-in admin email.
   const authHeader = req.headers.get("Authorization") ?? "";
   const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  const isServiceCall = bearer === SERVICE_KEY;
+  const isServiceCall = bearer === SERVICE_KEY || (!!CRON_SHARED_SECRET && bearer === CRON_SHARED_SECRET);
   if (!isServiceCall) {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
