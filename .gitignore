@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (defense in depth — .env/.env.development/.env.production
+# are already tracked with public-only values; this only stops NEW/future env
+# files from being added by accident)
+.env*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
