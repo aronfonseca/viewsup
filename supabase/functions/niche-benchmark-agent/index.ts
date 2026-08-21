@@ -133,6 +133,9 @@ Deno.serve(async (req) => {
       }
 
       const avgFollowers = avg(followers);
+      // seed_avg_followers is BIGINT — needs a whole number, not the
+      // one-decimal float avg() returns (which failed the upsert before).
+      const avgFollowersInt = avgFollowers != null ? Math.round(avgFollowers) : null;
       const avgLikes = avg(likes);
       const avgComments = avg(comments);
       const engagementRate = avgFollowers && (avgLikes != null || avgComments != null)
@@ -144,7 +147,7 @@ Deno.serve(async (req) => {
         .upsert({
           nicho,
           seed_profiles_sampled: examples.length,
-          seed_avg_followers: avgFollowers,
+          seed_avg_followers: avgFollowersInt,
           seed_avg_likes: avgLikes,
           seed_avg_comments: avgComments,
           seed_engagement_rate: engagementRate,
