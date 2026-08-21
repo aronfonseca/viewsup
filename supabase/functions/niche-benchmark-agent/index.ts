@@ -1,4 +1,3 @@
-// Updated by Aron on 2026-08-21
 // Scrapes admin-curated reference accounts (public.nicho_seed_accounts) per
 // niche via Apify and writes real follower/engagement benchmarks into
 // nicho_insights.seed_* columns. This is intentionally separate from
@@ -45,8 +44,6 @@ Deno.serve(async (req) => {
   // doesn't have direct access to SUPABASE_SERVICE_ROLE_KEY (e.g. managed
   // via Lovable Cloud). Set as a Lovable secret + a matching Vault secret.
   const CRON_SHARED_SECRET = Deno.env.get("CRON_SHARED_SECRET");
-  console.log("[debug] CRON_SHARED_SECRET set:", !!CRON_SHARED_SECRET, "length:", CRON_SHARED_SECRET?.length);
-
 
   // Auth: allow service-role bearer OR the cron shared secret OR signed-in admin email.
   const authHeader = req.headers.get("Authorization") ?? "";

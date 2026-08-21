@@ -1,4 +1,3 @@
-// Updated by Aron on 2026-08-21
 // Suggests real Instagram reference accounts per niche using Claude's
 // server-side web_search tool, and inserts them into nicho_seed_accounts
 // as 'pending'. Nothing here is trusted automatically — niche-benchmark-agent
@@ -98,7 +97,6 @@ Deno.serve(async (req) => {
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
   const CRON_SHARED_SECRET = Deno.env.get("CRON_SHARED_SECRET");
-  console.log("[debug] CRON_SHARED_SECRET set:", !!CRON_SHARED_SECRET, "length:", CRON_SHARED_SECRET?.length);
 
   const authHeader = req.headers.get("Authorization") ?? "";
   const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";

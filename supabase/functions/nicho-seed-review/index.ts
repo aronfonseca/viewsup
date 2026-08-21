@@ -1,4 +1,3 @@
-// Updated by Aron on 2026-08-20
 // Lets an admin review AI-suggested reference accounts (nicho_seed_accounts
 // with suggested_by='ai') from the Admin UI: list pending ones, approve or
 // reject by id. Manually-curated rows (suggested_by='manual') are inserted
