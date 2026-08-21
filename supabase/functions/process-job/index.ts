@@ -621,7 +621,7 @@ async function processJob(jobId: string) {
     // niches with few or zero organic/paid analyses yet).
     const { data: seedBenchmarkRows } = await admin
       .from("nicho_insights")
-      .select("nicho, seed_profiles_sampled, seed_avg_followers, seed_avg_likes, seed_avg_comments, seed_engagement_rate")
+      .select("nicho, seed_profiles_sampled, seed_avg_followers, seed_avg_likes, seed_avg_comments, seed_engagement_rate, seed_content_patterns")
       .gt("seed_profiles_sampled", 0);
 
     const seedBenchmarkTable = (seedBenchmarkRows ?? []).map((row: any) =>
@@ -634,12 +634,26 @@ async function processJob(jobId: string) {
         : `\n\nREAL NICHE BENCHMARK (curated real reference accounts, collected via scraping — use as a comparison floor even for niches with few organic analyses):\n${seedBenchmarkTable}\n\nAfter picking the profile's "nicho", compare the profile's real engagement rate against the matching row above, if present.`)
       : "";
 
+    // Real video content patterns extracted from the seed accounts' actual
+    // posts (captions/formats/engagement) — grounded in real data, distinct
+    // from the web-search-derived viral_patterns above.
+    const seedPatternsBlock = (seedBenchmarkRows ?? [])
+      .filter((r: any) => Array.isArray(r.seed_content_patterns) && r.seed_content_patterns.length > 0)
+      .map((r: any) => `[${r.nicho}]\n${JSON.stringify(r.seed_content_patterns)}`)
+      .join("\n\n");
+
+    const seedPatternsPromptBlock = seedPatternsBlock
+      ? (isPT
+        ? `\n\nPADRÕES DE VÍDEO REAIS DAS CONTAS DE REFERÊNCIA (extraídos dos posts reais dessas contas, use a entrada do nicho correspondente):\n${seedPatternsBlock}\n\nUse esses padrões — ancorados em posts e contas reais — como base extra para videoIdeas e trendRadar quando o nicho bater.`
+        : `\n\nREAL VIDEO PATTERNS FROM REFERENCE ACCOUNTS (extracted from their real posts, use the entry matching the nicho):\n${seedPatternsBlock}\n\nUse these patterns — grounded in real accounts and posts — as extra basis for videoIdeas and trendRadar when the nicho matches.`)
+      : "";
+
     const priorContext = buildPriorContext(prior, isPT);
     const nicheContext = (nicheTableSummary
       ? (isPT
         ? `\n\nDADOS DE NICHOS (referência cruzada):\n${nicheTableSummary}\n\nApós escolher o "nicho" do perfil, use os top problemas/soluções desse nicho específico para enriquecer sua análise.`
         : `\n\nNICHE BENCHMARKS (cross-reference):\n${nicheTableSummary}\n\nAfter picking the profile's "nicho", use that niche's top problems/solutions to enrich your analysis.`)
-      : "") + seedBenchmarkBlock + trendRadarRealData;
+      : "") + seedBenchmarkBlock + seedPatternsPromptBlock + trendRadarRealData;
 
     const { systemPrompt, userPrompt } = buildPrompts(
       username,
