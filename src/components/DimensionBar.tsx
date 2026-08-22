@@ -1,5 +1,6 @@
 import { Zap, Eye, MessageCircle, LayoutGrid, Heart } from "lucide-react";
 import type { Dimension } from "@/lib/mockAnalysis";
+import { scoreBarClass } from "@/lib/scoreColor";
 
 const iconMap: Record<string, React.ElementType> = {
   Zap, Eye, MessageCircle, LayoutGrid, Heart,
@@ -38,12 +39,6 @@ const DimensionBar = ({ dim }: { dim: Dimension }) => {
   const Icon = iconMap[dim.icon] || Zap;
   const label = displayName(dim);
 
-  const getBarColor = (s: number) => {
-    if (s >= 75) return "bg-success";
-    if (s >= 50) return "bg-warning";
-    return "bg-destructive";
-  };
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -55,7 +50,7 @@ const DimensionBar = ({ dim }: { dim: Dimension }) => {
       </div>
       <div className="h-2 rounded-full bg-secondary overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-1000 ease-out ${getBarColor(dim.score)}`}
+          className={`h-full rounded-full transition-all duration-1000 ease-out ${scoreBarClass(dim.score)}`}
           style={{ width: `${dim.score}%` }}
         />
       </div>

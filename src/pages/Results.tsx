@@ -5,8 +5,11 @@ import {
   Timer, Eye, Volume2, MousePointerClick, Trophy, Languages, Palette,
   Link2, Users, Shield, Flame, Target, FileText, Radar, Video, Download,
   BarChart3, Crosshair, Brain, Music, Zap, FlaskConical, Clock, Hash, Clapperboard, Copy,
-  CheckCircle2,
+  CheckCircle2, XCircle, Lock, ZoomIn, Scissors, MessageSquare, Swords, Laugh, Info, Mic,
 } from "lucide-react";
+import { SectionCard, Callout, IconBadge } from "@/components/ui/section-card";
+import { Badge } from "@/components/ui/badge";
+import { scoreTextClass, scoreHsl, scoreBarClass } from "@/lib/scoreColor";
 const RetentionLab = lazy(() => import("@/components/RetentionLab"));
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,14 +80,14 @@ const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconCo
   insight: string;
   iconColor: string;
 }) => (
-  <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+  <SectionCard>
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <Icon className={`h-5 w-5 ${iconColor}`} />
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{title}</h2>
       </div>
       {score !== undefined && (
-        <span className={`text-2xl font-bold ${score >= 70 ? "text-success" : score >= 45 ? "text-warning" : "text-destructive"}`}>
+        <span className={`text-2xl font-bold ${scoreTextClass(score)}`}>
           {score}
         </span>
       )}
@@ -92,11 +95,13 @@ const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconCo
     {stats && stats.length > 0 && (
       <div className="flex flex-wrap gap-3 mb-4">
         {stats.map((s) => (
-          <div key={s.label} className="px-3 py-1.5 rounded-lg bg-secondary text-xs">
+          <div key={s.label} className="px-3 py-1.5 rounded-lg bg-secondary text-xs flex items-center gap-1.5">
             <span className="text-muted-foreground">{s.label}: </span>
-            <span className="font-semibold text-foreground">
-              {typeof s.value === "boolean" ? (s.value ? "✅" : "❌") : s.value}
-            </span>
+            {typeof s.value === "boolean" ? (
+              s.value ? <CheckCircle2 className="h-3.5 w-3.5 text-success" /> : <XCircle className="h-3.5 w-3.5 text-destructive" />
+            ) : (
+              <span className="font-semibold text-foreground">{s.value}</span>
+            )}
           </div>
         ))}
       </div>
@@ -109,10 +114,10 @@ const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconCo
         </li>
       ))}
     </ul>
-    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-      <p className="text-sm text-foreground italic"><RichText text={insight} /></p>
-    </div>
-  </div>
+    <Callout tone="primary">
+      <p className="italic"><RichText text={insight} /></p>
+    </Callout>
+  </SectionCard>
 );
 
 const healthColor = (label: string) => {
@@ -130,9 +135,9 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
   const barWidth = Math.min((percentage / 200) * 100, 100);
 
   return (
-    <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+    <SectionCard>
       <div className="flex items-center gap-2 mb-6">
-        <BarChart3 className="h-5 w-5 text-success" />
+        <BarChart3 className="h-5 w-5 text-primary" />
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("roiProjection")}</h2>
       </div>
       <p className="text-xs text-muted-foreground mb-6">{t("roiDesc")}</p>
@@ -142,7 +147,7 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
           <p className="text-xs text-muted-foreground mb-1">{t("currentReach")}</p>
           <p className="text-2xl font-bold text-foreground">{current.toLocaleString()}</p>
         </div>
-        <div className="text-center p-4 rounded-lg bg-success/10 border border-success/20">
+        <div className="text-center p-4 rounded-lg bg-secondary">
           <p className="text-xs text-muted-foreground mb-1">{t("projectedReach")}</p>
           <p className="text-2xl font-bold text-success">{projected.toLocaleString()}</p>
         </div>
@@ -168,7 +173,7 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
       </div>
 
       {assumptions.length > 0 && (
-        <div className="p-3 rounded-lg bg-secondary/50">
+        <Callout tone="neutral">
           <p className="text-xs text-muted-foreground mb-2 font-medium">Assumptions:</p>
           <ul className="space-y-1">
             {assumptions.map((a, i) => (
@@ -177,13 +182,21 @@ const RoiGauge = ({ current, projected, growthPercent, assumptions, t }: {
               </li>
             ))}
           </ul>
-        </div>
+        </Callout>
       )}
-    </div>
+    </SectionCard>
   );
 };
 
 const toArray = (val: any): any[] => Array.isArray(val) ? val : val ? [val] : [];
+
+const TRIGGER_ICON: Record<string, React.ElementType> = {
+  zoom: ZoomIn, sfx: Volume2, cut: Scissors, text: MessageSquare,
+};
+
+const HOOK_STYLE_ICON: Record<string, React.ElementType> = {
+  reversePsychology: Brain, extremeCuriosity: Flame, bruteAuthority: Swords, acidHumor: Laugh,
+};
 
 /* ── Dimension context line helpers ── */
 const DIM_CONTEXT_PT: Record<string, { strength: string; weakness: string }> = {
@@ -469,7 +482,7 @@ const Results = () => {
               </button>
             )}
             <Button onClick={handleExportPDF} disabled={exporting} className="gradient-bg text-primary-foreground">
-              {canExportPdf ? <Download className="h-4 w-4 mr-2" /> : <span className="mr-2">🔒</span>}
+              {canExportPdf ? <Download className="h-4 w-4 mr-2" /> : <Lock className="h-4 w-4 mr-2" />}
               {exporting ? "..." : t("savePDF")}
             </Button>
           </div>
@@ -503,7 +516,7 @@ const Results = () => {
               activeTab === "retention-lab" ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
-            {canUseRetentionLab ? <FlaskConical className="h-4 w-4" /> : <span className="text-sm">🔒</span>}
+            {canUseRetentionLab ? <FlaskConical className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
             {t("tabRetentionLab")}
           </button>
         </div>
@@ -540,17 +553,17 @@ const Results = () => {
             <>
               {/* Score + Dimensions */}
               <div className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
-                <div className="flex flex-col items-center justify-center p-8 rounded-xl bg-card border border-border card-shadow">
+                <SectionCard padding="xl" className="flex flex-col items-center justify-center">
                   <p className="text-xs text-muted-foreground mb-4 tracking-wide">{t("overallScore")}</p>
                   <ScoreRing score={analysis.overallScore} />
                   {contextLine && (
                     <p className="text-xs text-muted-foreground mt-4 text-center italic leading-relaxed">{contextLine}</p>
                   )}
-                </div>
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow space-y-5">
+                </SectionCard>
+                <SectionCard className="space-y-5">
                   <h2 className="text-sm font-semibold text-muted-foreground tracking-wide">{t("dimensions")}</h2>
                   {(analysis.dimensions ?? []).map((d) => <DimensionBar key={d.name} dim={d} />)}
-                </div>
+                </SectionCard>
               </div>
 
               {/* ROI Projection */}
@@ -568,9 +581,9 @@ const Results = () => {
 
               {/* ══ PREDICTIVE VIRAL SCORE ══ */}
               {analysis.viralScore && (
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                <SectionCard className="mb-10">
                   <div className="flex items-center gap-2 mb-2">
-                    <Crosshair className="h-5 w-5 text-accent" />
+                    <Crosshair className="h-5 w-5 text-primary" />
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("viralScoreTitle")}</h2>
                   </div>
                   <p className="text-xs text-muted-foreground mb-6">{t("viralScoreDesc")}</p>
@@ -578,7 +591,7 @@ const Results = () => {
                     <div className="relative h-32 w-32">
                       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
-                        <circle cx="50" cy="50" r="42" fill="none" stroke={analysis.viralScore.probability >= 60 ? "hsl(var(--success))" : analysis.viralScore.probability >= 35 ? "hsl(var(--warning))" : "hsl(var(--destructive))"} strokeWidth="8" strokeDasharray={`${(analysis.viralScore.probability / 100) * 264} 264`} strokeLinecap="round" />
+                        <circle cx="50" cy="50" r="42" fill="none" stroke={scoreHsl(analysis.viralScore.probability)} strokeWidth="8" strokeDasharray={`${(analysis.viralScore.probability / 100) * 264} 264`} strokeLinecap="round" />
                       </svg>
                       <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-foreground">{analysis.viralScore.probability}%</span>
                     </div>
@@ -590,7 +603,7 @@ const Results = () => {
                       <p className="text-2xl font-bold text-foreground">{analysis.viralScore.hookStrengthFactor}</p>
                       <div className="mt-3 h-2.5 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          className={`h-full rounded-full transition-all duration-1000 ease-out ${scoreBarClass(analysis.viralScore.hookStrengthFactor)}`}
                           style={{ width: `${analysis.viralScore.hookStrengthFactor}%` }}
                         />
                       </div>
@@ -600,22 +613,22 @@ const Results = () => {
                       <p className="text-2xl font-bold text-foreground">{analysis.viralScore.editDensityFactor}</p>
                       <div className="mt-3 h-2.5 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          className={`h-full rounded-full transition-all duration-1000 ease-out ${scoreBarClass(analysis.viralScore.editDensityFactor)}`}
                           style={{ width: `${analysis.viralScore.editDensityFactor}%` }}
                         />
                       </div>
                     </div>
                   </div>
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <Callout tone="primary">
                     <p className="text-xs font-semibold text-primary uppercase mb-1">{t("viralVerdict")}</p>
-                    <p className="text-sm text-foreground italic"><RichText text={analysis.viralScore.verdict} /></p>
-                  </div>
-                </div>
+                    <p className="italic"><RichText text={analysis.viralScore.verdict} /></p>
+                  </Callout>
+                </SectionCard>
               )}
 
               {/* ══ MENTAL HEATMAP ══ */}
               {analysis.mentalHeatmap && Array.isArray(analysis.mentalHeatmap.triggers) && analysis.mentalHeatmap.triggers.length > 0 && analysis.mentalHeatmap.totalDurationSeconds > 0 && (
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                <SectionCard className="mb-10">
                   <div className="flex items-center gap-2 mb-2">
                     <Brain className="h-5 w-5 text-warning" />
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("mentalHeatmapTitle")}</h2>
@@ -626,12 +639,12 @@ const Results = () => {
                     <div className="h-10 rounded-lg bg-secondary relative overflow-visible">
                       {analysis.mentalHeatmap.triggers.map((tr, i) => {
                         const pct = Math.min((tr.timestampSeconds / analysis.mentalHeatmap.totalDurationSeconds) * 100, 100);
-                        const colors: Record<string, string> = { zoom: "bg-primary", sfx: "bg-accent", cut: "bg-warning", text: "bg-success" };
-                        const icons: Record<string, string> = { zoom: "🔍", sfx: "🔊", cut: "✂️", text: "💬" };
+                        const colors: Record<string, string> = { zoom: "bg-primary", sfx: "bg-destructive", cut: "bg-warning", text: "bg-success" };
+                        const Icon = TRIGGER_ICON[tr.type] || MessageSquare;
                         return (
                           <div key={i} className="absolute top-0 flex flex-col items-center group" style={{ left: `${pct}%`, transform: "translateX(-50%)" }}>
                             <div className={`h-10 w-1.5 rounded-full ${colors[tr.type] || "bg-muted-foreground"} opacity-80`} />
-                            <span className="text-lg mt-1">{icons[tr.type]}</span>
+                            <Icon className="h-4 w-4 mt-1 text-muted-foreground" />
                             <div className="hidden group-hover:block absolute top-12 z-20 px-3 py-2 rounded-lg bg-popover border border-border shadow-lg text-xs text-foreground whitespace-nowrap max-w-xs">
                               <span className="font-bold">{tr.timestampSeconds}s</span> — {tr.label}
                             </div>
@@ -646,84 +659,87 @@ const Results = () => {
                   </div>
                   {/* Legend */}
                   <div className="flex flex-wrap gap-4 mb-4">
-                    {[{ key: "zoom", color: "bg-primary" }, { key: "sfx", color: "bg-accent" }, { key: "cut", color: "bg-warning" }, { key: "text", color: "bg-success" }].map(({ key, color }) => (
+                    {[{ key: "zoom", color: "bg-primary" }, { key: "sfx", color: "bg-destructive" }, { key: "cut", color: "bg-warning" }, { key: "text", color: "bg-success" }].map(({ key, color }) => (
                       <div key={key} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
                         {t((`trigger${key.charAt(0).toUpperCase()}${key.slice(1)}`) as any)}
                       </div>
                     ))}
                   </div>
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                    <p className="text-sm text-foreground italic"><RichText text={analysis.mentalHeatmap.insight} /></p>
-                  </div>
-                </div>
+                  <Callout tone="primary">
+                    <p className="italic"><RichText text={analysis.mentalHeatmap.insight} /></p>
+                  </Callout>
+                </SectionCard>
               )}
 
               {/* ══ HOOK SWAPPER ══ */}
               {analysis.hookStyles && analysis.hookStyles.length > 0 && (() => {
                 const styleKeys = [
-                  { key: "reversePsychology" as const, label: t("styleReversePsych"), icon: "🧠" },
-                  { key: "extremeCuriosity" as const, label: t("styleExtremeCuriosity"), icon: "🔥" },
-                  { key: "bruteAuthority" as const, label: t("styleBruteAuthority"), icon: "👊" },
-                  { key: "acidHumor" as const, label: t("styleAcidHumor"), icon: "😈" },
+                  { key: "reversePsychology" as const, label: t("styleReversePsych") },
+                  { key: "extremeCuriosity" as const, label: t("styleExtremeCuriosity") },
+                  { key: "bruteAuthority" as const, label: t("styleBruteAuthority") },
+                  { key: "acidHumor" as const, label: t("styleAcidHumor") },
                 ];
                 return (
-                  <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                  <SectionCard className="mb-10">
                     <div className="flex items-center gap-2 mb-2">
                       <Zap className="h-5 w-5 text-primary" />
                       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("hookSwapperTitle")}</h2>
                     </div>
                     <p className="text-xs text-muted-foreground mb-4">{t("hookSwapperDesc")}</p>
                     <div className="flex flex-wrap gap-2 mb-6">
-                      {styleKeys.map(({ key, label, icon }) => (
-                        <button key={key} onClick={() => setActiveHookStyle(key)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${activeHookStyle === key ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
-                          <span>{icon}</span> {label}
-                        </button>
-                      ))}
+                      {styleKeys.map(({ key, label }) => {
+                        const Icon = HOOK_STYLE_ICON[key];
+                        return (
+                          <button key={key} onClick={() => setActiveHookStyle(key)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${activeHookStyle === key ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                            <Icon className="h-4 w-4" /> {label}
+                          </button>
+                        );
+                      })}
                     </div>
                     <div className="grid sm:grid-cols-3 gap-4">
                       {analysis.hookStyles.map((hs, i) => (
-                        <div key={i} className="p-5 rounded-xl bg-secondary/50 border border-border">
+                        <SectionCard key={i} variant="tile" padding="md">
                           <h3 className="font-semibold text-foreground text-sm mb-3">{hs.topic}</h3>
-                          <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                            <p className="text-sm text-foreground font-medium">"{hs[activeHookStyle]}"</p>
-                          </div>
-                        </div>
+                          <Callout tone="primary">
+                            <p className="font-medium">"{hs[activeHookStyle]}"</p>
+                          </Callout>
+                        </SectionCard>
                       ))}
                     </div>
-                  </div>
+                  </SectionCard>
                 );
               })()}
 
               {/* ══ SOUNDSCAPE ARCHITECT ══ */}
               {Array.isArray(analysis.soundscapeArchitect) && analysis.soundscapeArchitect.length > 0 && (
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                <SectionCard className="mb-10">
                   <div className="flex items-center gap-2 mb-2">
-                    <Music className="h-5 w-5 text-success" />
+                    <Music className="h-5 w-5 text-primary" />
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("soundscapeTitle")}</h2>
                   </div>
                   <p className="text-xs text-muted-foreground mb-6">{t("soundscapeDesc")}</p>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {analysis.soundscapeArchitect.map((s: any, i: number) => (
-                      <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border flex flex-col gap-2">
+                      <SectionCard key={i} variant="tile" padding="sm" className="flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-medium uppercase tracking-wider">{s.mood}</span>
+                          <Badge variant="accent" className="uppercase">{s.mood}</Badge>
                           {s.trending && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/20 text-success font-semibold">🔥 {t("soundTrending")}</span>
+                            <Badge variant="success" className="gap-1"><Flame className="h-3 w-3" /> {t("soundTrending")}</Badge>
                           )}
                         </div>
                         <p className="font-semibold text-foreground text-sm leading-snug">{s.suggestion}</p>
                         <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/80">{t("soundUseCase")}:</span> {s.useCase}</p>
-                      </div>
+                      </SectionCard>
                     ))}
                   </div>
-                </div>
+                </SectionCard>
               )}
               {analysis.soundscapeArchitect && !Array.isArray(analysis.soundscapeArchitect) && (
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                <SectionCard className="mb-10">
                   <div className="flex items-center gap-2 mb-2">
-                    <Music className="h-5 w-5 text-success" />
+                    <Music className="h-5 w-5 text-primary" />
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("soundscapeTitle")}</h2>
                   </div>
                   <p className="text-xs text-muted-foreground mb-6">{t("soundscapeDesc")}</p>
@@ -746,24 +762,24 @@ const Results = () => {
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("trackSuggestions")}</h3>
                       <div className="grid sm:grid-cols-3 gap-3 mb-4">
                         {analysis.soundscapeArchitect.trackSuggestions.map((tr: any, i: number) => (
-                          <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                          <SectionCard key={i} variant="tile" padding="sm">
                             <p className="font-semibold text-foreground text-sm">{tr.title}</p>
                             <p className="text-xs text-muted-foreground">{tr.artist}</p>
                             <div className="flex items-center gap-3 mt-2">
-                              <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-medium">{tr.bpm} BPM</span>
+                              <Badge variant="accent">{tr.bpm} BPM</Badge>
                               <span className="text-xs text-muted-foreground">{tr.mood}</span>
                             </div>
-                          </div>
+                          </SectionCard>
                         ))}
                       </div>
                     </>
                   )}
                   {analysis.soundscapeArchitect.insight && (
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                      <p className="text-sm text-foreground italic"><RichText text={analysis.soundscapeArchitect.insight} /></p>
-                    </div>
+                    <Callout tone="primary">
+                      <p className="italic"><RichText text={analysis.soundscapeArchitect.insight} /></p>
+                    </Callout>
                   )}
-                </div>
+                </SectionCard>
               )}
 
 
@@ -793,9 +809,9 @@ const Results = () => {
                       insight={analysis.profileHealth.bioHook.insight}
                       iconColor="text-primary"
                     />
-                    <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+                    <SectionCard>
                       <div className="flex items-center gap-2 mb-4">
-                        <Users className="h-5 w-5 text-warning" />
+                        <Users className="h-5 w-5 text-primary" />
                         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("engagement")}</h2>
                       </div>
                       <div className="flex items-center gap-4 mb-4">
@@ -824,23 +840,24 @@ const Results = () => {
                           </li>
                         ))}
                       </ul>
-                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                        <p className="text-sm text-foreground italic"><RichText text={analysis.profileHealth.engagementRatio.insight} /></p>
-                      </div>
-                    </div>
+                      <Callout tone="primary">
+                        <p className="italic"><RichText text={analysis.profileHealth.engagementRatio.insight} /></p>
+                      </Callout>
+                    </SectionCard>
                   </div>
                 </>
               )}
 
               {/* Video Engineering */}
               <h2 className="text-lg font-bold text-foreground mb-4">{t("videoEngineering")}</h2>
-              <div className="mb-4 p-3 rounded-lg bg-muted/40 border border-border/50">
+              <Callout tone="neutral" className="mb-4 flex items-start gap-2">
+                <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">
                   {lang === "pt-BR"
-                    ? "ℹ️ A análise de métricas é baseada em dados públicos do Instagram. Para análise do conteúdo real dos seus vídeos, use o Laboratório de Retenção."
-                    : "ℹ️ Metric analysis is based on public Instagram data. For real analysis of your video content, use the Retention Lab."}
+                    ? "A análise de métricas é baseada em dados públicos do Instagram. Para análise do conteúdo real dos seus vídeos, use o Laboratório de Retenção."
+                    : "Metric analysis is based on public Instagram data. For real analysis of your video content, use the Retention Lab."}
                 </p>
-              </div>
+              </Callout>
               <div className="grid md:grid-cols-2 gap-6 mb-10">
                 {analysis.hookRetention && (
                   <AdvancedCard icon={Timer} title={t("hookRetention")} score={analysis.hookRetention.score}
@@ -921,72 +938,60 @@ const Results = () => {
                     )}
                   </div>
                   {Array.isArray(analysis.benchmarkComparison.top3MissingElements) && analysis.benchmarkComparison.top3MissingElements.length > 0 && (
-                    <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+                    <SectionCard className="mb-10">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("missingElements")}</h3>
                       <div className="grid sm:grid-cols-3 gap-3">
                         {analysis.benchmarkComparison.top3MissingElements.map((el, i) => (
-                          <div key={i} className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-foreground">
-                            <span className="font-bold text-destructive mr-2">#{i + 1}</span>
-                            <RichText text={el} />
-                          </div>
+                          <Callout key={i} tone="destructive" className="flex items-start gap-2">
+                            <IconBadge tone="destructive" size="sm" label={i + 1} />
+                            <span className="text-foreground pt-1"><RichText text={el} /></span>
+                          </Callout>
                         ))}
                       </div>
-                    </div>
+                    </SectionCard>
                   )}
                 </>
               )}
 
               {/* Burning Problems */}
               {analysis.burningProblems && analysis.burningProblems.length > 0 && (
-                <div className="rounded-2xl border border-destructive/50 bg-destructive/5 p-8 mb-12 card-shadow">
+                <SectionCard padding="xl" accentColor="destructive" className="mb-12">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="h-11 w-11 rounded-xl bg-destructive/20 flex items-center justify-center shrink-0">
-                      <AlertTriangle className="h-6 w-6 text-destructive" />
-                    </div>
-                    <h2 className="text-lg font-bold text-foreground">{t("burningProblems")}</h2>
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <h2 className="text-base font-bold text-foreground">{t("burningProblems")}</h2>
                   </div>
                   <div className="space-y-6">
                     {analysis.burningProblems.map((bp, i) => (
-                      <div key={i} className="p-6 rounded-xl bg-card border border-border card-shadow">
+                      <SectionCard key={i} variant="tile" padding="lg">
                         <div className="flex items-start gap-3 mb-4">
-                          <div className="h-8 w-8 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0">
-                            <Flame className="h-4 w-4 text-destructive" />
-                          </div>
+                          <Flame className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                           <div>
                             <h3 className="font-semibold text-foreground"><RichText text={bp.problem} /></h3>
                             <p className="text-sm text-muted-foreground mt-1"><RichText text={bp.impact} /></p>
                           </div>
                         </div>
-                        <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+                        <Callout tone="success">
                           <div className="flex items-center gap-2 mb-2">
                             <Target className="h-4 w-4 text-success" />
                             <span className="text-xs font-semibold text-success uppercase tracking-wider">{t("fonsecaSolution")}</span>
                           </div>
-                          <p className="text-sm text-foreground"><RichText text={bp.solution} /></p>
-                        </div>
-                      </div>
+                          <p className="text-foreground"><RichText text={bp.solution} /></p>
+                        </Callout>
+                      </SectionCard>
                     ))}
                   </div>
-                </div>
+                </SectionCard>
               )}
 
               {/* Content Focus Diagnosis */}
               {analysis.contentFocus && (
-                <div className={`rounded-2xl border p-8 mb-12 card-shadow ${
-                  analysis.contentFocus.hasClearFocus
-                    ? "border-success/40 bg-success/5"
-                    : "border-warning/50 bg-warning/5"
-                }`}>
+                <SectionCard padding="xl" accentColor={analysis.contentFocus.hasClearFocus ? "success" : "warning"} className="mb-12">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
-                      analysis.contentFocus.hasClearFocus ? "bg-success/20" : "bg-warning/20"
-                    }`}>
-                      {analysis.contentFocus.hasClearFocus
-                        ? <CheckCircle2 className="h-6 w-6 text-success" />
-                        : <Crosshair className="h-6 w-6 text-warning" />}
-                    </div>
+                    {analysis.contentFocus.hasClearFocus
+                      ? <CheckCircle2 className="h-5 w-5 text-success" />
+                      : <Crosshair className="h-5 w-5 text-warning" />}
                     <div>
-                      <h2 className="text-lg font-bold text-foreground">{t("contentFocusTitle")}</h2>
+                      <h2 className="text-base font-bold text-foreground">{t("contentFocusTitle")}</h2>
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {analysis.contentFocus.hasClearFocus ? t("contentFocusOnTrack") : t("contentFocusScattered")}
                       </p>
@@ -1000,29 +1005,29 @@ const Results = () => {
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("contentFocusThemes")}</p>
                       <div className="flex flex-wrap gap-2">
                         {analysis.contentFocus.currentThemesDetected.map((theme, i) => (
-                          <span key={i} className="px-3 py-1 rounded-full text-xs bg-secondary text-muted-foreground">{theme}</span>
+                          <Badge key={i} variant="secondary">{theme}</Badge>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <div className="p-4 rounded-lg bg-card border border-border mb-6">
+                  <Callout tone="primary" className="mb-6">
                     <div className="flex items-center gap-2 mb-2">
                       <Target className="h-4 w-4 text-primary" />
                       <span className="text-xs font-semibold text-primary uppercase tracking-wider">{t("contentFocusRecommendation")}</span>
                     </div>
-                    <p className="text-sm text-foreground"><RichText text={analysis.contentFocus.recommendedFocus} /></p>
-                  </div>
+                    <p className="text-foreground"><RichText text={analysis.contentFocus.recommendedFocus} /></p>
+                  </Callout>
 
                   {analysis.contentFocus.recommendedPillars.length > 0 && (
                     <div className="mb-6">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("contentFocusPillars")}</p>
                       <div className="grid sm:grid-cols-3 gap-3">
                         {analysis.contentFocus.recommendedPillars.map((pillar, i) => (
-                          <div key={i} className="p-3 rounded-lg bg-card border border-border text-sm text-foreground">
+                          <SectionCard key={i} variant="tile" padding="sm" className="text-sm text-foreground">
                             <span className="font-bold text-primary mr-1">{i + 1}.</span>
                             <RichText text={pillar} />
-                          </div>
+                          </SectionCard>
                         ))}
                       </div>
                     </div>
@@ -1034,14 +1039,14 @@ const Results = () => {
                       <ol className="space-y-2">
                         {analysis.contentFocus.transitionSteps.map((step, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-foreground">
-                            <span className="shrink-0 h-5 w-5 rounded-full bg-primary/20 text-primary text-[11px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
-                            <RichText text={step} />
+                            <IconBadge tone="primary" size="sm" label={i + 1} />
+                            <span className="pt-1"><RichText text={step} /></span>
                           </li>
                         ))}
                       </ol>
                     </div>
                   )}
-                </div>
+                </SectionCard>
               )}
 
               {/* ══ 10 VÍDEOS PARA GRAVAR AGORA ══ */}
@@ -1051,16 +1056,15 @@ const Results = () => {
                   <p className="text-sm text-muted-foreground mb-4">{t("videoIdeasDesc")}</p>
                   <div className="grid sm:grid-cols-2 gap-4 mb-10">
                     {analysis.videoIdeas.map((v, i) => {
-                      const formatColors: Record<string, string> = {
-                        Tutorial: "bg-primary/20 text-primary",
-                        "Polêmica": "bg-destructive/20 text-destructive",
-                        Comparativo: "bg-warning/20 text-warning",
-                        Bastidores: "bg-accent/20 text-accent-foreground",
-                        "Prova Social": "bg-success/20 text-success",
+                      const formatVariant: Record<string, "default" | "destructive" | "warning" | "accent" | "success"> = {
+                        Tutorial: "default",
+                        "Polêmica": "destructive",
+                        Comparativo: "warning",
+                        Bastidores: "accent",
+                        "Prova Social": "success",
                       };
-                      const badgeClass = formatColors[v.format] || "bg-secondary text-muted-foreground";
                       return (
-                        <div key={i} className="p-5 rounded-xl bg-card border border-border card-shadow flex flex-col">
+                        <SectionCard key={i} padding="md" className="flex flex-col">
                           {/* Header */}
                           <div className="flex items-start gap-3 mb-3">
                             <div className="h-8 w-8 rounded-lg gradient-bg flex items-center justify-center shrink-0 text-primary-foreground font-bold text-sm">
@@ -1068,17 +1072,17 @@ const Results = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-foreground text-sm leading-tight">{v.title}</h3>
-                              <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${badgeClass}`}>
+                              <Badge variant={formatVariant[v.format] || "secondary"} className="mt-1.5 uppercase">
                                 {v.format}
-                              </span>
+                              </Badge>
                             </div>
                           </div>
 
                           {/* Hook verbal */}
-                          <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 mb-3">
-                            <p className="text-xs text-muted-foreground mb-1 font-medium">🎤 Hook (3s)</p>
-                            <p className="text-sm text-foreground font-medium">"{v.hookVerbal}"</p>
-                          </div>
+                          <Callout tone="warning" className="mb-3">
+                            <p className="text-xs text-muted-foreground mb-1 font-medium flex items-center gap-1"><Mic className="h-3 w-3" /> Hook (3s)</p>
+                            <p className="text-foreground font-medium">"{v.hookVerbal}"</p>
+                          </Callout>
 
                           {/* 3-Act Structure */}
                           <div className="space-y-1.5 mb-3">
@@ -1108,12 +1112,12 @@ const Results = () => {
                           {/* Hashtags */}
                           <div className="flex flex-wrap gap-1 mt-auto">
                             {v.hashtags.map((tag, j) => (
-                              <span key={j} className="px-1.5 py-0.5 rounded bg-secondary text-[10px] text-muted-foreground">
+                              <Badge key={j} variant="secondary" className="text-[10px]">
                                 {tag.startsWith("#") ? tag : `#${tag}`}
-                              </span>
+                              </Badge>
                             ))}
                           </div>
-                        </div>
+                        </SectionCard>
                       );
                     })}
                   </div>
@@ -1127,17 +1131,17 @@ const Results = () => {
                   <p className="text-sm text-muted-foreground mb-4">{t("scriptSuggestionsDesc")}</p>
                   <div className="grid sm:grid-cols-3 gap-4 mb-10">
                     {analysis.scriptSuggestions.map((s, i) => (
-                      <div key={i} className="p-5 rounded-xl bg-card border border-border card-shadow">
+                      <SectionCard key={i} padding="md">
                         <div className="flex items-center gap-2 mb-3">
                           <Video className="h-4 w-4 text-warning" />
                           <h3 className="font-semibold text-foreground text-sm">{s.title}</h3>
                         </div>
-                        <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 mb-3">
-                          <p className="text-sm text-foreground font-medium">"{s.hook}"</p>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-2">🎥 {s.visualDirection}</p>
-                        <p className="text-xs text-muted-foreground italic">💡 {s.whyItWorks}</p>
-                      </div>
+                        <Callout tone="warning" className="mb-3">
+                          <p className="font-medium">"{s.hook}"</p>
+                        </Callout>
+                        <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5"><Video className="h-3 w-3 shrink-0" /> {s.visualDirection}</p>
+                        <p className="text-xs text-muted-foreground italic flex items-center gap-1.5"><Lightbulb className="h-3 w-3 shrink-0" /> {s.whyItWorks}</p>
+                      </SectionCard>
                     ))}
                   </div>
                 </>
@@ -1149,17 +1153,17 @@ const Results = () => {
                   <h2 className="text-lg font-bold text-foreground mb-4">{t("contentPillars")}</h2>
                   <div className="grid sm:grid-cols-3 gap-4 mb-10">
                     {analysis.contentPillars.map((cp, i) => (
-                      <div key={i} className="p-5 rounded-xl bg-card border border-border card-shadow">
+                      <SectionCard key={i} padding="md">
                         <div className="flex items-center gap-2 mb-3">
                           <FileText className="h-4 w-4 text-primary" />
                           <h3 className="font-semibold text-foreground text-sm">{cp.theme}</h3>
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">{cp.reasoning}</p>
-                        <div className="p-3 rounded-lg bg-secondary text-xs">
+                        <Callout tone="neutral" className="text-xs">
                           <span className="text-muted-foreground">Hook: </span>
                           <span className="text-foreground font-medium">{cp.exampleHook}</span>
-                        </div>
-                      </div>
+                        </Callout>
+                      </SectionCard>
                     ))}
                   </div>
                 </>
@@ -1167,7 +1171,7 @@ const Results = () => {
 
               {/* Issues + Patterns */}
               <div className="grid md:grid-cols-2 gap-6 mb-10">
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+                <SectionCard>
                   <div className="flex items-center gap-2 mb-4">
                     <AlertTriangle className="h-4 w-4 text-destructive" />
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("detectedIssues")}</h2>
@@ -1180,8 +1184,8 @@ const Results = () => {
                       </li>
                     ))}
                   </ul>
-                </div>
-                <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+                </SectionCard>
+                <SectionCard>
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="h-4 w-4 text-success" />
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("positivePatterns")}</h2>
@@ -1194,24 +1198,24 @@ const Results = () => {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </SectionCard>
               </div>
 
               {/* AI Hooks */}
-              <div className="p-6 rounded-xl bg-card border border-border card-shadow mb-10">
+              <SectionCard className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
                   <Lightbulb className="h-4 w-4 text-warning" />
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("aiHooks")}</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {(analysis.improvedHooks ?? []).map((hook, i) => (
-                    <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm text-foreground"><RichText text={hook} /></div>
+                    <SectionCard key={i} variant="tile" padding="sm" className="text-sm text-foreground"><RichText text={hook} /></SectionCard>
                   ))}
                 </div>
-              </div>
+              </SectionCard>
 
               {/* Rewritten Captions */}
-              <div className="p-6 rounded-xl bg-card border border-border card-shadow">
+              <SectionCard>
                 <div className="flex items-center gap-2 mb-6">
                   <RefreshCw className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("rewrittenCaptions")}</h2>
@@ -1228,7 +1232,7 @@ const Results = () => {
                     };
                     return (
                       <div key={i} className="grid md:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+                        <SectionCard variant="tile" padding="sm">
                           <div className="flex items-center justify-between mb-2">
                             <p className="text-xs text-destructive font-medium uppercase">{t("original")}</p>
                             <Button
@@ -1243,7 +1247,7 @@ const Results = () => {
                             </Button>
                           </div>
                           <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
-                        </div>
+                        </SectionCard>
                         <div className="p-4 rounded-lg gradient-border bg-card">
                           <div className="flex items-center justify-between mb-2">
                             <p className="text-xs text-primary font-medium uppercase">{t("rewrittenAI")}</p>
@@ -1264,7 +1268,7 @@ const Results = () => {
                     );
                   })}
                 </div>
-              </div>
+              </SectionCard>
             </>
           )}
 
@@ -1277,7 +1281,7 @@ const Results = () => {
               {trendRadar.length > 0 ? (
                 <div className="space-y-6">
                   {trendRadar.map((trend, i) => (
-                    <div key={i} className="p-6 rounded-xl bg-card border border-border card-shadow">
+                    <SectionCard key={i}>
                       <div className="flex items-start gap-3 mb-4">
                         <div className="h-10 w-10 rounded-lg gradient-bg flex items-center justify-center shrink-0">
                           <Radar className="h-5 w-5 text-primary-foreground" />
@@ -1288,29 +1292,29 @@ const Results = () => {
                         </div>
                       </div>
                       <div className="grid md:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                        <Callout tone="primary">
                           <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
                             {lang === "pt-BR" ? "Exemplo de Aplicação" : "Application Example"}
                           </p>
-                          <p className="text-sm text-foreground">{trend.example}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
+                          <p className="text-foreground">{trend.example}</p>
+                        </Callout>
+                        <Callout tone="warning">
                           <p className="text-xs font-semibold text-warning uppercase tracking-wider mb-2">
                             {lang === "pt-BR" ? "Relevância para Seu Nicho" : "Relevance to Your Niche"}
                           </p>
-                          <p className="text-sm text-foreground">{trend.relevance}</p>
-                        </div>
+                          <p className="text-foreground">{trend.relevance}</p>
+                        </Callout>
                       </div>
-                    </div>
+                    </SectionCard>
                   ))}
                 </div>
               ) : (
-                <div className="p-12 rounded-xl bg-card border border-border card-shadow text-center">
+                <SectionCard padding="2xl" className="text-center">
                   <Radar className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-30" />
                   <p className="text-muted-foreground">
                     {lang === "pt-BR" ? "Nenhuma tendência disponível. Execute a análise novamente." : "No trends available. Run the analysis again."}
                   </p>
-                </div>
+                </SectionCard>
               )}
             </div>
           )}

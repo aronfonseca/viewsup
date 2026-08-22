@@ -1,3 +1,5 @@
+import { scoreHsl } from "@/lib/scoreColor";
+
 interface ScoreRingProps {
   score: number;
   size?: number;
@@ -8,12 +10,6 @@ const ScoreRing = ({ score, size = 160, strokeWidth = 10 }: ScoreRingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-
-  const getColor = (s: number) => {
-    if (s >= 75) return "hsl(var(--success))";
-    if (s >= 50) return "hsl(var(--warning))";
-    return "hsl(var(--destructive))";
-  };
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -31,7 +27,7 @@ const ScoreRing = ({ score, size = 160, strokeWidth = 10 }: ScoreRingProps) => {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={getColor(score)}
+          stroke={scoreHsl(score)}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
