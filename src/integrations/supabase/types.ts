@@ -100,6 +100,7 @@ export type Database = {
           seed_avg_comments: number | null
           seed_avg_followers: number | null
           seed_avg_likes: number | null
+          seed_content_patterns: Json
           seed_engagement_rate: number | null
           seed_examples: Json
           seed_profiles_sampled: number
@@ -123,6 +124,7 @@ export type Database = {
           seed_avg_comments?: number | null
           seed_avg_followers?: number | null
           seed_avg_likes?: number | null
+          seed_content_patterns?: Json
           seed_engagement_rate?: number | null
           seed_examples?: Json
           seed_profiles_sampled?: number
@@ -146,6 +148,7 @@ export type Database = {
           seed_avg_comments?: number | null
           seed_avg_followers?: number | null
           seed_avg_likes?: number | null
+          seed_content_patterns?: Json
           seed_engagement_rate?: number | null
           seed_examples?: Json
           seed_profiles_sampled?: number
