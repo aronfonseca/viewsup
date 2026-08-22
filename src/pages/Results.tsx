@@ -1248,7 +1248,7 @@ const Results = () => {
                           </div>
                           <p className="text-sm text-muted-foreground whitespace-pre-line">{c.original}</p>
                         </SectionCard>
-                        <div className="p-4 rounded-lg gradient-border bg-card">
+                        <div className="p-4 rounded-lg border-2 border-primary/50 bg-card">
                           <div className="flex items-center justify-between mb-2">
                             <p className="text-xs text-primary font-medium uppercase">{t("rewrittenAI")}</p>
                             <Button
