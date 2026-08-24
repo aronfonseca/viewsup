@@ -214,6 +214,7 @@ export interface SoundscapeArchitect {
 }
 
 export interface ContentFocus {
+  accountType?: "personal_brand" | "portfolio_service";
   hasClearFocus: boolean;
   currentThemesDetected: string[];
   diagnosis: string;

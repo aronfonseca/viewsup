@@ -143,6 +143,7 @@ export const demoAnalysis: ProfileAnalysis = {
     },
   ],
   contentFocus: {
+    accountType: "personal_brand",
     hasClearFocus: false,
     currentThemesDetected: ["Bastidores pessoais", "Mitos de marketing", "Estudos de caso", "Motivacional genérico"],
     diagnosis: "Os últimos posts alternam entre 4 assuntos sem relação direta — bastidores, mitos, estudos de caso e motivacional — o que dilui a percepção de autoridade e confunde o algoritmo sobre qual audiência entregar seu conteúdo.",

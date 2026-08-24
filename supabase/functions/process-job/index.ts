@@ -133,8 +133,9 @@ const ANALYSIS_SCHEMA = {
       },
       contentFocus: {
         type: "object",
-        description: "Diagnosis of whether the profile has a clear content focus, and — if not — a concrete recommended direction grounded in the profile's own best-performing posts and niche data.",
+        description: "Diagnosis of whether the profile has a clear content focus, and — if not — a concrete recommended direction grounded in the profile's own best-performing posts and niche data. Must first classify accountType, since the notion of 'focus' means something different for a personal-brand account than for a portfolio/service-provider account.",
         properties: {
+          accountType: { type: "string", enum: ["personal_brand", "portfolio_service"] },
           hasClearFocus: { type: "boolean" },
           currentThemesDetected: { type: "array", items: { type: "string" } },
           diagnosis: { type: "string" },
@@ -142,7 +143,7 @@ const ANALYSIS_SCHEMA = {
           recommendedPillars: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
           transitionSteps: { type: "array", items: { type: "string" } },
         },
-        required: ["hasClearFocus", "currentThemesDetected", "diagnosis", "recommendedFocus", "recommendedPillars", "transitionSteps"],
+        required: ["accountType", "hasClearFocus", "currentThemesDetected", "diagnosis", "recommendedFocus", "recommendedPillars", "transitionSteps"],
         additionalProperties: false,
       },
       issues: { type: "array", items: { type: "string" } },
@@ -350,7 +351,12 @@ function buildPrompts(
 10. rewrittenCaptions: o campo "original" DEVE ser uma caption REAL extraída de "POSTS DETAIL" (não inventada).
 11. trendRadar CRITICAL — MANDATORY 8 ITEMS: You MUST return exactly 8 trendRadar items. Returning fewer than 8 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
 12. dimensions DEVE conter EXATAMENTE 5 itens com estes valores fixos no campo "name": "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Os "label" correspondentes devem ser "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".
-13. contentFocus — SEMPRE preencha, analisando os temas/assuntos das captions em "POSTS DETAIL" (não a identidade visual, isso é outro campo): se os posts recentes cobrem assuntos sem relação entre si, sem um nicho/audiência clara, defina hasClearFocus=false. Nesse caso, "recommendedFocus" DEVE ser uma direção específica e concreta (nunca genérica como "poste sobre o que você gosta"), ancorada em: (a) qual tema/formato JÁ teve melhor desempenho no próprio perfil (cite o shortcode), e (b) dados reais de nicho/tendência disponíveis no contexto acima, quando existirem. "recommendedPillars" DEVE ter exatamente 3 pilares de conteúdo concretos e específicos do contexto do perfil. "transitionSteps" DEVE ter passos acionáveis, referenciando posts reais que já funcionaram. Se hasClearFocus=true, "diagnosis" deve reconhecer o foco já existente, "recommendedFocus" deve reforçar/refinar (não inventar) a direção atual, e "transitionSteps" deve tratar de aprofundar o foco já estabelecido.`;
+13. contentFocus — SEMPRE preencha. PRIMEIRO classifique "accountType" lendo a bio e as captions:
+    - "portfolio_service": bio com título profissional de prestador de serviço (ex.: "Filmmaker", "Editor(a)", "Fotógrafo(a)", "Social Media", "Agência", "Freelancer", "Diretor de fotografia") E/OU captions que mostram trabalhos para clientes/marcas de terceiros diferentes entre si (cada post é um PROJETO/CLIENTE, não um "assunto pessoal").
+    - "personal_brand": qualquer outro caso — perfil de criador tentando construir audiência/autoridade em torno de um tema.
+    SE accountType="personal_brand": aplique a lógica padrão de nicho — analise os TEMAS/ASSUNTOS das captions (não a identidade visual, isso é outro campo). Se cobrem assuntos sem relação entre si, sem nicho/audiência clara, defina hasClearFocus=false e recomende ESPECIALIZAR em UM tema, ancorado no que já performou melhor no perfil (cite o shortcode) e nos dados reais de nicho/tendência do contexto acima.
+    SE accountType="portfolio_service": NUNCA recomende abandonar, deletar ou parar de atender tipos de cliente diferentes — isso é o modelo de negócio da pessoa, não um erro de conteúdo. Avalie hasClearFocus com base em EXISTIR (ou não) uma assinatura visual/de edição reconhecível entre os projetos e se a bio comunica claramente o serviço oferecido e como contratar — nunca com base na variedade de clientes/assuntos. "recommendedFocus" deve orientar como ORGANIZAR e APRESENTAR a diversidade de clientes como prova de versatilidade profissional (destaques por tipo de serviço, estilo de edição consistente entre projetos, CTA de orçamento/contato em todo post) — nunca sugerir reduzir os tipos de cliente atendidos. "recommendedPillars" deve ser organizado por TIPO DE SERVIÇO/FORMATO de conteúdo (ex.: "Bastidores de produção", "Antes/depois de entrega ao cliente", "Educação sobre técnica/equipamento"), nunca por nicho de assunto do cliente. "transitionSteps" deve focar em: CTA de contato/orçamento, destaques organizados por tipo de trabalho, e uma assinatura visual que amarre os projetos diferentes.
+    Em ambos os casos, "currentThemesDetected" e "diagnosis" continuam obrigatórios e ancorados em dados reais (shortcodes, números). Se hasClearFocus=true, "diagnosis" deve reconhecer o que já existe, e "recommendedFocus"/"transitionSteps" devem reforçar/refinar (não inventar) a direção atual.`;
 
   const rulesEN = `MANDATORY SPECIFICITY RULES (violation invalidates the analysis):
 1. ALWAYS cite real profile numbers: exact follower count, real avgLikes, real avgComments, and the computed engagement rate (engagementRate %). Use the exact raw numbers shown in "PROFILE METRICS" and "AGGREGATE METRICS".
@@ -365,7 +371,12 @@ function buildPrompts(
 10. rewrittenCaptions: the "original" field MUST be a REAL caption extracted from "POSTS DETAIL" (not fabricated).
 11. trendRadar CRITICAL — MANDATORY 8 ITEMS: You MUST return exactly 8 trendRadar items. Returning fewer than 8 or an empty array will FAIL the entire analysis. Each item must be a REAL content format trending specifically in the "${'${'}nicho${'}'}" niche. Examples by niche: Imobiliaria=[neighborhood price comparison reels, mortgage calculator tutorials, luxury property tours, before/after renovation reveals, client testimonial storytelling]; Fitness=[75-day challenge updates, PR attempt videos, supplement honest reviews, transformation side-by-side, coach vs client workout]; Marketing=[client results case studies, tool comparison reviews, campaign behind-the-scenes, fail and lesson videos, trend prediction content]. FORBIDDEN titles: anything generic like hook techniques, visual proof, content series — these are Instagram tactics not niche trends.
 12. dimensions MUST contain EXACTLY 5 items with these fixed "name" values: "hookRetention", "visualConsistency", "engagement", "contentStrategy", "community". Their human "label" must be "Hook & Retention", "Visual Identity", "Engagement", "Content Strategy", "Community Building".
-13. contentFocus — ALWAYS fill this in, by analysing the subject matter of captions in "POSTS DETAIL" (not visual identity, that's a different field): if recent posts cover unrelated subjects with no coherent niche/audience, set hasClearFocus=false. In that case, "recommendedFocus" MUST be a specific, concrete direction (never generic like "post about what you enjoy"), grounded in: (a) which theme/format ALREADY performed best on this profile (cite the shortcode), and (b) real niche/trend data available in the context above, when present. "recommendedPillars" MUST have exactly 3 concrete content pillars specific to this profile's context. "transitionSteps" MUST have actionable steps referencing real posts that already worked. If hasClearFocus=true, "diagnosis" should acknowledge the existing focus, "recommendedFocus" should reinforce/refine (not invent) the current direction, and "transitionSteps" should be about deepening the established focus.`;
+13. contentFocus — ALWAYS fill this in. FIRST classify "accountType" by reading the bio and captions:
+    - "portfolio_service": bio carries a professional service title (e.g. "Filmmaker", "Editor", "Photographer", "Social Media Manager", "Agency", "Freelancer", "Director of Photography") AND/OR captions show work produced for different third-party clients/brands (each post is a PROJECT/CLIENT, not a personal "topic").
+    - "personal_brand": everything else — a creator trying to build an audience/authority around a topic.
+    IF accountType="personal_brand": apply the standard niche logic — analyse the SUBJECT MATTER of captions (not visual identity, that's a different field). If recent posts cover unrelated subjects with no coherent niche/audience, set hasClearFocus=false and recommend SPECIALISING in ONE topic, grounded in which theme/format ALREADY performed best on this profile (cite the shortcode) and real niche/trend data available in the context above.
+    IF accountType="portfolio_service": NEVER recommend dropping, deleting, or turning away client types — that's the person's business model, not a content mistake. Judge hasClearFocus on whether a recognisable visual/editing signature exists (or not) across projects, and whether the bio clearly communicates the service offered and how to book — never on client/subject variety. "recommendedFocus" must guide how to ORGANISE and PRESENT client diversity as proof of professional versatility (highlights by service type, a consistent editing style across projects, a booking/quote CTA on every post) — never suggest narrowing the client types served. "recommendedPillars" must be organised by SERVICE TYPE/content format (e.g. "Production behind-the-scenes", "Before/after client delivery", "Technique/equipment education"), never by the client's subject niche. "transitionSteps" must focus on: a booking/contact CTA, highlights organised by work type, and a visual signature tying different projects together.
+    In both cases, "currentThemesDetected" and "diagnosis" remain mandatory and grounded in real data (shortcodes, numbers). If hasClearFocus=true, "diagnosis" should acknowledge what already exists, and "recommendedFocus"/"transitionSteps" should reinforce/refine (not invent) the current direction.`;
 
   const systemPrompt = `You are a Senior Digital Strategy Consultant specializing in Video Retention and Social Content Performance.
 
@@ -765,6 +776,7 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     }
     if (!aiInput.contentFocus || typeof aiInput.contentFocus !== "object" || Array.isArray(aiInput.contentFocus)) {
       aiInput.contentFocus = {
+        accountType: "personal_brand",
         hasClearFocus: true,
         currentThemesDetected: [],
         diagnosis: "",
@@ -773,6 +785,7 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
         transitionSteps: [],
       };
     }
+    if (aiInput.contentFocus.accountType !== "portfolio_service") aiInput.contentFocus.accountType = "personal_brand";
     if (!Array.isArray(aiInput.contentFocus.currentThemesDetected)) aiInput.contentFocus.currentThemesDetected = [];
     if (!Array.isArray(aiInput.contentFocus.recommendedPillars)) aiInput.contentFocus.recommendedPillars = [];
     if (!Array.isArray(aiInput.contentFocus.transitionSteps)) aiInput.contentFocus.transitionSteps = [];
