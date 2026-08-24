@@ -22,7 +22,7 @@ export function fmtNum(n: number | null | undefined): string {
   return String(Math.round(v));
 }
 
-export async function scrapeInstagram(username: string, timeoutMs = 150_000): Promise<ScrapeResult> {
+export async function scrapeInstagram(username: string, timeoutMs = 150_000, maxPosts = 12): Promise<ScrapeResult> {
   const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
   const empty: ScrapeResult = {
     summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
@@ -52,7 +52,7 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
     };
 
     console.log("[Apify] starting scrape for @", username);
-    let items = await fetchFromActor("apify~instagram-profile-scraper", { usernames: [username] });
+    const items = await fetchFromActor("apify~instagram-profile-scraper", { usernames: [username] });
     let profile = items?.[0];
 
     // Fallback: primary returned empty → try generic instagram-scraper
@@ -62,18 +62,17 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
       const fbItems = await fetchFromActor("apify~instagram-scraper", {
         directUrls: [`https://www.instagram.com/${username}/`],
         resultsType: "details",
-        resultsLimit: 12,
+        resultsLimit: maxPosts,
         searchType: "user",
         addParentData: false,
       });
-      clearTimeout(timeoutId);
       // instagram-scraper returns items where the first can be the profile with latestPosts,
       // or a flat list of posts referencing ownerUsername.
       const profItem = fbItems.find((x: any) => x && (x.username === username || x.ownerUsername === username) && (x.latestPosts || x.followersCount != null));
       if (profItem) {
         profile = {
           ...profItem,
-          latestPosts: profItem.latestPosts || fbItems.filter((x: any) => x?.ownerUsername === username || x?.shortCode || x?.shortcode).slice(0, 12),
+          latestPosts: profItem.latestPosts || fbItems.filter((x: any) => x?.ownerUsername === username || x?.shortCode || x?.shortcode).slice(0, maxPosts),
         };
       } else {
         // Build a synthetic profile out of raw posts
@@ -89,7 +88,7 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
             isBusinessAccount: false,
             externalUrl: null,
             fullName: null,
-            latestPosts: posts.slice(0, 12),
+            latestPosts: posts.slice(0, maxPosts),
           };
         }
       }
@@ -97,12 +96,12 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
         console.warn("[Apify] fallback also returned empty");
         return empty;
       }
-    } else {
-      clearTimeout(timeoutId);
     }
 
-    const followers = Number.isFinite(profile.followersCount) ? Number(profile.followersCount) : null;
-    const latest = (profile.latestPosts || []).slice(0, 9) as any[];
+    const followers = Number.isFinite(Number(profile.followersCount)) && profile.followersCount != null
+      ? Number(profile.followersCount)
+      : null;
+    const latest = (profile.latestPosts || []).slice(0, maxPosts) as any[];
 
     // Per-post enriched normalisation
     const enriched = latest.map((p: any) => {
