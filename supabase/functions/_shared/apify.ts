@@ -131,12 +131,11 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000, max
     });
 
     const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
-    const likesArr = enriched.map(p => p.likes).filter(n => n > 0);
-    const commentsArr = enriched.map(p => p.comments).filter(n => n > 0);
-    const viewsArr = enriched.map(p => p.views).filter(n => n > 0);
-    const avgLikes = avg(likesArr);
-    const avgComments = avg(commentsArr);
-    const avgViews = avg(viewsArr);
+    // Likes/comments average over every analysed post (a zero is real data, not noise);
+    // views only over posts that are actually videos.
+    const avgLikes = avg(enriched.map(p => p.likes));
+    const avgComments = avg(enriched.map(p => p.comments));
+    const avgViews = avg(enriched.filter(p => p.views > 0).map(p => p.views));
     const engagementRate = followers && (avgLikes != null || avgComments != null)
       ? +(((avgLikes ?? 0) + (avgComments ?? 0)) / followers * 100).toFixed(2)
       : null;
@@ -189,8 +188,9 @@ ${postLines || "(no posts)"}`;
       postImageUrls,
     };
   } catch (e) {
-    clearTimeout(timeoutId);
     console.warn("[Apify] failed:", (e as Error).message);
     return empty;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
