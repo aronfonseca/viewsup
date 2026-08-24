@@ -11,6 +11,7 @@ export interface ScrapeResult {
   avgViews: number | null;
   engagementRate: number | null; // percent (likes+comments)/followers averaged
   profilePicUrl: string | null;
+  postImageUrls: string[]; // thumbnail URLs of the most recent posts, for real visual analysis
 }
 
 export function fmtNum(n: number | null | undefined): string {
@@ -26,6 +27,7 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
   const empty: ScrapeResult = {
     summary: "Sem dados de scraping disponíveis. Faça uma análise simulada com base no username e boas práticas.",
     followers: null, avgLikes: null, avgComments: null, avgViews: null, engagementRate: null, profilePicUrl: null,
+    postImageUrls: [],
   };
   if (!APIFY_API_KEY) {
     console.log("[Apify] no key — skipping scrape");
@@ -111,6 +113,9 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
       const dateIso = ts ? new Date(typeof ts === "number" ? ts * (ts < 1e12 ? 1000 : 1) : ts).toISOString().slice(0, 10) : "?";
       const engagement = likes + comments;
       const erPostPct = followers ? +((engagement / followers) * 100).toFixed(2) : null;
+      const imageUrl = p.displayUrl || p.thumbnailSrc
+        || (Array.isArray(p.images) && p.images[0]?.url) || (Array.isArray(p.images) && typeof p.images[0] === "string" ? p.images[0] : null)
+        || p.thumbnailUrl || null;
       return {
         shortCode: p.shortCode || p.shortcode || "?",
         url: p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : "?"),
@@ -122,6 +127,7 @@ export async function scrapeInstagram(username: string, timeoutMs = 150_000): Pr
         caption: String(p.caption || "").replace(/\s+/g, " ").slice(0, 220),
         hashtags: Array.isArray(p.hashtags) ? p.hashtags.slice(0, 6) : [],
         videoDuration: Number(p.videoDuration) || null,
+        imageUrl,
       };
     });
 
@@ -168,6 +174,11 @@ Worst performing post: ${worst && enriched.length > 1 ? `shortcode=${worst.short
 === POSTS DETAIL (use shortcodes when citing posts) ===
 ${postLines || "(no posts)"}`;
 
+    const postImageUrls = enriched
+      .map(p => p.imageUrl)
+      .filter((u): u is string => typeof u === "string" && u.length > 0)
+      .slice(0, 6);
+
     return {
       summary,
       followers,
@@ -176,6 +187,7 @@ ${postLines || "(no posts)"}`;
       avgViews,
       engagementRate,
       profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null,
+      postImageUrls,
     };
   } catch (e) {
     clearTimeout(timeoutId);

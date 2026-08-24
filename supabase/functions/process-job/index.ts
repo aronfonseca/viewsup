@@ -55,6 +55,7 @@ const ANALYSIS_SCHEMA = {
         properties: {
           visualConsistency: {
             type: "object",
+            description: "Judge this ONLY from the real post thumbnail images included in the message, if any were provided — you are actually looking at them, so answer directly and confidently. If no images were provided (see the warning text in the message), stay neutral: hasColorPattern=false, hasFontPattern=false, hostFaceVisible=false, score 40-55, and say in 'insight' that visual analysis could not be verified this run.",
             properties: {
               score: { type: "number" },
               hasColorPattern: { type: "boolean" },
@@ -398,7 +399,7 @@ trendRadar MUST contain EXACTLY 8 items. Returning fewer than 8 items or an empt
 
 soundscapeArchitect MUST contain EXACTLY 5 audio suggestions tailored to the niche "${'${'}nicho${'}'}" and the profile's content style/tone. Each item must have: mood (one or two words — e.g. "energético", "emocional", "inspirador", "energetic", "calm"), suggestion (concrete music style/genre or audio type — e.g. "Lo-fi beat 120 BPM", "Funk melódico brasileiro trending", "Cinematic build-up com drop", "Trending pop remix"), useCase (which type of video to use it on — e.g. "Reels de transformação antes/depois", "Tutorial passo a passo", "Bastidores e storytelling"), and trending (boolean — true ONLY if this style is currently trending on Instagram for that niche). At least 2 of the 5 items MUST have trending=true. Write all text in ${isPT ? '"Português Brasileiro"' : '"British English"'}.
 
-CRITICAL — UNVERIFIABLE VIDEO-CONTENT CLAIMS: You are analysing PUBLIC METRICS ONLY (followers, likes, comments, captions, thumbnails). You have NOT watched the videos. Therefore you MUST NOT make categorical claims about the actual video content — never write things like "os vídeos começam com planos estáticos", "zero hooks verbais", "sem cortes dinâmicos", "the videos have no verbal hook", "there are no dynamic cuts", or any other definitive statement about what happens inside a video. Instead, use CONDITIONAL / PROBABILISTIC language grounded in the metrics: ${isPT ? '"Com base no engajamento abaixo do benchmark, é provável que...", "Perfis com esse padrão de métricas frequentemente têm...", "As métricas sugerem que possivelmente..."' : '"Based on engagement below benchmark, it is likely that...", "Profiles with this metric pattern often have...", "The metrics suggest that possibly..."'}. This rule applies to EVERY insight, issue, burningProblem, and text field about video execution (hookRetention, visualFatigue, safeZoneAudit, audioClarity, ctaStrength). Metrics, benchmarks, scripts and trends themselves stay factual — only soften claims about the unseen video content.`;
+CRITICAL — UNVERIFIABLE VIDEO-CONTENT CLAIMS: You are analysing PUBLIC METRICS (followers, likes, comments, captions) plus, when provided in this message, a handful of REAL static thumbnail images from the profile's most recent posts. You have NOT watched the videos — you cannot know what happens between frames, whether cuts are dynamic, what audio plays, or what is said out loud. Therefore you MUST NOT make categorical claims about VIDEO MOTION/EXECUTION you did not see — never write things like "zero hooks verbais", "sem cortes dinâmicos", "the videos have no verbal hook", "there are no dynamic cuts". Instead, use CONDITIONAL / PROBABILISTIC language grounded in the metrics for these: ${isPT ? '"Com base no engajamento abaixo do benchmark, é provável que...", "Perfis com esse padrão de métricas frequentemente têm...", "As métricas sugerem que possivelmente..."' : '"Based on engagement below benchmark, it is likely that...", "Profiles with this metric pattern often have...", "The metrics suggest that possibly..."'}. This softening rule applies to hookRetention, visualFatigue, safeZoneAudit, audioClarity, ctaStrength. It does NOT apply to profileHealth.visualConsistency when real images were provided — for that field you ARE actually looking at the images, so state directly and confidently what you observe (colour palette, text/font overlay pattern, whether a human face appears), no hedging. Metrics, benchmarks, scripts and trends themselves stay factual.`;
 
  const userPrompt = isPT
     ? `Faça a auditoria do perfil @${username} (URL: ${url}) com base nos dados REAIS abaixo.
@@ -429,6 +430,31 @@ INSTRUCTION: Generate EXACTLY 8 trends EXCLUSIVELY for this profile's detected n
 REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), reference posts by shortcode in backticks, compare to niche benchmarks, and base the 10 videoIdeas on posts that ALREADY performed well on this profile. Return only the schema-defined structure. ALL content MUST be in British English.`;
 
   return { systemPrompt, userPrompt };
+}
+
+// Downloads a post thumbnail and base64-encodes it for the Anthropic vision API.
+// Best-effort per image — a failed download just means one fewer image, never a hard failure.
+async function fetchImageAsBase64(url: string, timeoutMs = 8000): Promise<{ data: string; mediaType: string } | null> {
+  const ac = new AbortController();
+  const timeoutId = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ac.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const mediaType = (res.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
+    if (!mediaType.startsWith("image/")) return null;
+    const buf = new Uint8Array(await res.arrayBuffer());
+    let binary = "";
+    const chunkSize = 8192;
+    for (let i = 0; i < buf.length; i += chunkSize) {
+      binary += String.fromCharCode(...buf.subarray(i, i + chunkSize));
+    }
+    return { data: btoa(binary), mediaType };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    console.warn("[image-fetch] failed:", url, (e as Error).message);
+    return null;
+  }
 }
 
 // Pull most-recent prior analysis for the same username (any user) for trend comparison
@@ -676,7 +702,36 @@ async function processJob(jobId: string) {
       nicheContext,
     );
 
-    console.log("[Worker] calling Anthropic for job:", jobId, "| prior=", !!prior, "| niche-rows=", allInsights?.length ?? 0);
+    // Download real post thumbnails so visualConsistency is graded from what the
+    // model actually sees, instead of guessed from text alone (was causing wildly
+    // inconsistent scores for the same profile across runs).
+    const imageBlocks = (await Promise.all(
+      (scrape.postImageUrls || []).slice(0, 6).map((url) => fetchImageAsBase64(url)),
+    )).filter((img): img is { data: string; mediaType: string } => img != null);
+    console.log(`[Worker] loaded ${imageBlocks.length}/${(scrape.postImageUrls || []).length} post thumbnails for visual analysis`);
+
+    const userContent: any[] = [];
+    if (imageBlocks.length > 0) {
+      userContent.push({
+        type: "text",
+        text: isPT
+          ? `As ${imageBlocks.length} imagens abaixo são as miniaturas REAIS dos posts mais recentes deste perfil, na ordem do feed. Use-as para julgar profileHealth.visualConsistency (hasColorPattern, hasFontPattern, hostFaceVisible, score) e a dimensão "Visual Identity" — você está REALMENTE vendo essas imagens, então declare com confiança o que observa (paleta de cores repetida ou não, tipografia/overlay de texto consistente ou não, rosto humano visível ou não), sem linguagem condicional para o que está literalmente visível.`
+          : `The ${imageBlocks.length} images below are the REAL thumbnails of this profile's most recent posts, in feed order. Use them to judge profileHealth.visualConsistency (hasColorPattern, hasFontPattern, hostFaceVisible, score) and the "Visual Identity" dimension — you are ACTUALLY seeing these images, so state with confidence what you observe (repeated colour palette or not, consistent typography/text overlay or not, a visible human face or not), no conditional language for what is literally visible.`,
+      });
+      for (const img of imageBlocks) {
+        userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } });
+      }
+    } else {
+      userContent.push({
+        type: "text",
+        text: isPT
+          ? "AVISO: nenhuma imagem de post pôde ser carregada nesta análise. Você NÃO tem como ver a identidade visual real do perfil. Para profileHealth.visualConsistency, defina hasColorPattern=false, hasFontPattern=false, hostFaceVisible=false, score entre 40 e 55, e declare em 'insight' que a análise visual não pôde ser verificada nesta execução por falta de imagens."
+          : "WARNING: no post images could be loaded for this analysis. You have NO way to see the profile's real visual identity. For profileHealth.visualConsistency, set hasColorPattern=false, hasFontPattern=false, hostFaceVisible=false, score between 40 and 55, and state in 'insight' that visual analysis could not be verified this run due to missing images.",
+      });
+    }
+    userContent.push({ type: "text", text: userPrompt });
+
+    console.log("[Worker] calling Anthropic for job:", jobId, "| prior=", !!prior, "| niche-rows=", allInsights?.length ?? 0, "| images=", imageBlocks.length);
     const ac = new AbortController();
     const timeoutId = setTimeout(() => ac.abort(), 360_000);
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -697,7 +752,7 @@ async function processJob(jobId: string) {
   input_schema: ANALYSIS_SCHEMA.parameters,
 }],
 tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
-  messages: [{ role: "user", content: userPrompt }],
+  messages: [{ role: "user", content: userContent }],
 }),
       signal: ac.signal,
     });
