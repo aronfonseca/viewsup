@@ -599,7 +599,7 @@ async function processJob(jobId: string) {
 
     // Run scrape and prior-history fetch in parallel
     const [scrape, prior] = await Promise.all([
-      scrapeInstagram(username, 150_000, 6),
+      scrapeInstagram(username),
       fetchPriorAnalysis(admin, job.user_id, username),
     ]);
 
