@@ -457,6 +457,43 @@ async function fetchImageAsBase64(url: string, timeoutMs = 8000): Promise<{ data
   }
 }
 
+// Cheap, fast niche guess (Haiku, text-only) run BEFORE the main analysis call.
+// We need to know the niche early so we can pull that niche's reference-account
+// images from nicho_insights.seed_image_urls and include them in the single
+// main Claude call — the main call still does its own full "nicho" classification
+// and is authoritative; this guess only decides which images to attach.
+async function guessNicheCheap(scrapedSummary: string, apiKey: string): Promise<string | null> {
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 15_000);
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 20,
+        messages: [{
+          role: "user",
+          content: `Based on this Instagram profile data, pick the SINGLE closest niche from this exact list: ${NICHE_ENUM.join(", ")}. Reply with ONLY the niche name, nothing else.\n\n${scrapedSummary.slice(0, 2000)}`,
+        }],
+      }),
+      signal: ac.signal,
+    });
+    clearTimeout(t);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = ((data.content || []).find((b: any) => b.type === "text")?.text || "").trim();
+    return NICHE_ENUM.includes(text) ? text : null;
+  } catch (e) {
+    console.warn("[niche-guess] failed:", (e as Error).message);
+    return null;
+  }
+}
+
 // Pull most-recent prior analysis for the same username (any user) for trend comparison
 async function fetchPriorAnalysis(admin: any, userId: string, username: string): Promise<PriorAnalysis | null> {
   const { data, error } = await admin
@@ -658,7 +695,7 @@ async function processJob(jobId: string) {
     // niches with few or zero organic/paid analyses yet).
     const { data: seedBenchmarkRows } = await admin
       .from("nicho_insights")
-      .select("nicho, seed_profiles_sampled, seed_avg_followers, seed_avg_likes, seed_avg_comments, seed_engagement_rate, seed_content_patterns")
+      .select("nicho, seed_profiles_sampled, seed_avg_followers, seed_avg_likes, seed_avg_comments, seed_engagement_rate, seed_content_patterns, seed_image_urls")
       .gt("seed_profiles_sampled", 0);
 
     const seedBenchmarkTable = (seedBenchmarkRows ?? []).map((row: any) =>
@@ -702,21 +739,44 @@ async function processJob(jobId: string) {
       nicheContext,
     );
 
-    // Download real post thumbnails so visualConsistency is graded from what the
-    // model actually sees, instead of guessed from text alone (was causing wildly
-    // inconsistent scores for the same profile across runs).
-    const imageBlocks = (await Promise.all(
-      (scrape.postImageUrls || []).slice(0, 6).map((url) => fetchImageAsBase64(url)),
-    )).filter((img): img is { data: string; mediaType: string } => img != null);
-    console.log(`[Worker] loaded ${imageBlocks.length}/${(scrape.postImageUrls || []).length} post thumbnails for visual analysis`);
+    // Cheap niche pre-guess so we know which niche's reference-account images
+    // (from niche-benchmark-agent, seed_image_urls) to attach as comparison
+    // context for the main call below.
+    const nicheGuess = await guessNicheCheap(scrape.summary, ANTHROPIC_API_KEY);
+    const seedRowForGuess = nicheGuess ? (seedBenchmarkRows ?? []).find((r: any) => r.nicho === nicheGuess) : null;
+    const referenceImageUrls: string[] = Array.isArray(seedRowForGuess?.seed_image_urls) ? seedRowForGuess.seed_image_urls.slice(0, 4) : [];
+    console.log(`[Worker] niche guess=${nicheGuess ?? "?"} | reference images available=${referenceImageUrls.length}`);
+
+    // Download real post thumbnails — both this profile's own AND, when available,
+    // real reference-account thumbnails for the guessed niche — so visualConsistency
+    // is graded from what the model actually sees and compared against, instead of
+    // guessed from text alone (was causing wildly inconsistent scores across runs).
+    const [imageBlocksRaw, referenceImageBlocksRaw] = await Promise.all([
+      Promise.all((scrape.postImageUrls || []).slice(0, 6).map((url) => fetchImageAsBase64(url))),
+      Promise.all(referenceImageUrls.map((url) => fetchImageAsBase64(url))),
+    ]);
+    const imageBlocks = imageBlocksRaw.filter((img): img is { data: string; mediaType: string } => img != null);
+    const referenceImageBlocks = referenceImageBlocksRaw.filter((img): img is { data: string; mediaType: string } => img != null);
+    console.log(`[Worker] loaded ${imageBlocks.length}/${(scrape.postImageUrls || []).length} post thumbnails | ${referenceImageBlocks.length}/${referenceImageUrls.length} reference thumbnails`);
 
     const userContent: any[] = [];
+    if (referenceImageBlocks.length > 0) {
+      userContent.push({
+        type: "text",
+        text: isPT
+          ? `As ${referenceImageBlocks.length} imagens abaixo são miniaturas REAIS de contas de referência curadas para o nicho "${nicheGuess}" — exemplos reais do que funciona visualmente nesse nicho. Use-as como PARÂMETRO DE COMPARAÇÃO ao julgar a identidade visual do perfil analisado (mostrado logo em seguida): a identidade dele está alinhada, destoa de forma proposital, ou simplesmente carece de qualquer padrão perto do que essas referências fazem?`
+          : `The ${referenceImageBlocks.length} images below are REAL thumbnails from curated reference accounts for the "${nicheGuess}" niche — real examples of what works visually in this niche. Use them as a COMPARISON BASELINE when judging the analysed profile's visual identity (shown right after): is it aligned, deliberately differentiated, or simply lacking any pattern compared to what these references do?`,
+      });
+      for (const img of referenceImageBlocks) {
+        userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } });
+      }
+    }
     if (imageBlocks.length > 0) {
       userContent.push({
         type: "text",
         text: isPT
-          ? `As ${imageBlocks.length} imagens abaixo são as miniaturas REAIS dos posts mais recentes deste perfil, na ordem do feed. Use-as para julgar profileHealth.visualConsistency (hasColorPattern, hasFontPattern, hostFaceVisible, score) e a dimensão "Visual Identity" — você está REALMENTE vendo essas imagens, então declare com confiança o que observa (paleta de cores repetida ou não, tipografia/overlay de texto consistente ou não, rosto humano visível ou não), sem linguagem condicional para o que está literalmente visível.`
-          : `The ${imageBlocks.length} images below are the REAL thumbnails of this profile's most recent posts, in feed order. Use them to judge profileHealth.visualConsistency (hasColorPattern, hasFontPattern, hostFaceVisible, score) and the "Visual Identity" dimension — you are ACTUALLY seeing these images, so state with confidence what you observe (repeated colour palette or not, consistent typography/text overlay or not, a visible human face or not), no conditional language for what is literally visible.`,
+          ? `As ${imageBlocks.length} imagens abaixo são as miniaturas REAIS dos posts mais recentes DESTE perfil (o que está sendo analisado), na ordem do feed. Use-as para julgar profileHealth.visualConsistency (hasColorPattern, hasFontPattern, hostFaceVisible, score) e a dimensão "Visual Identity" — você está REALMENTE vendo essas imagens, então declare com confiança o que observa (paleta de cores repetida ou não, tipografia/overlay de texto consistente ou não, rosto humano visível ou não), sem linguagem condicional para o que está literalmente visível.${referenceImageBlocks.length > 0 ? " Compare diretamente com as imagens de referência mostradas acima." : ""}`
+          : `The ${imageBlocks.length} images below are the REAL thumbnails of THIS profile's (the one being analysed) most recent posts, in feed order. Use them to judge profileHealth.visualConsistency (hasColorPattern, hasFontPattern, hostFaceVisible, score) and the "Visual Identity" dimension — you are ACTUALLY seeing these images, so state with confidence what you observe (repeated colour palette or not, consistent typography/text overlay or not, a visible human face or not), no conditional language for what is literally visible.${referenceImageBlocks.length > 0 ? " Compare directly against the reference images shown above." : ""}`,
       });
       for (const img of imageBlocks) {
         userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } });

@@ -164,6 +164,7 @@ Deno.serve(async (req) => {
       const comments: number[] = [];
       const examples: any[] = [];
       const accountSummaries: { username: string; summary: string }[] = [];
+      const imageUrls: string[] = [];
 
       for (const username of usernames) {
         try {
@@ -173,6 +174,10 @@ Deno.serve(async (req) => {
           if (scrape.avgLikes != null) likes.push(scrape.avgLikes);
           if (scrape.avgComments != null) comments.push(scrape.avgComments);
           if (scrape.followers != null) accountSummaries.push({ username, summary: scrape.summary });
+          // Take a couple of thumbnails per reference account so process-job
+          // can later show the AI real examples of what "good" looks like
+          // in this niche, not just numbers.
+          imageUrls.push(...(scrape.postImageUrls || []).slice(0, 2));
           examples.push({
             username,
             followers: scrape.followers,
@@ -217,6 +222,7 @@ Deno.serve(async (req) => {
           seed_engagement_rate: engagementRate,
           seed_examples: examples,
           seed_content_patterns: contentPatterns,
+          seed_image_urls: imageUrls.slice(0, 8),
           seed_updated_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: "nicho" });
