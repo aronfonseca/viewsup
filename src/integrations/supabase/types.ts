@@ -103,6 +103,7 @@ export type Database = {
           seed_content_patterns: Json
           seed_engagement_rate: number | null
           seed_examples: Json
+          seed_image_urls: Json
           seed_profiles_sampled: number
           seed_updated_at: string | null
           top_problemas: Json
@@ -127,6 +128,7 @@ export type Database = {
           seed_content_patterns?: Json
           seed_engagement_rate?: number | null
           seed_examples?: Json
+          seed_image_urls?: Json
           seed_profiles_sampled?: number
           seed_updated_at?: string | null
           top_problemas?: Json
@@ -151,6 +153,7 @@ export type Database = {
           seed_content_patterns?: Json
           seed_engagement_rate?: number | null
           seed_examples?: Json
+          seed_image_urls?: Json
           seed_profiles_sampled?: number
           seed_updated_at?: string | null
           top_problemas?: Json
