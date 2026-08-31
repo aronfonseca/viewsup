@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { PageHelmet } from "@/components/PageHelmet";
 import NichoIntelligence from "@/components/NichoIntelligence";
 import SeedAccountReview from "@/components/SeedAccountReview";
+import PillarScanPanel from "@/components/PillarScanPanel";
 
 const ADMIN_EMAIL = "aronfonseca2020@gmail.com";
 const NICHO_INTEL_EMAIL = "aronfonsecaoficial@gmail.com";
@@ -163,6 +164,18 @@ const Admin = () => {
               contas aprovadas passam a ser usadas pelo niche-benchmark-agent para gerar benchmarks reais.
             </p>
             <SeedAccountReview />
+          </section>
+        )}
+
+        {canSeeNichoIntel && (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-bold">Scan de Pilares de Conteúdo</h2>
+            <p className="text-sm text-muted-foreground">
+              Descobre e analisa perfis reais em lote (padrão 12 por execução, manual) — pilares de conteúdo,
+              pilar dominante, consistência visual e disponibilidade de dados de performance. Alimenta o
+              contexto de nicho usado nas análises pagas.
+            </p>
+            <PillarScanPanel />
           </section>
         )}
 

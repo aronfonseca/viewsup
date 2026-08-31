@@ -5,6 +5,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { scrapeInstagram, type ScrapeResult } from "../_shared/apify.ts";
+import { fetchImageAsBase64 } from "../_shared/images.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -432,31 +433,6 @@ REMINDER: cite raw numbers (followers, avgLikes, avgComments, engagementRate%), 
   return { systemPrompt, userPrompt };
 }
 
-// Downloads a post thumbnail and base64-encodes it for the Anthropic vision API.
-// Best-effort per image — a failed download just means one fewer image, never a hard failure.
-async function fetchImageAsBase64(url: string, timeoutMs = 8000): Promise<{ data: string; mediaType: string } | null> {
-  const ac = new AbortController();
-  const timeoutId = setTimeout(() => ac.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { signal: ac.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) return null;
-    const mediaType = (res.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
-    if (!mediaType.startsWith("image/")) return null;
-    const buf = new Uint8Array(await res.arrayBuffer());
-    let binary = "";
-    const chunkSize = 8192;
-    for (let i = 0; i < buf.length; i += chunkSize) {
-      binary += String.fromCharCode(...buf.subarray(i, i + chunkSize));
-    }
-    return { data: btoa(binary), mediaType };
-  } catch (e) {
-    clearTimeout(timeoutId);
-    console.warn("[image-fetch] failed:", url, (e as Error).message);
-    return null;
-  }
-}
-
 // Cheap, fast niche guess (Haiku, text-only) run BEFORE the main analysis call.
 // We need to know the niche early so we can pull that niche's reference-account
 // images from nicho_insights.seed_image_urls and include them in the single
@@ -722,12 +698,44 @@ async function processJob(jobId: string) {
         : `\n\nREAL VIDEO PATTERNS FROM REFERENCE ACCOUNTS (extracted from their real posts, use the entry matching the nicho):\n${seedPatternsBlock}\n\nUse these patterns — grounded in real accounts and posts — as extra basis for videoIdeas and trendRadar when the nicho matches.`)
       : "";
 
+    // Aggregate results from pillar-scan-agent's research batches (real profiles,
+    // discovered + scanned in bulk) — grounds "how many pillars is normal" and
+    // "what's typical visual consistency" per niche in actual scanned examples,
+    // distinct from the curated seed accounts above.
+    const { data: pillarScanRows } = await admin
+      .from("profile_pillar_scans")
+      .select("nicho, pilares_distintos, pilar_dominante, consistencia_visual")
+      .eq("dados_performance_disponiveis", true)
+      .not("pilares_distintos", "is", null);
+
+    const pillarScanByNicho = new Map<string, { pilares: number[]; dominantes: string[]; visual: string[] }>();
+    for (const row of pillarScanRows ?? []) {
+      if (!row.nicho) continue;
+      const bucket = pillarScanByNicho.get(row.nicho) ?? { pilares: [], dominantes: [], visual: [] };
+      if (Number.isFinite(row.pilares_distintos)) bucket.pilares.push(row.pilares_distintos);
+      if (row.pilar_dominante) bucket.dominantes.push(row.pilar_dominante);
+      if (row.consistencia_visual) bucket.visual.push(row.consistencia_visual);
+      pillarScanByNicho.set(row.nicho, bucket);
+    }
+    const pillarScanTable = [...pillarScanByNicho.entries()].map(([nicho, b]) => {
+      const avgPilares = b.pilares.length ? (b.pilares.reduce((a, x) => a + x, 0) / b.pilares.length).toFixed(1) : "?";
+      const visualCounts = b.visual.reduce((acc: Record<string, number>, v) => { acc[v] = (acc[v] ?? 0) + 1; return acc; }, {});
+      const visualSummary = Object.entries(visualCounts).map(([k, v]) => `${k}=${v}`).join(", ") || "sem dados";
+      return `${nicho}: ${b.pilares.length} perfis reais escaneados — média de ${avgPilares} pilares distintos por perfil, consistência visual observada (${visualSummary})`;
+    }).join("\n");
+
+    const pillarScanBlock = pillarScanTable
+      ? (isPT
+        ? `\n\nESTUDO DE PILARES DE CONTEÚDO POR NICHO (perfis reais descobertos e escaneados em lote pelo pillar-scan-agent):\n${pillarScanTable}\n\nUse como referência de "normalidade" ao avaliar se o número de pilares do perfil atual é alto, baixo ou típico do nicho.`
+        : `\n\nCONTENT-PILLAR STUDY PER NICHE (real profiles discovered and bulk-scanned by pillar-scan-agent):\n${pillarScanTable}\n\nUse as a reference for "normal" when judging whether the current profile's pillar count is high, low, or typical for the niche.`)
+      : "";
+
     const priorContext = buildPriorContext(prior, isPT);
     const nicheContext = (nicheTableSummary
       ? (isPT
         ? `\n\nDADOS DE NICHOS (referência cruzada):\n${nicheTableSummary}\n\nApós escolher o "nicho" do perfil, use os top problemas/soluções desse nicho específico para enriquecer sua análise.`
         : `\n\nNICHE BENCHMARKS (cross-reference):\n${nicheTableSummary}\n\nAfter picking the profile's "nicho", use that niche's top problems/solutions to enrich your analysis.`)
-      : "") + seedBenchmarkBlock + seedPatternsPromptBlock + trendRadarRealData;
+      : "") + seedBenchmarkBlock + seedPatternsPromptBlock + pillarScanBlock + trendRadarRealData;
 
     const { systemPrompt, userPrompt } = buildPrompts(
       username,
