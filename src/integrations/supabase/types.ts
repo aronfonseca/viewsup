@@ -200,6 +200,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pillar_scan_batches: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          niches: string[] | null
+          requested_count: number
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          niches?: string[] | null
+          requested_count: number
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          niches?: string[] | null
+          requested_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
       profile_history: {
         Row: {
           created_at: string
@@ -268,6 +295,59 @@ export type Database = {
           visual_branding?: number | null
         }
         Relationships: []
+      }
+      profile_pillar_scans: {
+        Row: {
+          batch_id: string
+          consistencia_visual: string | null
+          created_at: string
+          dados_performance_disponiveis: boolean | null
+          id: string
+          nicho: string | null
+          pilar_dominante: string | null
+          pilar_dominante_pct: number | null
+          pilares_distintos: number | null
+          pillars_detail: Json
+          scan_error: string | null
+          username: string
+        }
+        Insert: {
+          batch_id: string
+          consistencia_visual?: string | null
+          created_at?: string
+          dados_performance_disponiveis?: boolean | null
+          id?: string
+          nicho?: string | null
+          pilar_dominante?: string | null
+          pilar_dominante_pct?: number | null
+          pilares_distintos?: number | null
+          pillars_detail?: Json
+          scan_error?: string | null
+          username: string
+        }
+        Update: {
+          batch_id?: string
+          consistencia_visual?: string | null
+          created_at?: string
+          dados_performance_disponiveis?: boolean | null
+          id?: string
+          nicho?: string | null
+          pilar_dominante?: string | null
+          pilar_dominante_pct?: number | null
+          pilares_distintos?: number | null
+          pillars_detail?: Json
+          scan_error?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_pillar_scans_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "pillar_scan_batches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
