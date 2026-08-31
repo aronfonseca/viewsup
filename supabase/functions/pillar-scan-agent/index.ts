@@ -47,16 +47,26 @@ async function discoverProfiles(
 
   const prompt = `You are a social media research analyst with access to real-time web search.
 
-TASK: Find ${count} REAL, currently active, public Instagram profiles spread across these niches (roughly balanced): ${niches.join(", ")}. Use web search to confirm each account actually exists and is active — do not guess from memory. Prefer accounts with a genuinely distinguishable content style (useful for studying content pillars and visual consistency), avoid private/inactive-looking accounts.${excludeLine}
+CONTEXT: This tool (ViewsUp) analyses Instagram profiles for individual content creators, personal brands, small business owners, freelancers/service providers, and marketing agencies giving feedback to their own clients. The profiles you find must be genuinely COMPARABLE to those users — real people or small businesses posting their OWN original video content (Reels) under their own face/voice/brand.
+
+TASK: Find ${count} REAL, currently active, public Instagram profiles spread across these niches (roughly balanced): ${niches.join(", ")}. Use web search to confirm each account actually exists, is active, and posts original video content — do not guess from memory.
+
+STRICTLY EXCLUDE:
+- Faceless content-aggregator / curation / repost pages with no real identifiable owner — accounts that just repost OTHER PEOPLE's content for engagement farming, not their own work. A common naming pattern for these is "[categoria]brasil", "top[categoria]", "[categoria]oficial", "a[categoria]brasil" — but the real test is whether a specific real person or business is genuinely behind the account, not the name alone.
+- Meme pages, news pages, or accounts with no original video content
+
+Catalogue-style or listings-style content is FINE as long as it's a real business/professional's own account (e.g. a real estate agent or agency showing their own property listings, a store showing its own products) — the client an agency serves could legitimately look like that. What matters is a real, identifiable owner posting their OWN content, not the visual style of the content itself.
+
+GOOD candidates: an individual creator, a small business owner showing their own work, a freelancer/service provider, a local business account with a real person/team behind it, an influencer — genuinely representative of how a REAL ViewsUp client (of any style, including catalogue-heavy niches like real estate) would look.${excludeLine}
 
 Return STRICT JSON only, no markdown, no commentary outside the JSON:
 {
   "profiles": [
-    { "username": "instagram_handle_without_@", "nicho": "one of: ${niches.join(", ")}", "reasoning": "short reason this is a good real example to study" }
+    { "username": "instagram_handle_without_@", "nicho": "one of: ${niches.join(", ")}", "reasoning": "confirm via search what kind of creator/business this is, that a real person is behind it, and that it posts original video content" }
   ]
 }
 
-Return up to ${count} profiles. If you cannot verify enough real accounts via search, return fewer rather than inventing ones.`;
+Return up to ${count} profiles. If you cannot verify enough real, non-aggregator accounts via search, return fewer rather than including a curation/catalogue page.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
