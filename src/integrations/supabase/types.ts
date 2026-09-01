@@ -296,6 +296,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_objectives: {
+        Row: {
+          created_at: string
+          id: string
+          objective_text: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          objective_text: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          objective_text?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       profile_pillar_scans: {
         Row: {
           batch_id: string
