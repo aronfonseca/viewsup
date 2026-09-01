@@ -59,6 +59,48 @@ export type Database = {
         }
         Relationships: []
       }
+      content_calendar_items: {
+        Row: {
+          best_day: string | null
+          best_time: string | null
+          created_at: string
+          format: string | null
+          hook_verbal: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          best_day?: string | null
+          best_time?: string | null
+          created_at?: string
+          format?: string | null
+          hook_verbal?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          best_day?: string | null
+          best_time?: string | null
+          created_at?: string
+          format?: string | null
+          hook_verbal?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       device_accounts: {
         Row: {
           created_at: string
