@@ -47,6 +47,10 @@ const ProfileObjective = ({ username, alignment, readOnly }: ProfileObjectivePro
     return () => { cancelled = true; };
   }, [username, readOnly]);
 
+  // Read-only views (e.g. /demo) have no logged-in user to query profile_objectives
+  // for, so fall back to the objective already embedded in the analysis payload.
+  const displayedObjective = readOnly ? (alignment?.objectiveSummary || null) : objective;
+
   const save = async () => {
     if (!userId || !draft.trim()) return;
     setSaving(true);
@@ -95,10 +99,10 @@ const ProfileObjective = ({ username, alignment, readOnly }: ProfileObjectivePro
             </Button>
           </div>
         </div>
-      ) : objective ? (
+      ) : displayedObjective ? (
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-3">
-            <p className="text-sm text-foreground flex-1">{objective}</p>
+            <p className="text-sm text-foreground flex-1">{displayedObjective}</p>
             {!readOnly && (
               <Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditing(true)}>
                 <Pencil className="h-3.5 w-3.5 mr-1.5" />
