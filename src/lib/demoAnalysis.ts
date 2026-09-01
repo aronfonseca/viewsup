@@ -159,6 +159,21 @@ export const demoAnalysis: ProfileAnalysis = {
       "Atualize a bio para deixar explícito o pilar central antes de postar o próximo conteúdo.",
     ],
   },
+  objectiveAlignment: {
+    hasStatedObjective: true,
+    objectiveSummary: "Mostrar a jornada de crescimento no ramo de vendas depois de deixar tudo para trás e aceitar o desafio.",
+    alignmentScore: 42,
+    diagnosis: "O perfil ainda não conta essa jornada de forma explícita — os posts atuais focam em mitos e bastidores genéricos, sem ancorar o conteúdo na história pessoal de virada.",
+    gapAreas: [
+      "Nenhum post recente menciona a origem/decisão de sair de Recife ou o desafio aceitado",
+      "Falta prova de progresso (antes/depois, marcos, números de crescimento) que sustente a narrativa de jornada",
+    ],
+    recommendedNextSteps: [
+      "Grave 1 vídeo contando a origem da jornada (o que deixou pra trás e por quê) como conteúdo fixo/destaque",
+      "Documente marcos de progresso (primeiro resultado, primeira meta batida) em formato de série",
+      "Referencie a jornada como contexto em pelo menos 1 a cada 3 posts, mesmo quando o tema principal for outro",
+    ],
+  },
   recentPosts: [
     { postUrl: "https://www.instagram.com/p/Cx1y8aBpQ4w/", shortCode: "Cx1y8aBpQ4w", description: "Reel de bastidores com 18k views" },
     { postUrl: "https://www.instagram.com/p/Cy3a2BcDeFg/", shortCode: "Cy3a2BcDeFg", description: "Carrossel de mitos com salvamento alto" },

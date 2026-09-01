@@ -133,6 +133,20 @@ const ANALYSIS_SCHEMA = {
           additionalProperties: false,
         },
       },
+      objectiveAlignment: {
+        type: "object",
+        description: "Only fill this meaningfully if a STATED OBJECTIVE was provided in the prompt context below — otherwise set hasStatedObjective=false and leave the other fields as neutral placeholders (empty strings/arrays, alignmentScore=0).",
+        properties: {
+          hasStatedObjective: { type: "boolean" },
+          objectiveSummary: { type: "string", description: "Echo back the stated objective in one short sentence, or empty string if none was provided." },
+          alignmentScore: { type: "number", description: "0-100: how well the CURRENT profile (real data) already advances the stated objective. Only meaningful if hasStatedObjective=true." },
+          diagnosis: { type: "string" },
+          gapAreas: { type: "array", items: { type: "string" } },
+          recommendedNextSteps: { type: "array", items: { type: "string" } },
+        },
+        required: ["hasStatedObjective", "objectiveSummary", "alignmentScore", "diagnosis", "gapAreas", "recommendedNextSteps"],
+        additionalProperties: false,
+      },
       contentFocus: {
         type: "object",
         description: "Diagnosis of whether the profile has a clear content focus, and — if not — a concrete recommended direction grounded in the profile's own best-performing posts and niche data. Must first classify accountType, since the notion of 'focus' means something different for a personal-brand account than for a portfolio/service-provider account.",
@@ -245,6 +259,7 @@ const ANALYSIS_SCHEMA = {
       "hookRetention",
       "viralScore",
       "burningProblems",
+      "objectiveAlignment",
       "contentFocus",
       "issues",
       "patterns",
@@ -610,10 +625,12 @@ async function processJob(jobId: string) {
     const username = job.username as string;
     const isPT = job.language === "pt-BR";
 
-    // Run scrape and prior-history fetch in parallel
-    const [scrape, prior] = await Promise.all([
+    // Run scrape, prior-history fetch and stated-objective fetch in parallel
+    const [scrape, prior, objectiveRow] = await Promise.all([
       scrapeInstagram(username, 150_000, 6),
       fetchPriorAnalysis(admin, job.user_id, username),
+      admin.from("profile_objectives").select("objective_text").eq("user_id", job.user_id).eq("username", username).maybeSingle()
+        .then((r: any) => r.data as { objective_text: string } | null),
     ]);
 
     // Validate scraped data BEFORE calling Claude — avoid burning tokens with no input
@@ -730,12 +747,20 @@ async function processJob(jobId: string) {
         : `\n\nCONTENT-PILLAR STUDY PER NICHE (real profiles discovered and bulk-scanned by pillar-scan-agent):\n${pillarScanTable}\n\nUse as a reference for "normal" when judging whether the current profile's pillar count is high, low, or typical for the niche.`)
       : "";
 
+    const objectiveContext = objectiveRow?.objective_text
+      ? (isPT
+        ? `\n\nOBJETIVO ESTRATÉGICO DECLARADO PARA ESTE PERFIL (definido pelo operador/agência):\n"${objectiveRow.objective_text}"\n\nINSTRUÇÃO: preencha "objectiveAlignment" com hasStatedObjective=true, avaliando com base em dados reais (shortcodes, temas) o quanto o perfil ATUAL já avança essa narrativa/objetivo. Além disso, use esse objetivo para ORIENTAR videoIdeas, contentFocus (recommendedPillars/transitionSteps) e scriptSuggestions — as sugestões devem ajudar a avançar especificamente essa narrativa, não ser genéricas.`
+        : `\n\nSTATED STRATEGIC OBJECTIVE FOR THIS PROFILE (defined by the operator/agency):\n"${objectiveRow.objective_text}"\n\nINSTRUCTION: fill "objectiveAlignment" with hasStatedObjective=true, judging from real data (shortcodes, themes) how much the CURRENT profile already advances this narrative/objective. Also use this objective to STEER videoIdeas, contentFocus (recommendedPillars/transitionSteps) and scriptSuggestions — suggestions should specifically help advance this narrative, not be generic.`)
+      : (isPT
+        ? `\n\nNenhum objetivo estratégico foi declarado para este perfil. Preencha "objectiveAlignment" com hasStatedObjective=false, objectiveSummary="", alignmentScore=0, diagnosis="", gapAreas=[], recommendedNextSteps=[].`
+        : `\n\nNo strategic objective was declared for this profile. Fill "objectiveAlignment" with hasStatedObjective=false, objectiveSummary="", alignmentScore=0, diagnosis="", gapAreas=[], recommendedNextSteps=[].`);
+
     const priorContext = buildPriorContext(prior, isPT);
     const nicheContext = (nicheTableSummary
       ? (isPT
         ? `\n\nDADOS DE NICHOS (referência cruzada):\n${nicheTableSummary}\n\nApós escolher o "nicho" do perfil, use os top problemas/soluções desse nicho específico para enriquecer sua análise.`
         : `\n\nNICHE BENCHMARKS (cross-reference):\n${nicheTableSummary}\n\nAfter picking the profile's "nicho", use that niche's top problems/solutions to enrich your analysis.`)
-      : "") + seedBenchmarkBlock + seedPatternsPromptBlock + pillarScanBlock + trendRadarRealData;
+      : "") + seedBenchmarkBlock + seedPatternsPromptBlock + pillarScanBlock + trendRadarRealData + objectiveContext;
 
     const { systemPrompt, userPrompt } = buildPrompts(
       username,
@@ -912,6 +937,18 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     if (!Array.isArray(aiInput.contentFocus.currentThemesDetected)) aiInput.contentFocus.currentThemesDetected = [];
     if (!Array.isArray(aiInput.contentFocus.recommendedPillars)) aiInput.contentFocus.recommendedPillars = [];
     if (!Array.isArray(aiInput.contentFocus.transitionSteps)) aiInput.contentFocus.transitionSteps = [];
+    if (!aiInput.objectiveAlignment || typeof aiInput.objectiveAlignment !== "object" || Array.isArray(aiInput.objectiveAlignment)) {
+      aiInput.objectiveAlignment = {
+        hasStatedObjective: !!objectiveRow?.objective_text,
+        objectiveSummary: objectiveRow?.objective_text ?? "",
+        alignmentScore: 0,
+        diagnosis: "",
+        gapAreas: [],
+        recommendedNextSteps: [],
+      };
+    }
+    if (!Array.isArray(aiInput.objectiveAlignment.gapAreas)) aiInput.objectiveAlignment.gapAreas = [];
+    if (!Array.isArray(aiInput.objectiveAlignment.recommendedNextSteps)) aiInput.objectiveAlignment.recommendedNextSteps = [];
 
     // ============================================================
     // DETERMINISTIC ENGAGEMENT OVERRIDE

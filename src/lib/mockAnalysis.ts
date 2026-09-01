@@ -213,6 +213,15 @@ export interface SoundscapeArchitect {
   insight: string;
 }
 
+export interface ObjectiveAlignment {
+  hasStatedObjective: boolean;
+  objectiveSummary: string;
+  alignmentScore: number;
+  diagnosis: string;
+  gapAreas: string[];
+  recommendedNextSteps: string[];
+}
+
 export interface ContentFocus {
   accountType?: "personal_brand" | "portfolio_service";
   hasClearFocus: boolean;
@@ -240,6 +249,7 @@ export interface ProfileAnalysis {
   contentPillars: ContentPillar[];
   burningProblems: BurningProblem[];
   contentFocus?: ContentFocus;
+  objectiveAlignment?: ObjectiveAlignment;
   recentPosts: RecentPost[];
   issues: string[];
   patterns: string[];

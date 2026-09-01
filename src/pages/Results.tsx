@@ -26,6 +26,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal, LockedOverlay, type UpgradeReason } from "@/components/UpgradeModal";
 import { PageHelmet } from "@/components/PageHelmet";
 import { hexToHslString } from "@/lib/colorUtils";
+import ProfileObjective from "@/components/ProfileObjective";
 
 /* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
 const RichText = ({ text }: { text: string }) => {
@@ -551,6 +552,12 @@ const Results = () => {
 
           {activeTab === "analysis" && (
             <>
+              <ProfileObjective
+                username={analysis.username}
+                alignment={analysis.objectiveAlignment}
+                readOnly={isDemo}
+              />
+
               {/* Score + Dimensions */}
               <div className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
                 <SectionCard padding="xl" className="flex flex-col items-center justify-center">
