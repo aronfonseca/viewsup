@@ -27,6 +27,7 @@ import { UpgradeModal, LockedOverlay, type UpgradeReason } from "@/components/Up
 import { PageHelmet } from "@/components/PageHelmet";
 import { hexToHslString } from "@/lib/colorUtils";
 import ProfileObjective from "@/components/ProfileObjective";
+import ContentCalendar from "@/components/ContentCalendar";
 
 /* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
 const RichText = ({ text }: { text: string }) => {
@@ -270,7 +271,7 @@ const Results = () => {
   const [loading, setLoading] = useState(!isDemo);
   const [jobStatus, setJobStatus] = useState<string>("pending");
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"analysis" | "trends" | "retention-lab">("analysis");
+  const [activeTab, setActiveTab] = useState<"analysis" | "trends" | "calendar" | "retention-lab">("analysis");
   const [exporting, setExporting] = useState(false);
   const [activeHookStyle, setActiveHookStyle] = useState<"reversePsychology" | "extremeCuriosity" | "bruteAuthority" | "acidHumor">("reversePsychology");
   const [editingCompany, setEditingCompany] = useState(false);
@@ -507,6 +508,15 @@ const Results = () => {
           >
             <Radar className="h-4 w-4" />
             {t("tabTrendRadar")}
+          </button>
+          <button
+            onClick={() => setActiveTab("calendar")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+              activeTab === "calendar" ? "gradient-bg text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            {lang === "pt-BR" ? "Calendário" : "Calendar"}
           </button>
           <button
             onClick={() => {
@@ -1324,6 +1334,10 @@ const Results = () => {
                 </SectionCard>
               )}
             </div>
+          )}
+
+          {activeTab === "calendar" && (
+            <ContentCalendar username={analysis.username} readOnly={isDemo} />
           )}
 
           {activeTab === "retention-lab" && canUseRetentionLab && (

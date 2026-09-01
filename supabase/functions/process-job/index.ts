@@ -1070,6 +1070,30 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     // Record into learning system (trigger will recompute nicho_insights)
     await recordHistory(admin, job, result, scrape);
 
+    // Seed the content calendar with this run's video ideas (planejado status).
+    // Upsert with ignoreDuplicates so re-running the analysis doesn't wipe or
+    // duplicate cards the operator already moved along (gravando/editando/postado).
+    if (Array.isArray(aiInput.videoIdeas) && aiInput.videoIdeas.length > 0) {
+      const calendarRows = aiInput.videoIdeas
+        .map((v: any) => ({
+          user_id: job.user_id,
+          username,
+          title: String(v?.title || "").slice(0, 200),
+          format: v?.format ? String(v.format).slice(0, 60) : null,
+          hook_verbal: v?.hookVerbal ? String(v.hookVerbal).slice(0, 300) : null,
+          best_day: v?.bestDay ? String(v.bestDay).slice(0, 40) : null,
+          best_time: v?.bestTime ? String(v.bestTime).slice(0, 40) : null,
+        }))
+        .filter((r: any) => r.title);
+      if (calendarRows.length > 0) {
+        const { error: calErr } = await admin
+          .from("content_calendar_items")
+          .upsert(calendarRows, { onConflict: "user_id,username,title", ignoreDuplicates: true });
+        if (calErr) console.warn("[Worker] calendar seed failed:", calErr.message);
+        else console.log(`[Worker] seeded ${calendarRows.length} calendar items for @${username}`);
+      }
+    }
+
     // Mirror to legacy reports table for dashboard listing
     console.log(`[Worker] profile_pic_url for @${username}:`, scrape.profilePicUrl ?? "(null)");
     try {
