@@ -28,6 +28,7 @@ import { PageHelmet } from "@/components/PageHelmet";
 import { hexToHslString } from "@/lib/colorUtils";
 import ProfileObjective from "@/components/ProfileObjective";
 import ContentCalendar from "@/components/ContentCalendar";
+import ReportOverviewGrid from "@/components/ReportOverviewGrid";
 
 /* ── Rich Text (markdown links + Instagram shortcodes in backticks) ── */
 const RichText = ({ text }: { text: string }) => {
@@ -562,14 +563,18 @@ const Results = () => {
 
           {activeTab === "analysis" && (
             <>
-              <ProfileObjective
-                username={analysis.username}
-                alignment={analysis.objectiveAlignment}
-                readOnly={isDemo}
-              />
+              <ReportOverviewGrid analysis={analysis} onGoToCalendar={() => setActiveTab("calendar")} />
+
+              <div id="section-objetivo">
+                <ProfileObjective
+                  username={analysis.username}
+                  alignment={analysis.objectiveAlignment}
+                  readOnly={isDemo}
+                />
+              </div>
 
               {/* Score + Dimensions */}
-              <div className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
+              <div id="section-score" className="grid lg:grid-cols-[280px_1fr] gap-6 mb-10">
                 <SectionCard padding="xl" className="flex flex-col items-center justify-center">
                   <p className="text-xs text-muted-foreground mb-4 tracking-wide">{t("overallScore")}</p>
                   <ScoreRing score={analysis.overallScore} />
@@ -801,7 +806,7 @@ const Results = () => {
 
 
               {analysis.profileHealth && (
-                <>
+                <div id="section-visual">
                   <h2 className="text-lg font-bold text-foreground mb-4">{t("profileHealth")}</h2>
                   <div className="grid md:grid-cols-3 gap-6 mb-10">
                     <AdvancedCard
@@ -862,7 +867,7 @@ const Results = () => {
                       </Callout>
                     </SectionCard>
                   </div>
-                </>
+                </div>
               )}
 
               {/* Video Engineering */}
@@ -972,7 +977,7 @@ const Results = () => {
 
               {/* Burning Problems */}
               {analysis.burningProblems && analysis.burningProblems.length > 0 && (
-                <SectionCard padding="xl" accentColor="destructive" className="mb-12">
+                <SectionCard id="section-problemas" padding="xl" accentColor="destructive" className="mb-12">
                   <div className="flex items-center gap-3 mb-6">
                     <AlertTriangle className="h-5 w-5 text-destructive" />
                     <h2 className="text-base font-bold text-foreground">{t("burningProblems")}</h2>
@@ -1002,7 +1007,7 @@ const Results = () => {
 
               {/* Content Focus Diagnosis */}
               {analysis.contentFocus && (
-                <SectionCard padding="xl" accentColor={analysis.contentFocus.hasClearFocus ? "success" : "warning"} className="mb-12">
+                <SectionCard id="section-foco" padding="xl" accentColor={analysis.contentFocus.hasClearFocus ? "success" : "warning"} className="mb-12">
                   <div className="flex items-center gap-3 mb-6">
                     {analysis.contentFocus.hasClearFocus
                       ? <CheckCircle2 className="h-5 w-5 text-success" />
@@ -1068,7 +1073,7 @@ const Results = () => {
 
               {/* ══ 10 VÍDEOS PARA GRAVAR AGORA ══ */}
               {analysis.videoIdeas && analysis.videoIdeas.length > 0 && (
-                <>
+                <div id="section-ideias">
                   <h2 className="text-lg font-bold text-foreground mb-2">{t("videoIdeasTitle")}</h2>
                   <p className="text-sm text-muted-foreground mb-4">{t("videoIdeasDesc")}</p>
                   <div className="grid sm:grid-cols-2 gap-4 mb-10">
@@ -1138,7 +1143,7 @@ const Results = () => {
                       );
                     })}
                   </div>
-                </>
+                </div>
               )}
 
               {/* Script Suggestions */}

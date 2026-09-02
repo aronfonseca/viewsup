@@ -24,6 +24,7 @@ interface SectionCardProps {
   padding?: keyof typeof PADDING_CLASS;
   accentColor?: Tone;
   className?: string;
+  id?: string;
   children: ReactNode;
 }
 
@@ -32,11 +33,13 @@ interface SectionCardProps {
  * nested inside a SectionCard that would otherwise be bg-card-on-bg-card.
  * `accentColor` adds a left rail only (no background wash) for the two
  * "diagnostic" sections (burningProblems, contentFocus) that should stay
- * visually findable without the heavy full-tint treatment.
+ * visually findable without the heavy full-tint treatment. `id` lets the
+ * report overview grid scroll a card into view.
  */
-export function SectionCard({ variant = "card", padding = "lg", accentColor, className, children }: SectionCardProps) {
+export function SectionCard({ variant = "card", padding = "lg", accentColor, className, id, children }: SectionCardProps) {
   return (
     <div
+      id={id}
       className={cn(
         variant === "card"
           ? "rounded-xl border border-border bg-card card-shadow"
