@@ -110,7 +110,7 @@ const AdvancedCard = ({ icon: Icon, title, score, stats, issues, insight, iconCo
       </div>
     )}
     <ul className="space-y-2 mb-4">
-      {issues.map((issue, i) => (
+      {(issues ?? []).map((issue, i) => (
         <li key={i} className="flex gap-3 text-sm text-foreground">
           <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
           <RichText text={issue} />

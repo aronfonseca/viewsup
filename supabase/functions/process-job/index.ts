@@ -515,6 +515,27 @@ async function fetchNicheInsight(admin: any, nicho: string): Promise<NicheInsigh
   return data as NicheInsightRow | null;
 }
 
+// Claude occasionally returns a schema field typed as an object as a JSON
+// string instead (seen historically on profileHealth, now also on
+// hookRetention) — the frontend then crashes reading e.g. `.issues` off a
+// string. Auto-detect and parse any of these BEFORE the per-field fallback
+// logic runs, instead of special-casing one field at a time.
+function coerceObjectField(input: any, field: string) {
+  const val = input[field];
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      input[field] = parsed;
+    } catch (e) {
+      console.warn(`[Worker] field "${field}" came back as an unparseable string, discarding:`, (e as Error).message);
+      input[field] = undefined;
+    }
+  } else if (Array.isArray(val)) {
+    console.warn(`[Worker] field "${field}" came back as an array instead of an object, discarding`);
+    input[field] = undefined;
+  }
+}
+
 function pickDimensionScore(dimensions: any[], regex: RegExp): number | null {
   if (!Array.isArray(dimensions)) return null;
   const d = dimensions.find((x) => regex.test(String(x?.name || x?.label || "")));
@@ -874,6 +895,12 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     if (!toolUse?.input) throw new Error("AI did not return structured analysis");
 
     const aiInput: any = toolUse.input;
+    // Guard every schema field that's supposed to be an object, in case the AI
+    // stringified it (has happened on different fields across different runs —
+    // see coerceObjectField above).
+    for (const f of ["profileHealth", "hookRetention", "viralScore", "contentFocus", "objectiveAlignment"]) {
+      coerceObjectField(aiInput, f);
+    }
     const analysis = aiInput;
     console.log('trendRadar raw:', JSON.stringify(aiInput.trendRadar));
     let trendRadar = normaliseTrendRadar(analysis, isPT, analysis.nicho || "Outros", username);
@@ -934,6 +961,19 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
     for (const k of ["dimensions", "issues", "patterns", "improvedHooks", "rewrittenCaptions", "burningProblems", "contentPillars", "videoIdeas", "scriptSuggestions", "hookStyles", "recentPosts"]) {
       if (!Array.isArray(aiInput[k])) aiInput[k] = [];
     }
+    if (!aiInput.hookRetention || typeof aiInput.hookRetention !== "object" || Array.isArray(aiInput.hookRetention)) {
+      aiInput.hookRetention = {
+        score: 0, audienceLostPercent: 0, hasVisualHook: false, hasVerbalHook: false,
+        issues: [], insight: isPT ? "Dado indisponível nesta execução." : "Data unavailable for this run.",
+      };
+    }
+    if (!Array.isArray(aiInput.hookRetention.issues)) aiInput.hookRetention.issues = [];
+    if (!aiInput.viralScore || typeof aiInput.viralScore !== "object" || Array.isArray(aiInput.viralScore)) {
+      aiInput.viralScore = {
+        probability: 0, hookStrengthFactor: 0, editDensityFactor: 0,
+        verdict: isPT ? "Dado indisponível nesta execução." : "Data unavailable for this run.",
+      };
+    }
     if (!aiInput.contentFocus || typeof aiInput.contentFocus !== "object" || Array.isArray(aiInput.contentFocus)) {
       aiInput.contentFocus = {
         accountType: "personal_brand",
@@ -982,6 +1022,20 @@ tool_choice: { type: "tool", name: ANALYSIS_SCHEMA.name },
       if (!aiInput.profileHealth || typeof aiInput.profileHealth !== "object" || Array.isArray(aiInput.profileHealth)) {
         aiInput.profileHealth = {};
       }
+      if (!aiInput.profileHealth.visualConsistency || typeof aiInput.profileHealth.visualConsistency !== "object" || Array.isArray(aiInput.profileHealth.visualConsistency)) {
+        aiInput.profileHealth.visualConsistency = {
+          score: 50, hasColorPattern: false, hasFontPattern: false, hostFaceVisible: false,
+          issues: [], insight: isPT ? "Dado indisponível nesta execução." : "Data unavailable for this run.",
+        };
+      }
+      if (!Array.isArray(aiInput.profileHealth.visualConsistency.issues)) aiInput.profileHealth.visualConsistency.issues = [];
+      if (!aiInput.profileHealth.bioHook || typeof aiInput.profileHealth.bioHook !== "object" || Array.isArray(aiInput.profileHealth.bioHook)) {
+        aiInput.profileHealth.bioHook = {
+          hasUSP: false, hasVisibleLink: false, issues: [],
+          insight: isPT ? "Dado indisponível nesta execução." : "Data unavailable for this run.",
+        };
+      }
+      if (!Array.isArray(aiInput.profileHealth.bioHook.issues)) aiInput.profileHealth.bioHook.issues = [];
       if (typeof aiInput.profileHealth.engagementRatio === "string") {
         try {
           aiInput.profileHealth.engagementRatio = JSON.parse(aiInput.profileHealth.engagementRatio);
