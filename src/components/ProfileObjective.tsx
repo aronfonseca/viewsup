@@ -124,11 +124,11 @@ const ProfileObjective = ({ username, alignment, readOnly }: ProfileObjectivePro
               {alignment.diagnosis && (
                 <Callout tone="primary"><p>{alignment.diagnosis}</p></Callout>
               )}
-              {alignment.gapAreas.length > 0 && (
+              {(alignment.gapAreas ?? []).length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("profileObjectiveGapAreas")}</p>
                   <ul className="space-y-1.5">
-                    {alignment.gapAreas.map((g, i) => (
+                    {(alignment.gapAreas ?? []).map((g, i) => (
                       <li key={i} className="flex gap-2 text-sm text-foreground">
                         <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-warning shrink-0" />
                         {g}
@@ -137,11 +137,11 @@ const ProfileObjective = ({ username, alignment, readOnly }: ProfileObjectivePro
                   </ul>
                 </div>
               )}
-              {alignment.recommendedNextSteps.length > 0 && (
+              {(alignment.recommendedNextSteps ?? []).length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("profileObjectiveNextSteps")}</p>
                   <ul className="space-y-1.5">
-                    {alignment.recommendedNextSteps.map((s, i) => (
+                    {(alignment.recommendedNextSteps ?? []).map((s, i) => (
                       <li key={i} className="flex gap-2 text-sm text-foreground">
                         <IconBadge tone="primary" size="sm" label={i + 1} />
                         <span className="pt-1">{s}</span>
