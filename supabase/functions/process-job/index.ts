@@ -649,25 +649,39 @@ async function processJob(jobId: string) {
     // re-prompt with niche context. To avoid 2x AI cost, we send the FULL niche
     // table summary in the first pass: Claude self-selects the niche AND uses it.
     // Here we fetch the full insights table so the model has cross-niche context.
-    const { data: allInsights } = await admin
-      .from("nicho_insights")
-      .select("nicho, total_analises, avg_score_geral, top_problemas, top_solucoes, insight_text")
-      .gte("total_analises", 2)
-      .order("total_analises", { ascending: false })
-      .limit(20);
+    // These four nicho_insights/pillar_scan reads are independent of each other —
+    // fire them together instead of waiting on each round-trip in turn.
+    const [
+      { data: allInsights },
+      { data: nicheResearchRows },
+      { data: seedBenchmarkRows },
+      { data: pillarScanRows },
+    ] = await Promise.all([
+      admin
+        .from("nicho_insights")
+        .select("nicho, total_analises, avg_score_geral, top_problemas, top_solucoes, insight_text")
+        .gte("total_analises", 2)
+        .order("total_analises", { ascending: false })
+        .limit(20),
+      admin
+        .from("nicho_insights")
+        .select("nicho, insight_text, viral_patterns"),
+      admin
+        .from("nicho_insights")
+        .select("nicho, seed_profiles_sampled, seed_avg_followers, seed_avg_likes, seed_avg_comments, seed_engagement_rate, seed_content_patterns, seed_image_urls")
+        .gt("seed_profiles_sampled", 0),
+      admin
+        .from("profile_pillar_scans")
+        .select("nicho, pilares_distintos, pilar_dominante, consistencia_visual")
+        .eq("dados_performance_disponiveis", true)
+        .not("pilares_distintos", "is", null),
+    ]);
 
     // For the prompt we pass a compact map; once the niche is detected we update profile_history.
     const nicheTableSummary = (allInsights ?? []).map((row: any) => {
       const tops = (row.top_problemas ?? []).slice(0, 2).map((p: any) => p.problema).join("; ");
       return `${row.nicho}: ${row.total_analises} análises, score médio ${Number(row.avg_score_geral ?? 0).toFixed(1)}, top problemas: ${tops || "—"}`;
     }).join("\n");
-
-    // Fetch full insight_text + viral_patterns (raw patterns from niche-research-agent)
-    // for every niche that has data, so Claude can ground trendRadar in REAL niche patterns
-    // matching the niche it classifies the profile into.
-    const { data: nicheResearchRows } = await admin
-      .from("nicho_insights")
-      .select("nicho, insight_text, viral_patterns");
 
     const nicheResearchBlock = (nicheResearchRows ?? [])
       .filter((r: any) => r.insight_text || (Array.isArray(r.viral_patterns) && r.viral_patterns.length > 0))
@@ -685,12 +699,8 @@ async function processJob(jobId: string) {
 
     // Seed benchmarks come from admin-curated reference accounts scraped by
     // niche-benchmark-agent (no total_analises gate — these exist even for
-    // niches with few or zero organic/paid analyses yet).
-    const { data: seedBenchmarkRows } = await admin
-      .from("nicho_insights")
-      .select("nicho, seed_profiles_sampled, seed_avg_followers, seed_avg_likes, seed_avg_comments, seed_engagement_rate, seed_content_patterns, seed_image_urls")
-      .gt("seed_profiles_sampled", 0);
-
+    // niches with few or zero organic/paid analyses yet). Fetched above in
+    // the parallel batch.
     const seedBenchmarkTable = (seedBenchmarkRows ?? []).map((row: any) =>
       `${row.nicho}: ${row.seed_profiles_sampled} contas reais analisadas — média ${row.seed_avg_followers ?? "?"} seguidores, ${row.seed_avg_likes ?? "?"} likes/post, ${row.seed_avg_comments ?? "?"} comentários/post, taxa de engajamento ${row.seed_engagement_rate ?? "?"}%`
     ).join("\n");
@@ -718,13 +728,8 @@ async function processJob(jobId: string) {
     // Aggregate results from pillar-scan-agent's research batches (real profiles,
     // discovered + scanned in bulk) — grounds "how many pillars is normal" and
     // "what's typical visual consistency" per niche in actual scanned examples,
-    // distinct from the curated seed accounts above.
-    const { data: pillarScanRows } = await admin
-      .from("profile_pillar_scans")
-      .select("nicho, pilares_distintos, pilar_dominante, consistencia_visual")
-      .eq("dados_performance_disponiveis", true)
-      .not("pilares_distintos", "is", null);
-
+    // distinct from the curated seed accounts above. Fetched above in the
+    // parallel batch.
     const pillarScanByNicho = new Map<string, { pilares: number[]; dominantes: string[]; visual: string[] }>();
     for (const row of pillarScanRows ?? []) {
       if (!row.nicho) continue;
@@ -772,20 +777,27 @@ async function processJob(jobId: string) {
       nicheContext,
     );
 
+    // Start downloading this profile's own thumbnails immediately — it doesn't
+    // depend on the niche guess below, no reason to wait for that first.
+    const ownImagesPromise = Promise.all((scrape.postImageUrls || []).slice(0, 6).map((url) => fetchImageAsBase64(url)));
+
     // Cheap niche pre-guess so we know which niche's reference-account images
     // (from niche-benchmark-agent, seed_image_urls) to attach as comparison
-    // context for the main call below.
-    const nicheGuess = await guessNicheCheap(scrape.summary, ANTHROPIC_API_KEY);
+    // context for the main call below. Skip the extra Anthropic round-trip
+    // entirely when no niche has any curated reference images yet — today
+    // that's most niches, so this avoids paying for a guess with no payoff.
+    const anyNicheHasReferenceImages = (seedBenchmarkRows ?? []).some((r: any) => Array.isArray(r.seed_image_urls) && r.seed_image_urls.length > 0);
+    const nicheGuess = anyNicheHasReferenceImages ? await guessNicheCheap(scrape.summary, ANTHROPIC_API_KEY) : null;
     const seedRowForGuess = nicheGuess ? (seedBenchmarkRows ?? []).find((r: any) => r.nicho === nicheGuess) : null;
     const referenceImageUrls: string[] = Array.isArray(seedRowForGuess?.seed_image_urls) ? seedRowForGuess.seed_image_urls.slice(0, 4) : [];
-    console.log(`[Worker] niche guess=${nicheGuess ?? "?"} | reference images available=${referenceImageUrls.length}`);
+    console.log(`[Worker] niche guess=${nicheGuess ?? "skipped"} | reference images available=${referenceImageUrls.length}`);
 
     // Download real post thumbnails — both this profile's own AND, when available,
     // real reference-account thumbnails for the guessed niche — so visualConsistency
     // is graded from what the model actually sees and compared against, instead of
     // guessed from text alone (was causing wildly inconsistent scores across runs).
     const [imageBlocksRaw, referenceImageBlocksRaw] = await Promise.all([
-      Promise.all((scrape.postImageUrls || []).slice(0, 6).map((url) => fetchImageAsBase64(url))),
+      ownImagesPromise,
       Promise.all(referenceImageUrls.map((url) => fetchImageAsBase64(url))),
     ]);
     const imageBlocks = imageBlocksRaw.filter((img): img is { data: string; mediaType: string } => img != null);
