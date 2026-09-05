@@ -400,8 +400,8 @@ const Results = () => {
           <p className="text-sm text-muted-foreground mt-1">{statusLabel[jobStatus] ?? statusLabel.pending}</p>
           <p className="text-xs text-muted-foreground/70 mt-3">
             {isPt
-              ? "Isso pode levar até 2 minutos. Você pode fechar esta aba — o relatório ficará salvo no seu painel."
-              : "This can take up to 2 minutes. You can close this tab — the report will be saved to your dashboard."}
+              ? "Isso pode levar de 2 a 5 minutos — estamos coletando dados reais do perfil e gerando um relatório completo. Você pode fechar esta aba — o relatório ficará salvo no seu painel."
+              : "This can take 2 to 5 minutes — we're collecting real profile data and generating a full report. You can close this tab — the report will be saved to your dashboard."}
           </p>
         </div>
       </div>
